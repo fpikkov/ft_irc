@@ -39,3 +39,7 @@
 
 # debug information files
 *.dwo
+
+# Additional ignores
+*.txt
+.vscode/
