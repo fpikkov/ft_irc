@@ -42,4 +42,7 @@
 
 # Additional ignores
 *.txt
+*.d
 .vscode/
+obj/
+build/
