@@ -6,7 +6,7 @@ YELLOW = \033[1;33m
 CLEAR = \033[0m
 
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++20
+CXXFLAGS = -Wall -Wextra -Werror -std=c++20 -MMD -MP
 INC_FLAGS = -I${INCLUDE_DIR}
 
 BUILD_DIR = ./build
@@ -14,7 +14,7 @@ INCLUDE_DIR = ./include
 SRC_DIR = ./src
 OBJ_DIR = ./obj
 
-NAME = ft_irc
+NAME = ircserv
 
 BUILD = ${BUILD_DIR}/${NAME}
 
@@ -24,6 +24,8 @@ VPATH = ${SRC_DIR}/main
 SRCS = main.cpp
 
 OBJS = ${SRCS:%.cpp=${OBJ_DIR}/%.o}
+
+DEPS = ${OBJS:.o=.d}
 
 # --------	MAKE TARGETS	--------
 all: ${BUILD}
@@ -38,6 +40,8 @@ ${OBJ_DIR}/%.o : %.cpp
 	@echo "${CYAN}Generating object files...${CLEAR}"
 	@mkdir -p ${OBJ_DIR}
 	@$(CXX) $(CXXFLAGS) -c $< -o $@ ${INC_FLAGS}
+
+-include ${DEPS}
 
 clean:
 	@echo "${RED}Cleaning object files...${CLEAR}"
