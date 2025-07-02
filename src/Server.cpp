@@ -13,8 +13,7 @@ Server::Server( const std::string port, const std::string password ) :
 	_password( password ),
 	_serverSocket(-1)
 {
-	// TODO: make the signal handling work
-	signal(SIGTERM, Server::signalHandler);
+	signal(SIGINT, Server::signalHandler);
 	signal(SIGQUIT, Server::signalHandler);
 
 	((sockaddr_in *)&_serverAddress)->sin_family = AF_INET;
@@ -61,9 +60,6 @@ auto Server::serverLoop() -> void
 	{
 		// do stuff
 	}
-
-	if (_terminate)
-		std::cerr << "Server closing" << std::endl;
 }
 
 
@@ -71,6 +67,6 @@ auto Server::serverLoop() -> void
 
 auto Server::signalHandler( int signum ) -> void
 {
-	if ( signum == SIGQUIT || signum == SIGTERM )
+	if ( signum == SIGQUIT || signum == SIGINT )
 		Server::_terminate = true;
 }

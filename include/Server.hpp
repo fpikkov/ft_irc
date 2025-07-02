@@ -5,6 +5,9 @@
 #include <vector>
 #include <map>
 
+/**
+ * TODO: Set up pollfd, get new cclient connections and sstore them in the _clients map with the file descriptors as the keys
+ */
 class Server
 {
 	private:
