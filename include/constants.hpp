@@ -6,3 +6,6 @@
 #define CYAN "\033[1;36m"
 #define YELLOW "\033[1;33m"
 #define CLEAR "\033[0m"
+
+// Backlog value for listen. System maximum is 4096
+#define BACKLOG 512

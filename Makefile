@@ -15,13 +15,15 @@ SRC_DIR = ./src
 OBJ_DIR = ./obj
 
 NAME = ircserv
-
 BUILD = ${BUILD_DIR}/${NAME}
 
 # Add more subdirectories in /src when required
-VPATH = ${SRC_DIR}/main
+VPATH = ${SRC_DIR}
 
-SRCS = main.cpp
+SRCS =	main.cpp \
+		Server.cpp \
+		Client.cpp \
+		Logger.cpp \
 
 OBJS = ${SRCS:%.cpp=${OBJ_DIR}/%.o}
 

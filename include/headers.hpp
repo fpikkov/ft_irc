@@ -5,16 +5,13 @@
 #include <sys/socket.h>
 #include <csignal>
 #include <unistd.h>
-#include <fcntl.h>
-#include <netdb.h>
 #include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/stat.h>
 #include <poll.h>
-#include <chrono>
+
+#include <exception>
 
 /**
- * LIBRARIED     | FUNCTIONS
+ * LIBRARIES     | FUNCTIONS
  *
  * types, socket | socket, setsockopt, getsockname, bind,
  *                 connect, listen, accept, send, recv
