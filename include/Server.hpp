@@ -14,7 +14,7 @@ class Server
 		int							_port;
 		std::string					_password;
 		int							_serverSocket;
-	//	std::map<unsigned, Client>	_clients;
+		std::map<unsigned, Client>	_clients;
 		std::vector<pollfd>			_fds;
 		sockaddr					_serverAddress;
 		static bool					_terminate;
