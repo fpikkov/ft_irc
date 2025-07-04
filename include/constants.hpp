@@ -8,4 +8,4 @@
 #define CLEAR "\033[0m"
 
 // Backlog value for listen. System maximum is 4096
-#define BACKLOG 512
+#define BACKLOG 128

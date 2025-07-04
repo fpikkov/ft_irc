@@ -3,7 +3,7 @@
 #include "headers.hpp"
 #include "Client.hpp"
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 /**
  * TODO: Set up pollfd, get new cclient connections and sstore them in the _clients map with the file descriptors as the keys
@@ -11,13 +11,13 @@
 class Server
 {
 	private:
-		int							_port;
-		std::string					_password;
-		int							_serverSocket;
-		std::map<unsigned, Client>	_clients;
-		std::vector<pollfd>			_fds;
-		sockaddr					_serverAddress;
-		static bool					_terminate;
+		int										_port;
+		std::string								_password;
+		int										_serverSocket;
+		std::unordered_map<unsigned, Client>	_clients;
+		std::vector<pollfd>						_fds;
+		sockaddr								_serverAddress;
+		static bool								_terminate;
 
 		Server()							= delete;
 		Server( const Server& )				= delete;

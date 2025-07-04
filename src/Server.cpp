@@ -31,6 +31,8 @@ Server::~Server()
 		close((*it).fd);
 		it = _fds.erase(it);
 	}
+
+	_clients.clear();
 }
 
 
@@ -88,6 +90,27 @@ auto Server::serverLoop() -> void
 					 * 5. Store pollfd in newClients
 					 * 6. Log the event
 					 */
+					Client		newClient;
+					sockaddr	clientAddress = {};
+					socklen_t	clientAddrLen = sizeof( clientAddress );
+
+					int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
+					if ( newClientSocket < 0 )
+					{
+						// Log the error
+						continue ;
+					}
+
+					newClient.setClientFd( newClientSocket );
+					newClient.setClientAddress( clientAddress );
+
+					pollfd	clientPoll;
+					clientPoll.fd = newClientSocket;
+					clientPoll.events = POLLIN;
+					clientPoll.revents = 0;
+					newClients.push_back(clientPoll);
+
+					_clients[newClientSocket] = newClient;
 				}
 				else // Client is sending a new message
 				{
