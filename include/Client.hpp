@@ -1,6 +1,5 @@
 #pragma once
 #include <unordered_set>
-
 #include "headers.hpp"
 
 class Client
@@ -12,39 +11,39 @@ private:
 	std::string						_realname;
 	std::string						_hostname;
 	std::string						_buffer;
-	bool							authenticated;
-	std::unordered_set<std::string>	channels;
+	bool							_authenticated;
+	std::unordered_set<std::string>	_channels;
 
 
 public:
-	//Getters
+
+	Client(int client_fd);
+
+	// Getters
 	int		getFd() const;
 	const 	std::string& getNickname() const;
 	const 	std::string& getUsername() const;
 	const 	std::string& getRealname() const;
 	const 	std::string& getHostname() const;
 	bool	isAuthenticated() const;
-	bool	getOperatorStatus() const;
 	const	std::unordered_set<std::string>& getChannels() const;
 
-	//Setters
-	void	setNickname(std::string const &nickname);
-	void	setUsername(std::string const &username);
-	void	setRealname(std::string const &realname);
-	void	setHostname(std::string const &realname);
+	// Setters
+	void	setNickname(const std::string& nickname);
+	void	setUsername(const std::string& username);
+	void	setRealname(const std::string& realname);
+	void	setHostname(const std::string& hostname);
 	void	setAuthenticated(bool auth);
 
-	//Buffer management
-	void	appendToBuffer(const std::string& data);
+	// Buffer management
+	void		appendToBuffer(const std::string& data);
+	bool		hasCompleteLine() const;
 	std::string	extractLine();
 
-	//Channel management
+	// Channel management
 	void	joinChannel(const std::string& channel);
 	void	leaveChannel(const std::string& channel);
-
-	//Constructors/Destructor
-	Client(int client_fd);
-	~Client();
+	bool	isInChannel(const std::string& channel) const;
 };
 
 /*
