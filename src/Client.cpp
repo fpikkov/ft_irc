@@ -1,25 +1,56 @@
 #include "Client.hpp"
 
-//Setters
+Client::Client(int client_fd) : _client_fd(client_fd), _authenticated(false) {}
 
-void    Client::setNickname(std::string const &nickname) {_nickname = nickname;};
-
-void    Client::setUsername(std::string const &username) {_username = username;};
-
-void    Client::setRealname(std::string const &realname) {_realname = realname;};
-
-//Getters
-
+// Getters
 int	Client::getFd() const {return _client_fd;}
+const	std::string&  Client::getNickname() const { return _nickname; }
+const	std::string&  Client::getUsername() const { return _username; }
+const	std::string&  Client::getRealname() const { return _realname; }
+const	std::string&  Client::getHostname() const { return _hostname; }
+bool	Client::isAuthenticated() const { return _authenticated; }
+const	std::unordered_set<std::string>& Client::getChannels() const { return _channels; }
 
-std::string const    &Client::getNickname() const {return _nickname;};
+// Setters
+void    Client::setNickname(const std::string& nickname) { _nickname = nickname; }
+void    Client::setUsername(const std::string& username) { _username = username; }
+void    Client::setRealname(const std::string& realname) { _realname = realname; }
+void    Client::setHostname(const std::string& hostname) { _hostname = hostname; }
+void	Client::setAuthenticated(bool auth) { _authenticated = auth; }
 
-std::string const    &Client::getUsername() const {return _username;};
 
-std::string const    &Client::getRealname() const {return _realname;};
+// Buffer management
+void	Client::appendToBuffer(const std::string& data) { _buffer += data; }
 
-//NOTE: Constructors/Destructor
+// Checks if there is at least one complete IRC command in the buffer
+// Returns true if \r\n is found in the buffer, false otherwise.
+bool	Client::hasCompleteLine() const {
+	return _buffer.find("\r\n") != std::string::npos;
+}
 
-Client::Client(int client_fd) : _client_fd(client_fd) {}
+// Extracting and returning one complete IRC command (without \r\n) from the buffer.
+std::string Client::extractLine() {
+	size_t pos = _buffer.find("\r\n");
+	if (pos == std::string::npos)
+		return "";
+	std::string line = _buffer.substr(0, pos);
+	_buffer.erase(0, pos + 2);
+	return line;
+}
 
-Client::~Client() {}
+// Adds a channel to the set of channels the client has joined.
+// No duplicates are possible due to unordered_set.
+void	Client::joinChannel(const std::string& channel) {
+	_channels.insert(channel);
+}
+
+void	Client::leaveChannel(const std::string& channel) {
+	_channels.erase(channel);
+}
+
+// find(channel) returns an iterator to the channel if present, or channels.end() if not.
+// If not end(), the client is in the channel.
+bool	Client::isInChannel(const std::string& channel) const {
+	return _channels.find(channel) != _channels.end();
+}
+
