@@ -1,15 +1,15 @@
 #include "Logger.hpp"
-#include "macros.hpp"
+#include "constants.hpp"
 
 Logger::Logger() {}
 
-auto Logger::instance() -> Logger&
+Logger&	Logger::instance()
 {
 	static Logger	logger;
 	return ( logger );
 }
 
-auto Logger::timestamp() -> std::string
+std::string	Logger::timestamp()
 {
 	using sysclock = std::chrono::system_clock;
 	const std::time_t cTime = sysclock::to_time_t( sysclock::now() );
@@ -21,9 +21,9 @@ auto Logger::timestamp() -> std::string
 }
 
 // TODO: status can be an integer or bool so we could colorize the logging outputs
-auto Logger::log( const std::string& func, const std::string& status, const std::string& msg ) -> void
+void	Logger::log( const std::string& func, const std::string& status, const std::string& msg )
 {
 	std::string	time = timestamp();
 
-	PRINT( time << " [" << status << "]" << " " << func << " " << msg );
+	std::cout << time << " [" << status << "]" << " " << func << " " << msg << std::endl;
 }

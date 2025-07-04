@@ -1,6 +1,6 @@
 #include "headers.hpp"
 #include "Server.hpp"
-#include "macros.hpp"
+#include "constants.hpp"
 
 auto main( int argc, char **argv ) -> int
 {
@@ -20,7 +20,7 @@ auto main( int argc, char **argv ) -> int
 	}
 	else
 	{
-		PRINT("Usage: ircserv [port] [password]");
+		irc::print("Usage: ircserv [port] [password]");
 	}
 
 	return (0);

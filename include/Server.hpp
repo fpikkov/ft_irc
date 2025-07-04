@@ -5,9 +5,6 @@
 #include <vector>
 #include <unordered_map>
 
-/**
- * TODO: Set up pollfd, get new cclient connections and sstore them in the _clients map with the file descriptors as the keys
- */
 class Server
 {
 	private:
@@ -17,6 +14,7 @@ class Server
 		std::unordered_map<unsigned, Client>	_clients;
 		std::vector<pollfd>						_fds;
 		sockaddr								_serverAddress;
+		std::string								_serverStartTime;
 		static bool								_terminate;
 
 		Server()								= delete;
@@ -34,12 +32,13 @@ class Server
 		void		serverLoop				();
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
 		void		disconnectClients		( std::vector<int>& remove_clients );
+		bool		receiveClientMessage	( int file_descriptor, std::vector<int>& remove_clients );
 
 		class InvalidClientException: public std::exception
 		{
 			public:
 				const char* what() const noexcept override;
-		};;
+		};
 
 };
 

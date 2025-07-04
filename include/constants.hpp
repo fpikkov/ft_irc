@@ -1,16 +1,31 @@
 #pragma once
 
-// ANSI color codes
-#define RED "\033[1;31m"
-#define GREEN "\033[1;32m"
-#define CYAN "\033[1;36m"
-#define YELLOW "\033[1;33m"
-#define CLEAR "\033[0m"
+#include <iostream>
+#include "Logger.hpp"
 
-// Backlog value for listen. System maximum is 4096
-#define BACKLOG 128
+namespace irc
+{
+	// Backlog value for listen. System maximum is 4096
+	constexpr int const MAX_CONNECTION_REQUESTS = 128;
 
-// Logging statuses
-#define LOG_FAIL "\033[1;31mFAILURE\033[0m"
-#define LOG_SUCCESS "\033[1;32mSUCCESS\033[0m"
-#define LOG_DEBUG "\033[1;36mDEBUG\033[0m"
+	// Buffer size as defined in the IRC protocol
+	constexpr size_t const MAX_IRC_MESSAGE_LENGTH = 512;
+
+	// Maximum incomplete message buffer size
+	constexpr int const MAX_CLIENT_BUFFER_SIZE = 4096;
+
+	// Logging statuses
+	constexpr const char* const LOG_FAIL = "\033[1;31mFAILURE\033[0m";
+	constexpr const char* const LOG_SUCCESS = "\033[1;32mSUCCESS\033[0m";
+	constexpr const char* const LOG_DEBUG = "\033[1;36mDEBUG\033[0m";
+
+	// Macros
+	inline void print( const auto& msg ) { std::cout << msg << '\n'; }
+	inline void log_event( const std::string& func, const std::string& status, const std::string& msg )
+	{
+		Logger::instance().log( func, status, msg );
+	}
+
+}
+
+

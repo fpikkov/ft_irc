@@ -13,10 +13,10 @@ class Logger
 		Logger( const Logger& )				= delete;
 		Logger& operator=( const Logger& )	= delete;
 
-		auto timestamp() -> std::string;
 
 	public:
-		static auto	instance() -> Logger&;
-		auto		log( const std::string& func, const std::string& status, const std::string& msg) -> void;
+		static Logger&		instance();
+		static std::string	timestamp();
+		void				log( const std::string& func, const std::string& status, const std::string& msg);
 
 };

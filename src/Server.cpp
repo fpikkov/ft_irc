@@ -17,6 +17,8 @@ Server::Server( const std::string port, const std::string password ) :
 {
 	signalSetup( true );
 
+	_serverStartTime = Logger::timestamp();
+
 	((sockaddr_in *)&_serverAddress)->sin_family = AF_INET;
 	((sockaddr_in *)&_serverAddress)->sin_addr.s_addr = INADDR_ANY;
 	((sockaddr_in *)&_serverAddress)->sin_port = htons( _port );
@@ -54,7 +56,7 @@ void	Server::serverSetup()
 	if ( bind( _serverSocket, &_serverAddress, sizeof( _serverAddress )) < 0 )
 		throw ( std::runtime_error("Error: failed to bind server socket.") );
 
-	if ( listen( _serverSocket, BACKLOG ) < 0 )
+	if ( listen( _serverSocket, irc::MAX_CONNECTION_REQUESTS ) < 0 )
 		throw ( std::runtime_error("Error: failed to listen on port: " + std::to_string(_port)) );
 
 	pollfd	serverPoll;
@@ -65,7 +67,7 @@ void	Server::serverSetup()
 
 	_fds.insert( _fds.cbegin(), serverPoll );
 
-	Logger::instance().log("SERVER LAUNCH", LOG_SUCCESS, "running on port " + std::to_string(_port));
+	irc::log_event("SERVER LAUNCH", irc::LOG_SUCCESS, "running on port " + std::to_string(_port));
 }
 
 void	Server::serverLoop()
@@ -76,33 +78,29 @@ void	Server::serverLoop()
 		{
 			if ( errno == EINTR ) // Signal was caught during poll
 			{
-				Logger::instance().log("POLL", LOG_DEBUG, "received shutdown signal");
+				irc::log_event("POLL", irc::LOG_DEBUG, "received shutdown signal");
 				break ;
 			}
-			Logger::instance().log("POLL", LOG_FAIL, "shutting down");
+			irc::log_event("POLL", irc::LOG_FAIL, "shutting down");
 		}
 
 		std::vector<pollfd>	newClients;
 		std::vector<int>	removeClientFd;
+
 		for ( auto& fd : _fds )
 		{
 			if ( fd.revents & POLLIN )
 			{
 				if ( fd.fd == _serverSocket ) // Accept new connection
 				{
-					if (!acceptClientConnection( newClients ));
+					if ( !acceptClientConnection( newClients ) )
 						continue ;
 				}
 				else // Client is sending a new message
 				{
-					/**
-					 * 1. Receive message from client
-					 * 2. Parse the message { <prefix> <command> <parameters> }
-					 * 3. Check validity of client
-					 * 4a Set Client properties
-					 * 4b Execute command
-					 * 5. Log the event
-					 */
+					// TODO: Double check if the same fd has queued up messages in the sendBuffer
+					if ( !receiveClientMessage( fd.fd, removeClientFd ) )
+						continue ;
 				}
 			}
 			else if ( fd.revents & POLLOUT ) // Server is ready to send message to client
@@ -184,7 +182,7 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
 	if ( newClientSocket < 0 )
 	{
-		Logger::instance().log("NEW CONNECTION", LOG_FAIL, "accept failed");
+		irc::log_event("NEW CONNECTION", irc::LOG_FAIL, "accept failed");
 		return ( false ) ;
 	}
 
@@ -199,7 +197,7 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 
 	_clients[newClientSocket] = newClient;
 
-	Logger::instance().log("NEW CONNECTION", LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
+	irc::log_event("NEW CONNECTION", irc::LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
 	return ( true );
 }
 
@@ -214,7 +212,7 @@ void	Server::disconnectClients( std::vector<int>& remove_clients )
 	 *
 	 * 1. Remove client
 	 * 2. Close it's associated fd
-	 * 3. Remove associated data such as in channels
+	 * 3. Remove associated data such as in channels // TODO: when Channels are set up
 	 * 4. Log the disconnect as an event
 	 */
 	for ( int fd : remove_clients )
@@ -231,6 +229,54 @@ void	Server::disconnectClients( std::vector<int>& remove_clients )
 			}
 		}
 		// TODO: Notify channels about the disconnect
-		Logger::instance().log("DISCONNECT", LOG_SUCCESS, "client fd " + std::to_string(fd));
+		irc::log_event("DISCONNECT", irc::LOG_SUCCESS, "client fd " + std::to_string(fd));
 	}
 }
+
+// Client messaging
+
+bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove_clients )
+{
+	/**
+	 * 1. Receive message from client
+	 * 2. Parse the message { <prefix> <command> <parameters> }
+	 * 3. Check validity of client
+	 * 4a Set Client properties
+	 * 4b Execute command
+	 * 5. Log the event
+	 */
+	std::vector<char>	buffer( irc::MAX_IRC_MESSAGE_LENGTH + 1 );
+
+	ssize_t bytes = recv( file_descriptor, buffer.data(), irc::MAX_IRC_MESSAGE_LENGTH, 0 );
+
+	if ( bytes < 0 )
+	{
+		if ( errno != EAGAIN && errno != EWOULDBLOCK ) // client has disconnected
+		{
+			remove_clients.push_back(file_descriptor);
+			return (false);
+		}
+	}
+	else if ( bytes == 0 ) // client has disconnected
+	{
+		remove_clients.push_back(file_descriptor);
+		return (false);
+	}
+	else
+	{
+		/**
+		 * Process the received message.
+		 * Check if the message was partial so it should be stored with Client
+		 * If full message has been received (and Client buffer is empty)
+		 * 	 parse the string to command structure
+		 * Immediately send() the response to the client when a valid command was parsed
+		 */
+		// std::string(buffer.data(), buffer.size() - 1);
+	}
+	return (true);
+}
+
+
+/// Exceptions
+
+const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }
