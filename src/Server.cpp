@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "constants.hpp"
 #include "Logger.hpp"
+#include <termios.h>
 
 /// Static member variables
 
@@ -14,8 +15,7 @@ Server::Server( const std::string port, const std::string password ) :
 	_password( password ),
 	_serverSocket(-1)
 {
-	signal(SIGINT, Server::signalHandler);
-	signal(SIGQUIT, Server::signalHandler);
+	signalSetup( true );
 
 	((sockaddr_in *)&_serverAddress)->sin_family = AF_INET;
 	((sockaddr_in *)&_serverAddress)->sin_addr.s_addr = INADDR_ANY;
@@ -24,16 +24,18 @@ Server::Server( const std::string port, const std::string password ) :
 
 Server::~Server()
 {
-	auto it = _fds.begin();
-	auto ite = _fds.end();
-
-	for ( ; it != ite; ++it )
+	for ( const auto& fd : _fds )
 	{
-		close((*it).fd);
-		it = _fds.erase(it);
+		if ( fd.fd >= 0 )
+			close( fd.fd );
 	}
 
-	_clients.clear();
+	if ( !_fds.empty() )
+		_fds.clear();
+	if ( !_clients.empty() )
+		_clients.clear();
+
+	signalSetup( false );
 }
 
 
@@ -62,18 +64,22 @@ auto Server::serverSetup() -> void
 	serverPoll.revents = 0;
 
 	_fds.insert( _fds.cbegin(), serverPoll );
+
+	Logger::instance().log("SERVER LAUNCH", LOG_SUCCESS, "running on port " + std::to_string(_port));
 }
 
 auto Server::serverLoop() -> void
 {
 	while ( !_terminate )
 	{
-		if ( poll( (pollfd *)&_fds, _fds.size(), -1 ) )
+		if ( poll( _fds.data(), _fds.size(), -1 ) < 0 )
 		{
 			if ( errno == EINTR ) // Signal was caught during poll
+			{
+				Logger::instance().log("POLL", LOG_DEBUG, "received shutdown signal");
 				break ;
-			// TODO: replace with custom logging logic and return
-			throw (std::runtime_error("Error: poll failure"));
+			}
+			Logger::instance().log("POLL", LOG_FAIL, "shutting down");
 		}
 
 		std::vector<pollfd>	newClients;
@@ -98,7 +104,7 @@ auto Server::serverLoop() -> void
 					int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
 					if ( newClientSocket < 0 )
 					{
-						Logger::instance().log("NEW CONNECTION", LOG_FAIL, "new client connection failed.");
+						Logger::instance().log("NEW CONNECTION", LOG_FAIL, "accept failed");
 						continue ;
 					}
 
@@ -113,7 +119,7 @@ auto Server::serverLoop() -> void
 
 					_clients[newClientSocket] = newClient;
 
-					Logger::instance().log("NEW CONNECTION", LOG_SUCCESS, "new client connection successful.");
+					Logger::instance().log("NEW CONNECTION", LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
 				}
 				else // Client is sending a new message
 				{
@@ -151,6 +157,31 @@ auto Server::serverLoop() -> void
 
 
 /// Signal handling
+
+auto Server::signalSetup( bool start ) noexcept -> void
+{
+	static termios	new_terminal;
+	static termios	old_terminal;
+
+	if ( start )
+	{
+		signal(SIGINT, Server::signalHandler);
+		signal(SIGQUIT, Server::signalHandler);
+
+		tcgetattr(STDIN_FILENO, &old_terminal);
+		new_terminal = old_terminal;
+		new_terminal.c_lflag &= ~ECHOCTL;
+		old_terminal.c_lflag |= ECHOCTL;
+		tcsetattr(STDIN_FILENO, TCSANOW, &new_terminal);
+	}
+	else
+	{
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
+
+		tcsetattr(STDIN_FILENO, TCSANOW, &old_terminal);
+	}
+}
 
 auto Server::signalHandler( int signum ) -> void
 {

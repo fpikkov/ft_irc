@@ -23,6 +23,7 @@ class Server
 		Server( const Server& )				= delete;
 		Server& operator=( const Server& )	= delete;
 
+		auto		signalSetup( bool start ) noexcept -> void;
 		static auto signalHandler( int signum ) -> void;
 
 	public:
