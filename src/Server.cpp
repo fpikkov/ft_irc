@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "constants.hpp"
+#include "Logger.hpp"
 
 /// Static member variables
 
@@ -97,7 +98,7 @@ auto Server::serverLoop() -> void
 					int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
 					if ( newClientSocket < 0 )
 					{
-						// Log the error
+						Logger::instance().log("NEW CONNECTION", LOG_FAIL, "new client connection failed.");
 						continue ;
 					}
 
@@ -111,6 +112,8 @@ auto Server::serverLoop() -> void
 					newClients.push_back(clientPoll);
 
 					_clients[newClientSocket] = newClient;
+
+					Logger::instance().log("NEW CONNECTION", LOG_SUCCESS, "new client connection successful.");
 				}
 				else // Client is sending a new message
 				{
