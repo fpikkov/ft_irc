@@ -5,35 +5,46 @@
 class Client
 {
 private:
-	int								_client_fd;
-	std::string						_nickname;
+	int								_clientFd;
 	std::string						_username;
-	std::string						_realname;
 	std::string						_hostname;
+	std::string						_nickname; // servername
+	std::string						_realname;
 	std::string						_buffer;
 	bool							_authenticated;
 	std::unordered_set<std::string>	_channels;
-
+	std::string						_receiveBuffer;
+	std::string						_sendBuffer;
+	sockaddr						_clientAddress;
 
 public:
-
+	//Constructors/Destructor
+	Client();
 	Client(int client_fd);
+	~Client();
 
 	// Getters
-	int		getFd() const;
-	const 	std::string& getNickname() const;
-	const 	std::string& getUsername() const;
-	const 	std::string& getRealname() const;
-	const 	std::string& getHostname() const;
-	bool	isAuthenticated() const;
-	const	std::unordered_set<std::string>& getChannels() const;
+	int										getFd				() const;
+	const std::string&						getUsername			() const;
+	const std::string&						getHostname			() const;
+	const std::string&						getNickname			() const;
+	const std::string&						getRealname			() const;
+	bool									isAuthenticated		() const;
+	std::unordered_set<std::string>&		getChannels			();
+	std::string&							getReceiveBuffer	();
+	std::string&							getSendBuffer		();
+	sockaddr&								getClientAddress	();
 
 	// Setters
-	void	setNickname(const std::string& nickname);
-	void	setUsername(const std::string& username);
-	void	setRealname(const std::string& realname);
-	void	setHostname(const std::string& hostname);
-	void	setAuthenticated(bool auth);
+	void		setClientFd			( int fd );
+	void		setUsername			( std::string const &username );
+	void		setHostname			( std::string const &hostname );
+	void		setNickname			( std::string const &nickname );
+	void		setRealname			( std::string const &realname );
+	void		setReceiveBuffer	( std::string const &buffer );
+	void		setSendBuffer		( std::string const &buffer );
+	void		setClientAddress	( sockaddr address );
+	void		setAuthenticated	( bool auth );
 
 	// Buffer management
 	void		appendToBuffer(const std::string& data);
@@ -41,9 +52,9 @@ public:
 	std::string	extractLine();
 
 	// Channel management
-	void	joinChannel(const std::string& channel);
-	void	leaveChannel(const std::string& channel);
-	bool	isInChannel(const std::string& channel) const;
+	void		joinChannel(const std::string& channel);
+	void		leaveChannel(const std::string& channel);
+	bool		isInChannel(const std::string& channel) const;
 };
 
 /*

@@ -17,6 +17,6 @@ class Logger
 
 	public:
 		static auto	instance() -> Logger&;
-		auto		log( const std::string&, const std::string&, const std::string& ) -> void;
+		auto		log( const std::string& func, const std::string& status, const std::string& msg) -> void;
 
 };

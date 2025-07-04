@@ -10,8 +10,7 @@ auto main( int argc, char **argv ) -> int
 		{
 			Server server(argv[1], argv[2]);
 
-			// TODO: restt of the server calls
-
+			server.serverSetup();
 			server.serverLoop();
 		}
 		catch(const std::exception& e)
