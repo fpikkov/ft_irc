@@ -41,7 +41,7 @@ Server::~Server()
 
 /// Member functions
 
-auto Server::serverSetup() -> void
+void	Server::serverSetup()
 {
 	_serverSocket = socket( AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP );
 	if ( _serverSocket < 0 )
@@ -68,7 +68,7 @@ auto Server::serverSetup() -> void
 	Logger::instance().log("SERVER LAUNCH", LOG_SUCCESS, "running on port " + std::to_string(_port));
 }
 
-auto Server::serverLoop() -> void
+void	Server::serverLoop()
 {
 	while ( !_terminate )
 	{
@@ -83,43 +83,15 @@ auto Server::serverLoop() -> void
 		}
 
 		std::vector<pollfd>	newClients;
+		std::vector<int>	removeClientFd;
 		for ( auto& fd : _fds )
 		{
 			if ( fd.revents & POLLIN )
 			{
 				if ( fd.fd == _serverSocket ) // Accept new connection
 				{
-					/**
-					 * 1. Accept the connection
-					 * 2. Create pollfd from the associated client socket
-					 * 3. Set events to POLLIN (and potentially others at the same time)
-					 * 4. Create new Client class from the socket and store it in map
-					 * 5. Store pollfd in newClients
-					 * 6. Log the event
-					 */
-					Client		newClient;
-					sockaddr	clientAddress = {};
-					socklen_t	clientAddrLen = sizeof( clientAddress );
-
-					int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
-					if ( newClientSocket < 0 )
-					{
-						Logger::instance().log("NEW CONNECTION", LOG_FAIL, "accept failed");
+					if (!acceptClientConnection( newClients ));
 						continue ;
-					}
-
-					newClient.setClientFd( newClientSocket );
-					newClient.setClientAddress( clientAddress );
-
-					pollfd	clientPoll;
-					clientPoll.fd = newClientSocket;
-					clientPoll.events = POLLIN;
-					clientPoll.revents = 0;
-					newClients.push_back(clientPoll);
-
-					_clients[newClientSocket] = newClient;
-
-					Logger::instance().log("NEW CONNECTION", LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
 				}
 				else // Client is sending a new message
 				{
@@ -139,26 +111,23 @@ auto Server::serverLoop() -> void
 				 * TODO: Figure out the steps
 				 */
 			}
-			else if ( fd.revents & ( POLLERR | POLLHUP | POLLNVAL ) ) // Remove client on error  or hangup
+			else if ( fd.revents & ( POLLERR | POLLHUP | POLLNVAL ) ) // Remove client on error or hangup
 			{
-				/**
-				 * 1. Remove client
-				 * 2. Close it's associated fd
-				 * 3. Remove associated data such as in channels
-				 * 4. Log the disconnect as an event
-				 */
+				removeClientFd.push_back(fd.fd);
 			}
 		}
 
 		if ( !newClients.empty() )
 			_fds.insert( _fds.end(), newClients.begin(), newClients.end() );
+		if ( !removeClientFd.empty() ) // Comes after adding clients as they may have already dc'd
+			disconnectClients( removeClientFd );
 	}
 }
 
 
 /// Signal handling
 
-auto Server::signalSetup( bool start ) noexcept -> void
+void	Server::signalSetup( bool start ) noexcept
 {
 	static termios	new_terminal;
 	static termios	old_terminal;
@@ -183,8 +152,85 @@ auto Server::signalSetup( bool start ) noexcept -> void
 	}
 }
 
-auto Server::signalHandler( int signum ) -> void
+void	Server::signalHandler( int signum )
 {
 	if ( signum == SIGQUIT || signum == SIGINT )
 		Server::_terminate = true;
+}
+
+
+/// Client handling
+
+/**
+ * @brief Acccepts a new client connection and stores it if successful.
+ *
+ * @param[in] new_clients the temporary vector where to store new client data
+ * @return true on success, otherwise false
+ */
+bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
+{
+	/**
+	 * 1. Accept the connection
+	 * 2. Create pollfd from the associated client socket
+	 * 3. Set events to POLLIN
+	 * 4. Create new Client class from the socket and store it in map
+	 * 5. Store pollfd in newClients
+	 * 6. Log the event
+	 */
+	Client		newClient;
+	sockaddr	clientAddress = {};
+	socklen_t	clientAddrLen = sizeof( clientAddress );
+
+	int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
+	if ( newClientSocket < 0 )
+	{
+		Logger::instance().log("NEW CONNECTION", LOG_FAIL, "accept failed");
+		return ( false ) ;
+	}
+
+	newClient.setClientFd( newClientSocket );
+	newClient.setClientAddress( clientAddress );
+
+	pollfd	clientPoll;
+	clientPoll.fd = newClientSocket;
+	clientPoll.events = POLLIN;
+	clientPoll.revents = 0;
+	new_clients.push_back(clientPoll);
+
+	_clients[newClientSocket] = newClient;
+
+	Logger::instance().log("NEW CONNECTION", LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
+	return ( true );
+}
+
+void	Server::disconnectClients( std::vector<int>& remove_clients )
+{
+	/**
+	 * NOTE: Clients may disconnect when:
+	 * 		poll event flags are POLLHUP, POLLERR or POLLNVAL
+	 * 		recv buffer is 0,
+	 * 		recv buffer is <0 without errno EAGAIN or EWOULDBLOCK
+	 * 		send return is <0 without errno EAGAIN or EWOULDBLOCK
+	 *
+	 * 1. Remove client
+	 * 2. Close it's associated fd
+	 * 3. Remove associated data such as in channels
+	 * 4. Log the disconnect as an event
+	 */
+	for ( int fd : remove_clients )
+	{
+		close( fd );
+		_clients.erase( fd );
+
+		for ( auto it = _fds.begin(); it != _fds.end(); ++it )
+		{
+			if ( it->fd == fd )
+			{
+				_fds.erase(it);
+				break ;
+			}
+		}
+		// TODO: Notify channels about the disconnect
+		Logger::instance().log("DISCONNECT", LOG_SUCCESS, "client fd " + std::to_string(fd));
+	}
 }

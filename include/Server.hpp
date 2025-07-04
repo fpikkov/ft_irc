@@ -19,19 +19,21 @@ class Server
 		sockaddr								_serverAddress;
 		static bool								_terminate;
 
-		Server()							= delete;
-		Server( const Server& )				= delete;
-		Server& operator=( const Server& )	= delete;
+		Server()								= delete;
+		Server( const Server& )					= delete;
+		Server& operator=( const Server& )		= delete;
 
-		auto		signalSetup( bool start ) noexcept -> void;
-		static auto signalHandler( int signum ) -> void;
+		void		signalSetup		( bool start ) noexcept;
+		static void signalHandler	( int signum );
 
 	public:
 		Server( const std::string port, const std::string password );
 		~Server();
 
-		auto serverSetup() -> void;
-		auto serverLoop() -> void;
+		void		serverSetup				();
+		void		serverLoop				();
+		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
+		void		disconnectClients		( std::vector<int>& remove_clients );
 
 		class InvalidClientException: public std::exception
 		{
