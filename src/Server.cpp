@@ -42,6 +42,12 @@ Server::~Server()
 	signalSetup( false );
 }
 
+/// Getters
+
+const std::string&	Server::getServerStartTime	() const { return (_serverStartTime); }
+const std::string&	Server::getServerHostname	() const { return (_serverHostname); }
+const std::string&	Server::getServerVersion	() const { return (_serverVersion); }
+
 
 /// Member functions
 

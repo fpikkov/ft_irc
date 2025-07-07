@@ -31,6 +31,10 @@ class Server
 		Server( const std::string port, const std::string password );
 		~Server();
 
+		const std::string&	getServerStartTime	() const;
+		const std::string&	getServerHostname	() const;
+		const std::string&	getServerVersion	() const;
+
 		void		serverSetup				();
 		void		serverLoop				();
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
