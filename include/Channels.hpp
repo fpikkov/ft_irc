@@ -53,8 +53,6 @@ class Channel
 		
 };
 
-
-
 // _name: Channel name (e.g., #school42).
 // _topic: Channel topic (can be empty).
 // _members: Set of client fds in the channel (fast lookup, no duplicates).
