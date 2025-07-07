@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include "constants.hpp"
 
 // Constructors/Destructor
 
@@ -15,16 +16,16 @@ Client::~Client	() {}
 
 // Getters
 
-int										Client::getFd				() const	{ return _clientFd; }
-const std::string&						Client::getUsername			() const	{ return _username; }
-const std::string&						Client::getHostname			() const	{ return _hostname; }
-const std::string&						Client::getNickname			() const	{ return _nickname; }
-const std::string&						Client::getRealname			() const	{ return _realname; }
-std::string&							Client::getReceiveBuffer	()			{ return _receiveBuffer; }
-std::string&							Client::getSendBuffer		()			{ return _sendBuffer; }
-sockaddr&								Client::getClientAddress	()			{ return _clientAddress; }
-bool									Client::isAuthenticated		() const	{ return _authenticated; }
-std::unordered_set<std::string>&		Client::getChannels			()			{ return _channels; }
+const int								Client::getFd				() const noexcept	{ return _clientFd; }
+const std::string&						Client::getUsername			() const noexcept	{ return _username; }
+const std::string&						Client::getHostname			() const noexcept	{ return _hostname; }
+const std::string&						Client::getNickname			() const noexcept	{ return _nickname; }
+const std::string&						Client::getRealname			() const noexcept	{ return _realname; }
+std::string&							Client::getReceiveBuffer	()					{ return _receiveBuffer; }
+std::string&							Client::getSendBuffer		()					{ return _sendBuffer; }
+sockaddr&								Client::getClientAddress	()					{ return _clientAddress; }
+bool									Client::isAuthenticated		() const			{ return _authenticated; }
+std::unordered_set<std::string>&		Client::getChannels			()					{ return _channels; }
 
 
 // Setters
@@ -34,30 +35,69 @@ void	Client::setUsername			( const std::string& username )		{ _username = userna
 void	Client::setHostname			( const std::string& hostname )		{ _hostname = hostname; }
 void	Client::setNickname			( const std::string& nickname )		{ _nickname = nickname; }
 void	Client::setRealname			( const std::string& realname )		{ _realname = realname; }
-void	Client::setReceiveBuffer	( const std::string& buffer )		{ _receiveBuffer = buffer; }
-void	Client::setSendBuffer		( const std::string& buffer )		{ _sendBuffer = buffer; }
 void	Client::setClientAddress	( sockaddr address )				{ _clientAddress = address; }
 void	Client::setAuthenticated	(bool auth)							{ _authenticated = auth; }
+void	Client::setReceiveBuffer	( const std::string& buffer )		{ _receiveBuffer = buffer; }
+void	Client::setSendBuffer		( const std::string& buffer )		{ _sendBuffer = buffer; }
 
 
 // Buffer management
-void	Client::appendToBuffer(const std::string& data) { _buffer += data; }
 
-// Checks if there is at least one complete IRC command in the buffer
-// Returns true if \r\n is found in the buffer, false otherwise.
-bool	Client::hasCompleteLine() const
+/**
+ * @brief Appends incomplete data to the client's receiving buffer.
+ * Will check that the buffer limit is never exceeded.
+ * @return true on successful operation, otherwise false (client should disconnect)
+ */
+bool	Client::appendToReceiveBuffer(const std::string& data)
 {
-	return _buffer.find("\r\n") != std::string::npos;
+	if ( _receiveBuffer.length() + data.length() > irc::MAX_CLIENT_BUFFER_SIZE )
+	{
+		irc::log_event( "PROTOCOL VIOLATION", irc::LOG_FAIL, "exceeded maximum buffer length limit" );
+		return false;
+	}
+	_receiveBuffer += data;
+	return true;
+}
+bool	Client::appendToSendBuffer(const std::string& data)
+{
+	if ( _sendBuffer.length() + data.length() > irc::MAX_CLIENT_BUFFER_SIZE )
+	{
+		irc::log_event( "PROTOCOL VIOLATION", irc::LOG_FAIL, "exceeded maximum buffer length limit" );
+		return false;
+	}
+	_sendBuffer += data;
+	return true;
 }
 
-// Extracting and returning one complete IRC command (without \r\n) from the buffer.
-std::string Client::extractLine()
+/**
+ * @brief Checks if the receive buffer contains a complete message
+ * @return true if \\r\\n is found in the buffer, false otherwise
+ */
+bool	Client::isReceiveBufferComplete	() const	{ return _receiveBuffer.find("\r\n") != std::string::npos; }
+bool	Client::isSendBufferComplete	() const	{ return _sendBuffer.find("\r\n") != std::string::npos; }
+
+/**
+ * @brief Extracting and returning one complete IRC command (without \\r\\n) from the receive buffer.
+ * Also clears up the receive buffer if a complete message was found.
+ *
+ * @return Complete message without \\r\\n when found. If no message or incomplete message then empty string.
+ */
+std::string Client::extractLineFromReceive()
 {
-	size_t pos = _buffer.find("\r\n");
+	size_t pos = _receiveBuffer.find("\r\n");
 	if (pos == std::string::npos)
 		return "";
-	std::string line = _buffer.substr(0, pos);
-	_buffer.erase(0, pos + 2);
+	std::string line = _receiveBuffer.substr(0, pos);
+	_receiveBuffer.erase(0, pos + 2);
+	return line;
+}
+std::string Client::extractLineFromSend()
+{
+	size_t pos = _sendBuffer.find("\r\n");
+	if (pos == std::string::npos)
+		return "";
+	std::string line = _sendBuffer.substr(0, pos);
+	_sendBuffer.erase(0, pos + 2);
 	return line;
 }
 

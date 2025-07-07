@@ -10,7 +10,6 @@ private:
 	std::string						_hostname;
 	std::string						_nickname; // servername
 	std::string						_realname;
-	std::string						_buffer;
 	bool							_authenticated;
 	std::unordered_set<std::string>	_channels;
 	std::string						_receiveBuffer;
@@ -24,16 +23,16 @@ public:
 	~Client();
 
 	// Getters
-	int										getFd				() const;
-	const std::string&						getUsername			() const;
-	const std::string&						getHostname			() const;
-	const std::string&						getNickname			() const;
-	const std::string&						getRealname			() const;
+	const int								getFd				() const noexcept;
+	const std::string&						getUsername			() const noexcept;
+	const std::string&						getHostname			() const noexcept;
+	const std::string&						getNickname			() const noexcept;
+	const std::string&						getRealname			() const noexcept;
 	bool									isAuthenticated		() const;
 	std::unordered_set<std::string>&		getChannels			();
+	sockaddr&								getClientAddress	();
 	std::string&							getReceiveBuffer	();
 	std::string&							getSendBuffer		();
-	sockaddr&								getClientAddress	();
 
 	// Setters
 	void		setClientFd			( int fd );
@@ -41,20 +40,26 @@ public:
 	void		setHostname			( std::string const &hostname );
 	void		setNickname			( std::string const &nickname );
 	void		setRealname			( std::string const &realname );
-	void		setReceiveBuffer	( std::string const &buffer );
-	void		setSendBuffer		( std::string const &buffer );
 	void		setClientAddress	( sockaddr address );
 	void		setAuthenticated	( bool auth );
 
 	// Buffer management
-	void		appendToBuffer(const std::string& data);
-	bool		hasCompleteLine() const;
-	std::string	extractLine();
+	bool		appendToReceiveBuffer	( const std::string& data );
+	bool		appendToSendBuffer		( const std::string& data );
+	bool		isReceiveBufferComplete	() const;
+	bool		isSendBufferComplete	() const;
+	std::string	extractLineFromReceive	();
+	std::string extractLineFromSend		();
 
 	// Channel management
-	void		joinChannel(const std::string& channel);
-	void		leaveChannel(const std::string& channel);
-	bool		isInChannel(const std::string& channel) const;
+	void		joinChannel		(const std::string& channel);
+	void		leaveChannel	(const std::string& channel);
+	bool		isInChannel		(const std::string& channel) const;
+
+protected:
+	// Protected setters
+	void		setReceiveBuffer	( std::string const &buffer );
+	void		setSendBuffer		( std::string const &buffer );
 };
 
 /*

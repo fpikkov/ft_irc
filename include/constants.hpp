@@ -25,7 +25,6 @@ namespace irc
 	{
 		Logger::instance().log( func, status, msg );
 	}
-
 }
 
 

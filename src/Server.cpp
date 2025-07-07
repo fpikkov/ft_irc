@@ -106,7 +106,7 @@ void	Server::serverLoop()
 			else if ( fd.revents & POLLOUT ) // Server is ready to send message to client
 			{
 				/**
-				 * TODO: Figure out the steps
+				 * TODO: SEND_MSG Figure out the steps
 				 */
 			}
 			else if ( fd.revents & ( POLLERR | POLLHUP | POLLNVAL ) ) // Remove client on error or hangup
@@ -208,7 +208,7 @@ void	Server::disconnectClients( std::vector<int>& remove_clients )
 	 * 		poll event flags are POLLHUP, POLLERR or POLLNVAL
 	 * 		recv buffer is 0,
 	 * 		recv buffer is <0 without errno EAGAIN or EWOULDBLOCK
-	 * 		send return is <0 without errno EAGAIN or EWOULDBLOCK
+	 * 		send return is <0 without errno EAGAIN or EWOULDBLOCK : TODO SEND_MSG
 	 *
 	 * 1. Remove client
 	 * 2. Close it's associated fd
@@ -239,7 +239,7 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 {
 	/**
 	 * 1. Receive message from client
-	 * 2. Parse the message { <prefix> <command> <parameters> }
+	 * 2. Parse the message { <prefix> <command> <parameters> < : trailing_parameters > }
 	 * 3. Check validity of client
 	 * 4a Set Client properties
 	 * 4b Execute command
@@ -265,13 +265,30 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 	else
 	{
 		/**
+		 * TODO: SEND_MSG
 		 * Process the received message.
 		 * Check if the message was partial so it should be stored with Client
 		 * If full message has been received (and Client buffer is empty)
 		 * 	 parse the string to command structure
 		 * Immediately send() the response to the client when a valid command was parsed
 		 */
-		// std::string(buffer.data(), buffer.size() - 1);
+
+		Client& client = _clients[file_descriptor];
+
+		if ( client.appendToReceiveBuffer( std::string(buffer.data(), buffer.size() - 1) ))
+		{
+			if ( client.isReceiveBufferComplete() )
+			{
+				// TODO: Mr. ahentton please create a command parser for us
+				// Use client.exractLineFromReceive to get the full message
+				// Parse the message into command structure, run the command
+				// Reply with send() the result of the process with the associated reply code
+			}
+		}
+		else // Client attempted to overflow our buffer
+		{
+			remove_clients.push_back(file_descriptor);
+		}
 	}
 	return (true);
 }
