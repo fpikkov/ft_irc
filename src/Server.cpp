@@ -302,7 +302,7 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 
 void	Server::executeCommand(Client &client, Command const &cmd)
 {
-	int	cmd_id = identifyCommand(cmd);
+	//int	cmd_id = identifyCommand(cmd);
 }
 
 
