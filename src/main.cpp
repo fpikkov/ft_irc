@@ -58,5 +58,8 @@ std::istringstream iss(input);
 
 //EXAMPLE: PRIVMSG #channel :Hello world!
 
+//Could we construct a command class/struct, using the buffer?
+//As in CmdLine(buffer);
+
 
 */

@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/03 10:54:22 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/03 11:24:26 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/03 12:09:50 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,13 @@
 class Client
 {
 private:
-	int		_client_fd;
+	int			_client_fd;
 	std::string	_nickname;
 	std::string	_username;
 	std::string	_realname;
 	bool		is_connected;
+	
+
 public:
 	//Setters
 	void	setNickname(std::string const &nickname);

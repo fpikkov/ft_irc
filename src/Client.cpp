@@ -5,7 +5,7 @@
 void    Client::setNickname(std::string const &nickname) {_nickname = nickname;};
 
 void    Client::setUsername(std::string const &username) {_username = username;};
-
+ 
 void    Client::setRealname(std::string const &realname) {_realname = realname;};
 
 //Getters
