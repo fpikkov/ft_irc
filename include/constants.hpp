@@ -5,6 +5,12 @@
 
 namespace irc
 {
+	// Hostname length limit in the POSIX standard
+	constexpr size_t const MAX_HOSTNAME_LENGTH = 64;
+
+	// Default hostname
+	constexpr const char* const DEFAULT_HOSTNAME = "localhost";
+
 	// Backlog value for listen. System maximum is 4096
 	constexpr int const MAX_CONNECTION_REQUESTS = 128;
 

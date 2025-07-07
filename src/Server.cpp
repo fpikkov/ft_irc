@@ -13,7 +13,8 @@ bool	Server::_terminate = false;
 Server::Server( const std::string port, const std::string password ) :
 	_port( std::stoi(port) ),
 	_password( password ),
-	_serverSocket(-1)
+	_serverSocket(-1),
+	_serverHostname(fetchHostname())
 {
 	signalSetup( true );
 
@@ -157,6 +158,18 @@ void	Server::signalHandler( int signum )
 }
 
 
+/// Hostname
+
+std::string	Server::fetchHostname()
+{
+	std::vector<char>	hostname( irc::MAX_HOSTNAME_LENGTH );
+
+	if ( gethostname(hostname.data(), irc::MAX_HOSTNAME_LENGTH - 1) == 0 )
+		return (std::string(hostname.data()));
+	return (irc::DEFAULT_HOSTNAME);
+}
+
+
 /// Client handling
 
 /**
@@ -275,7 +288,7 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 
 		Client& client = _clients[file_descriptor];
 
-		if ( client.appendToReceiveBuffer( std::string(buffer.data(), buffer.size() - 1) ))
+		if ( client.appendToReceiveBuffer( std::string(buffer.data(), bytes) ))
 		{
 			if ( client.isReceiveBufferComplete() )
 			{
@@ -287,7 +300,9 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 		}
 		else // Client attempted to overflow our buffer
 		{
+			// Message the client with response code 417 (input line was too long)
 			remove_clients.push_back(file_descriptor);
+			return (false);
 		}
 	}
 	return (true);

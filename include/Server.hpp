@@ -15,6 +15,7 @@ class Server
 		std::vector<pollfd>						_fds;
 		sockaddr								_serverAddress;
 		std::string								_serverStartTime;
+		std::string								_serverHostname;
 		static bool								_terminate;
 
 		Server()								= delete;
@@ -23,6 +24,7 @@ class Server
 
 		void		signalSetup		( bool start ) noexcept;
 		static void signalHandler	( int signum );
+		std::string	fetchHostname	();
 
 	public:
 		Server( const std::string port, const std::string password );

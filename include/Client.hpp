@@ -35,13 +35,13 @@ public:
 	std::string&							getSendBuffer		();
 
 	// Setters
-	void		setClientFd			( int fd );
-	void		setUsername			( std::string const &username );
-	void		setHostname			( std::string const &hostname );
-	void		setNickname			( std::string const &nickname );
-	void		setRealname			( std::string const &realname );
-	void		setClientAddress	( sockaddr address );
-	void		setAuthenticated	( bool auth );
+	void		setClientFd				( int fd );
+	void		setUsername				( std::string const &username );
+	void		setHostname				( std::string const &hostname );
+	void		setNickname				( std::string const &nickname );
+	void		setRealname				( std::string const &realname );
+	void		setClientAddress		( sockaddr address );
+	void		setAuthenticated		( bool auth );
 
 	// Buffer management
 	bool		appendToReceiveBuffer	( const std::string& data );
@@ -52,9 +52,9 @@ public:
 	std::string extractLineFromSend		();
 
 	// Channel management
-	void		joinChannel		(const std::string& channel);
-	void		leaveChannel	(const std::string& channel);
-	bool		isInChannel		(const std::string& channel) const;
+	void		joinChannel			( const std::string& channel );
+	void		leaveChannel		( const std::string& channel );
+	bool		isInChannel			( const std::string& channel ) const;
 
 protected:
 	// Protected setters
