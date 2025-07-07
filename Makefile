@@ -24,6 +24,7 @@ SRCS =	main.cpp \
 		Server.cpp \
 		Client.cpp \
 		Logger.cpp \
+		Response.cpp \
 
 OBJS = ${SRCS:%.cpp=${OBJ_DIR}/%.o}
 

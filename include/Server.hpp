@@ -16,6 +16,7 @@ class Server
 		sockaddr								_serverAddress;
 		std::string								_serverStartTime;
 		std::string								_serverHostname;
+		const std::string						_serverVersion;
 		static bool								_terminate;
 
 		Server()								= delete;

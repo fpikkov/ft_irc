@@ -1,0 +1,80 @@
+#pragma once
+
+#include "headers.hpp"
+
+class Server;
+class Channel;
+class Client;
+
+class Response
+{
+	private:
+		static std::string	getResponseMessage( int code );
+
+	public:
+		/// Functions for sending messages
+		static void	sendResponseCode( int code, Client& client, Server& server );
+		static void	sendResponseCode( int code, Client& client, Server& server, Channel& channel );
+
+		static void	sendResponseCommand( int code, Client& client, Server& server, const std::string& message );
+		static void	sendResponseCommand( int code, Client& client, Server& server, Channel& channel, const std::string& message );
+
+
+
+		/// Response codes
+		/**
+		 * These are standard replies a client always receives after connecting to the server.
+		 * The replies provide client essential server information, and confirms the connection was succesful.
+		 * Consider reply 005 optional, but nice to have. It displays the server qualities, supported commands etc.
+		 *
+		 * Response format: :<_serverHostname> <code> <nick> <...>
+		 */
+		/// Connection registration
+		static constexpr int RPL_WELCOME = 001;
+		static constexpr int RPL_YOURHOST = 002;
+		static constexpr int RPL_CREATED = 003;
+		static constexpr int RPL_MYINFO = 004;
+		static constexpr int RPL_ISUPPORT = 005;
+
+		static constexpr int ERR_NONICKNAMEGIVEN = 431;
+		static constexpr int ERR_ERRONEUSNICKNAME = 432;
+		static constexpr int ERR_NICKNAMEINUSE = 433;
+		static constexpr int ERR_NOTREGISTERED = 451;
+		static constexpr int ERR_NEEDMOREPARAMS = 461;
+		static constexpr int ERR_ALREADYREGISTRED = 462;
+		static constexpr int ERR_PASSWDMISMATCH = 464;
+
+
+		/// Channel operations
+		static constexpr int RPL_LIST = 322;
+		static constexpr int RPL_LISTEND = 323;
+		static constexpr int RPL_NOTOPIC = 331;
+		static constexpr int RPL_NAMREPLY = 353;
+		static constexpr int RPL_ENDOFNAMES = 366;
+
+		static constexpr int ERR_NOSUCHCHANNEL = 403;
+		static constexpr int ERR_CHANNELISFULL = 471;
+		static constexpr int ERR_INVITEONLYCHAN = 473;
+		static constexpr int ERR_BANNEDFROMCHAN = 474;
+		static constexpr int ERR_BADCHANNELKEY = 475;
+
+		static constexpr int ERR_USERNOTINCHANNEL = 441;
+		static constexpr int ERR_NOTONCHANNEL = 442;
+		static constexpr int ERR_USERONCHANNEL = 443;
+
+
+		/// Message handling
+		static constexpr int ERR_NOSUCHNICK = 401;
+		static constexpr int ERR_CANNOTSENDTOCHAN = 404;
+		static constexpr int ERR_NOTEXTTOSEND = 412;
+		static constexpr int ERR_UNKNOWNCOMMAND = 421;
+
+
+		/// User information
+		static constexpr int RPL_WHOISUSER = 311;
+		static constexpr int RPL_WHOISSERVER = 312;
+		static constexpr int RPL_WHOISPERATOR = 313;
+		static constexpr int RPL_ENDOFWHOIS = 318;
+
+
+};

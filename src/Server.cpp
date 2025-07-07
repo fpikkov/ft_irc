@@ -13,8 +13,9 @@ bool	Server::_terminate = false;
 Server::Server( const std::string port, const std::string password ) :
 	_port( std::stoi(port) ),
 	_password( password ),
-	_serverSocket(-1),
-	_serverHostname(fetchHostname())
+	_serverSocket( -1 ),
+	_serverHostname( fetchHostname() ),
+	_serverVersion( irc::SERVER_VERSION )
 {
 	signalSetup( true );
 

@@ -5,6 +5,8 @@
 
 namespace irc
 {
+	constexpr const char* const SERVER_VERSION = "v1.0";
+
 	// Hostname length limit in the POSIX standard
 	constexpr size_t const MAX_HOSTNAME_LENGTH = 64;
 
