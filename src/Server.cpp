@@ -2,6 +2,7 @@
 #include "constants.hpp"
 #include "Logger.hpp"
 #include <termios.h>
+#include "Command.hpp"
 
 /// Static member variables
 
@@ -279,18 +280,29 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 		{
 			if ( client.isReceiveBufferComplete() )
 			{
-				// TODO: Mr. ahentton please create a command parser for us
-				// Use client.exractLineFromReceive to get the full message
-				// Parse the message into command structure, run the command
-				// Reply with send() the result of the process with the associated reply code
+				std::string	message(client.extractLineFromReceive());
+				Command	cmd = msgToCmd(message);
+				executeCommand(client, cmd);
+				//confirm_command(server->client) with send()
+				// TODO: Mr. ahentton please create a command parser for us. DONE
+				// Use client.exractLineFromReceive to get the full message. DONE
+				// Parse the message into command structure, run the command. DONE
+				// Execute the command via server::executeCommand
+				// Reply with send() the result of the process with the associated reply code.
 			}
 		}
 		else // Client attempted to overflow our buffer
 		{
 			remove_clients.push_back(file_descriptor);
+			return false;
 		}
 	}
 	return (true);
+}
+
+void	Server::executeCommand(Client &client, Command const &cmd)
+{
+	int	cmd_id = identifyCommand(cmd);
 }
 
 
