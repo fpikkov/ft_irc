@@ -15,6 +15,8 @@ private:
 	std::string						_receiveBuffer;
 	std::string						_sendBuffer;
 	sockaddr						_clientAddress;
+	bool							_active;
+	bool							_pollout;
 
 public:
 	//Constructors/Destructor
@@ -33,6 +35,8 @@ public:
 	sockaddr&								getClientAddress	();
 	std::string&							getReceiveBuffer	();
 	std::string&							getSendBuffer		();
+	bool									getActive			() const noexcept;
+	bool									getPollout			() const noexcept;
 
 	// Setters
 	void		setClientFd				( int fd );
@@ -42,6 +46,8 @@ public:
 	void		setRealname				( std::string const &realname );
 	void		setClientAddress		( sockaddr address );
 	void		setAuthenticated		( bool auth );
+	void		setActive				( bool active );
+	void		setPollout				( bool required );
 
 	// Buffer management
 	bool		appendToReceiveBuffer	( const std::string& data );

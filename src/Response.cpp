@@ -76,6 +76,7 @@ bool	Response::sendMessage( Client& client, const std::string& message )
 			if ( client.appendToSendBuffer(message) )
 			{
 				// TODO: Change the client's pollfd to POLLOUT and send the buffered message
+				// !!! TODO: Use Client's booleans _active and _pollout here, then checck for them in the Server loop !!!
 				return (true);
 			}
 		}
