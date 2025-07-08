@@ -46,6 +46,7 @@ class Server
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
 		void		disconnectClients		();
 		bool		receiveClientMessage	( int file_descriptor );
+		void		executeCommand			( Client &client, Command const &cmd);
 
 		class InvalidClientException: public std::exception
 		{
