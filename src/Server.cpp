@@ -309,3 +309,5 @@ void	Server::executeCommand(Client &client, Command const &cmd)
 /// Exceptions
 
 const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }
+
+const	std::string& Server::getClients() const { return _clients; }
