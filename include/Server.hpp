@@ -25,9 +25,10 @@ class Server
 		Server( const Server& )					= delete;
 		Server& operator=( const Server& )		= delete;
 
-		void		signalSetup		( bool start ) noexcept;
-		static void signalHandler	( int signum );
-		std::string	fetchHostname	();
+		void		signalSetup			( bool start ) noexcept;
+		static void signalHandler		( int signum );
+		std::string	fetchHostname		();
+		void		setClientsToPollout	();
 
 	public:
 		Server( const std::string port, const std::string password );
@@ -43,8 +44,8 @@ class Server
 		void		serverSetup				();
 		void		serverLoop				();
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
-		void		disconnectClients		( std::vector<int>& remove_clients );
-		bool		receiveClientMessage	( int file_descriptor, std::vector<int>& remove_clients );
+		void		disconnectClients		();
+		bool		receiveClientMessage	( int file_descriptor );
 
 		class InvalidClientException: public std::exception
 		{

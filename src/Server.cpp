@@ -105,7 +105,6 @@ void	Server::serverLoop()
 		}
 
 		std::vector<pollfd>	newClients;
-		std::vector<int>	removeClientFd;
 
 		for ( auto& fd : _fds )
 		{
@@ -119,24 +118,31 @@ void	Server::serverLoop()
 				else // Client is sending a new message
 				{
 					// TODO: Double check if the same fd has queued up messages in the sendBuffer
-					if ( !receiveClientMessage( fd.fd, removeClientFd ) )
+					if ( !receiveClientMessage( fd.fd ) )
 						continue ;
 				}
 			}
 			else if ( fd.revents & POLLOUT ) // Server is ready to send message to client
 			{
 				Response::sendPartialResponse( _clients[fd.fd] );
+				if ( _clients[fd.fd].getPollout() == false )
+					fd.events &= ~POLLOUT;
 			}
 			else if ( fd.revents & ( POLLERR | POLLHUP | POLLNVAL ) ) // Remove client on error or hangup
 			{
-				removeClientFd.push_back(fd.fd);
+				_clients[fd.fd].setActive(false);
+				_disconnectEvent = true;
+				if ( irc::EXTENDED_DEBUG_LOGGING )
+					irc::log_event( "POLL", irc::LOG_DEBUG, "client has disconnected due to error" );
 			}
 		}
 
 		if ( !newClients.empty() )
 			_fds.insert( _fds.end(), newClients.begin(), newClients.end() );
-		if ( !removeClientFd.empty() ) // Comes after adding clients as they may have already dc'd
-			disconnectClients( removeClientFd );
+		if ( _polloutEvent )
+			setClientsToPollout();
+		if ( _disconnectEvent ) // Comes after adding clients as they may have already dc'd
+			disconnectClients();
 	}
 }
 
@@ -231,21 +237,28 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	return ( true );
 }
 
-void	Server::disconnectClients( std::vector<int>& remove_clients )
+/**
+ * @brief Disconnects all clients marked as inactive.
+ * Closes the associated file descriptor and removes the associated pollfd.
+ */
+void	Server::disconnectClients()
 {
 	/**
-	 * NOTE: Clients may disconnect when:
-	 * 		poll event flags are POLLHUP, POLLERR or POLLNVAL
-	 * 		recv buffer is 0,
-	 * 		recv buffer is <0 without errno EAGAIN or EWOULDBLOCK
-	 * 		send return is <0 without errno EAGAIN or EWOULDBLOCK : TODO SEND_MSG
-	 *
 	 * 1. Remove client
 	 * 2. Close it's associated fd
 	 * 3. Remove associated data such as in channels // TODO: when Channels are set up
 	 * 4. Log the disconnect as an event
 	 */
-	for ( int fd : remove_clients )
+
+	std::vector<int> clientsToRemove;
+
+	for ( const auto& [fd, client] : _clients )
+	{
+		if ( client.getActive() == false )
+			clientsToRemove.push_back( client.getFd() );
+	}
+
+	for ( int fd : clientsToRemove )
 	{
 		close( fd );
 		_clients.erase( fd );
@@ -258,14 +271,16 @@ void	Server::disconnectClients( std::vector<int>& remove_clients )
 				break ;
 			}
 		}
-		// TODO: Notify channels about the disconnect
+		// TODO: Notify channel users about the disconnect AND remove the client from user lists
 		irc::log_event("DISCONNECT", irc::LOG_SUCCESS, "client fd " + std::to_string(fd));
 	}
+
+	_disconnectEvent = false;
 }
 
 // Client messaging
 
-bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove_clients )
+bool	Server::receiveClientMessage( int file_descriptor )
 {
 	/**
 	 * 1. Receive message from client
@@ -281,15 +296,21 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 
 	if ( bytes < 0 )
 	{
-		if ( errno != EAGAIN && errno != EWOULDBLOCK ) // client has disconnected
+		if ( errno != EAGAIN && errno != EWOULDBLOCK )
 		{
-			remove_clients.push_back(file_descriptor);
+			_clients[file_descriptor].setActive(false);
+			_disconnectEvent = true;
+			if ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event( "RECV", irc::LOG_DEBUG, "client has disconnected" );
 			return (false);
 		}
 	}
-	else if ( bytes == 0 ) // client has disconnected
+	else if ( bytes == 0 )
 	{
-		remove_clients.push_back(file_descriptor);
+		_clients[file_descriptor].setActive(false);
+		_disconnectEvent = true;
+		if ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event( "RECV", irc::LOG_DEBUG, "client has disconnected" );
 		return (false);
 	}
 	else
@@ -317,14 +338,44 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 		}
 		else // Client attempted to overflow our buffer
 		{
-			// Message the client with response code 417 (input line was too long)
-			remove_clients.push_back(file_descriptor);
+			// Message the client with response code 417
+			_clients[file_descriptor].setActive(false);
+			_disconnectEvent = true;
+			if ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event( "RECV", irc::LOG_DEBUG, "input line too long, dropping connection" );
 			return (false);
 		}
 	}
 	return (true);
 }
 
+/**
+ * @brief Adds POLLOUT flag to the pollfd events for clients with buffered outgoing messages.
+ */
+void	Server::setClientsToPollout()
+{
+	for ( auto& [fd, client] : _clients )
+	{
+		if ( client.getPollout() )
+		{
+			for ( auto& element : _fds )
+			{
+				if ( element.fd == fd )
+				{
+					element.events |= POLLOUT;
+					client.setPollout(false);
+
+					if ( irc::EXTENDED_DEBUG_LOGGING )
+						irc::log_event( "POLL", irc::LOG_DEBUG, "polling out to client" );
+
+					break ;
+				}
+			}
+		}
+	}
+
+	_polloutEvent = false;
+}
 
 /// Exceptions
 

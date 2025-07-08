@@ -25,13 +25,13 @@ class Response
 
 	public:
 		/// Static member variable setters
-		static void	setServerDate		( const std::string& date );
-		static void	setServerName		( const std::string& name );
-		static void	setServerVersion	( const std::string& version );
+		static void	setServerDate						( const std::string& date );
+		static void	setServerName						( const std::string& name );
+		static void	setServerVersion					( const std::string& version );
 
 		/// Functions for sending messages
-		static void	sendResponseCode( int code, Client& client, const string_map& placeholders );
-		static void	sendPartialResponse( Client& client );
+		static void	sendResponseCode					( int code, Client& client, const string_map& placeholders );
+		static void	sendPartialResponse					( Client& client );
 
 
 		/// Response codes
