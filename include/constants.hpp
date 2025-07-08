@@ -5,6 +5,10 @@
 
 namespace irc
 {
+	// Minor memory optimization
+	constexpr const bool const MEMORY_SAVING = true;
+
+	// Customizable server version
 	constexpr const char* const SERVER_VERSION = "v1.0";
 
 	// Hostname length limit in the POSIX standard

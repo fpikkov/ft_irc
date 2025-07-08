@@ -1,6 +1,7 @@
 #pragma once
 
 #include "headers.hpp"
+#include <unordered_map>
 
 class Server;
 class Channel;
@@ -8,17 +9,28 @@ class Client;
 
 class Response
 {
+	public:
+		using string_map = std::unordered_map<std::string, std::string>;
+
 	private:
-		static std::string	getResponseMessage( int code );
+		static std::string	_date;
+		static std::string	_server;
+		static std::string	_version;
+
+		Response() = delete;
+
+		static std::string	getResponseTemplate			( int code );
+		static std::string	findAndReplacePlaceholders	( const std::string& template_string, const string_map& placeholders );
+		static bool			sendMessage					( Client& client, const std::string& message );
 
 	public:
+		/// Static member variable setters
+		static void	setServerDate		( const std::string& date );
+		static void	setServerName		( const std::string& name );
+		static void	setServerVersion	( const std::string& version );
+
 		/// Functions for sending messages
-		static void	sendResponseCode( int code, Client& client, Server& server );
-		static void	sendResponseCode( int code, Client& client, Server& server, Channel& channel );
-
-		static void	sendResponseCommand( int code, Client& client, Server& server, const std::string& message );
-		static void	sendResponseCommand( int code, Client& client, Server& server, Channel& channel, const std::string& message );
-
+		static void	sendResponseCode( int code, Client& client, const string_map& placeholders );
 
 
 		/// Response codes
@@ -26,8 +38,6 @@ class Response
 		 * These are standard replies a client always receives after connecting to the server.
 		 * The replies provide client essential server information, and confirms the connection was succesful.
 		 * Consider reply 005 optional, but nice to have. It displays the server qualities, supported commands etc.
-		 *
-		 * Response format: :<_serverHostname> <code> <nick> <...>
 		 */
 		/// Connection registration
 		static constexpr int RPL_WELCOME = 001;

@@ -2,6 +2,7 @@
 #include "constants.hpp"
 #include "Logger.hpp"
 #include <termios.h>
+#include "Response.hpp"
 
 /// Static member variables
 
@@ -14,16 +15,19 @@ Server::Server( const std::string port, const std::string password ) :
 	_port( std::stoi(port) ),
 	_password( password ),
 	_serverSocket( -1 ),
+	_serverStartTime( Logger::timestamp() ),
 	_serverHostname( fetchHostname() ),
 	_serverVersion( irc::SERVER_VERSION )
 {
 	signalSetup( true );
 
-	_serverStartTime = Logger::timestamp();
-
 	((sockaddr_in *)&_serverAddress)->sin_family = AF_INET;
 	((sockaddr_in *)&_serverAddress)->sin_addr.s_addr = INADDR_ANY;
 	((sockaddr_in *)&_serverAddress)->sin_port = htons( _port );
+
+	Response::setServerDate		( _serverStartTime );
+	Response::setServerName		( _serverHostname );
+	Response::setServerVersion	( _serverVersion);
 }
 
 Server::~Server()
