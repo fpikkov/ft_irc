@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/08 15:24:25 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/08 18:08:50 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,5 +49,44 @@ void    CommandHandler::handleCommand(Client& client, const Command& cmd)
 	if (it != _handlers.end())
 		it->second(client, cmd);
 	else
-		//Respond with ERR_UNKNOWNCOMMAND.
+		//Response::sendResponeCode(Respones::ERR_, client)
+}
+
+void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
+{
+	if (!client.isAuthenticated())
+	{
+		//Response::sendResponseCode(Response::ERR_, client)
+		return ;
+	}
+	else if (cmd.params.size() < 2)
+	{
+		//Response::SendResponse(Response::) not enough params.
+		return ;
+	}
+
+	std::string	target = cmd.params[0];
+	std::string	message = cmd.params[1];
+
+	if (target[0] == '#')
+	{
+		Channel *channel = _server.findChannel(target);
+		if (!channel)
+		{
+			//Response::sendRespone(Response::);
+			return ;
+		}
+	}
+	else
+	{
+		Client	recipient = _server.findUser(target);
+	}
+	//TODO:
+	//		Check client has registered.
+	//		Check parameter count, expected: Target and Message.
+	//		Check target, channel starts with '#', user privmsg target is nickname.
+	//		Check if target exists. Channel or user?
+	//		Find target and send the message.
+	//		Broadcast function needed for sending messages to channels.
+	//		Double check if 
 }

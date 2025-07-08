@@ -3,6 +3,7 @@
 #include "Logger.hpp"
 #include <termios.h>
 #include "Command.hpp"
+#include "Channels.hpp"
 
 /// Static member variables
 
@@ -281,6 +282,7 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 			if ( client.isReceiveBufferComplete() )
 			{
 				std::string	message(client.extractLineFromReceive());
+				//create toupperstr func
 				Command	cmd = msgToCmd(message);
 				executeCommand(client, cmd);
 				//confirm_command(server->client) with send()
@@ -302,9 +304,18 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 
 void	Server::executeCommand(Client &client, Command const &cmd)
 {
-	//int	cmd_id = identifyCommand(cmd);
+	this->_commandHandler.handleCommand(client, cmd);
 }
 
+Channel*	Server::findChannel(std::string& channelName)
+{
+	for (auto& channel : _channels)
+	{
+		if (channel.getName() == channelName)
+			return &channel;
+	}
+	return nullptr;
+}
 
 /// Exceptions
 

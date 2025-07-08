@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 13:17:37 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/07 14:48:47 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/08 15:00:57 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <ctype.h>
 
 struct  Command
 {

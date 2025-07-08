@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include "CommandHandler.hpp"
 
+class	Channel;
+
 class Server
 {
 	private:
@@ -13,6 +15,7 @@ class Server
 		std::string								_password;
 		int										_serverSocket;
 		std::unordered_map<unsigned, Client>	_clients;
+		std::vector<Channel>					_channels;
 		std::vector<pollfd>						_fds;
 		sockaddr								_serverAddress;
 		std::string								_serverStartTime;
@@ -35,7 +38,9 @@ class Server
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
 		void		disconnectClients		( std::vector<int>& remove_clients );
 		bool		receiveClientMessage	( int file_descriptor, std::vector<int>& remove_clients );
-		void		executeCommand			( Client &client, Command const &cmd);
+		void		executeCommand			( Client &client, Command const &cmd );
+		Channel*	findChannel				( std::string& channelName );
+		Client*		findUser				( std::string& nickName );
 
 		class InvalidClientException: public std::exception
 		{
