@@ -66,6 +66,7 @@ void	Response::sendPartialResponse( Client& client )
 	if ( bufferedMessage.empty() ) return ;
 
 	client.clearSendBuffer();
+	client.setPollout(false);
 
 	sendMessage( client, bufferedMessage );
 }
