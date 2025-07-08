@@ -6,9 +6,10 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/08 18:08:50 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/08 18:13:34 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "CommandHandler.hpp"
 
@@ -90,3 +91,89 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 	//		Broadcast function needed for sending messages to channels.
 	//		Double check if 
 }
+
+
+void	CommandHandler::handlePass(Client& client, const Command& cmd)
+{
+	if (client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client);
+		return ;
+	}
+	
+	if (cmd.params.empty())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client);
+		return ;
+	}
+	
+	const std::string& providedPassword = cmd.params[0];
+	if (providedPassword != _server.getPassword())
+	{
+		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client);
+		return ;
+	}
+	
+	client.setAuthenticated(true);
+}
+
+
+// Helper function for handleNick function
+
+static bool	isValidNick(const std::string& nick)
+{
+	if (nick.empty() || nick.length() > 9)
+		return false;
+	
+	auto isLetter = [](char c) { return std::isalpha(static_cast<unsigned char>(c)); };
+	auto isDigit = [](char c) { return std::isdigit(static_cast<unsigned char>(c)); };
+	auto isSpecial = [](char c)
+	{
+		return	c == '[' 	|| c == ']' || c == '\\'
+				|| c == '^' || c == '_' || c == '`'
+				|| c == '{' || c == '}' || c == '|';
+	};
+
+	char firstChar = nick[0];
+	if (!isLetter(firstChar) && !isSpecial(first))
+		return false;
+	
+	for (size_t i = 1; i < nick.length(); ++i)
+	{
+		char c = nick[i];
+		if (!isLetter(c) && !isDigit(c) && !isSpecial(c))
+			return false;
+	}
+	return true;
+}
+
+void CommandHandler::handleNick(Client& client, const Command& cmd)
+{
+	if (cmd.params.empty())
+	{
+		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client);
+		return ;
+	}
+	
+	std::string newNick = cmd.params[0];
+	
+	if (!isValidNick(newNick))
+	{
+		Response::sendResponseCode(Response::ERR_ERRONEUSNICKNAME, client)
+		return ;
+	}
+
+	for (const auto& [fd, clientObject] : _server.getClients())
+	{
+		if (clientObject.getNickname() == newNick)
+		{
+			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client);
+			return ;
+		}
+	}
+	client.setNickname(newNick);
+}
+
+/* 
+[ \ ] ^ _ ` { | }
+*/

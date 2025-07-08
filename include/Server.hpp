@@ -48,5 +48,6 @@ class Server
 				const char* what() const noexcept override;
 		};
 
+		const	std::string& getClients() const;
 };
 
