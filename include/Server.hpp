@@ -18,6 +18,8 @@ class Server
 		std::string								_serverHostname;
 		const std::string						_serverVersion;
 		static bool								_terminate;
+		static bool								_disconnectEvent;
+		static bool								_polloutEvent;
 
 		Server()								= delete;
 		Server( const Server& )					= delete;
@@ -34,6 +36,9 @@ class Server
 		const std::string&	getServerStartTime	() const;
 		const std::string&	getServerHostname	() const;
 		const std::string&	getServerVersion	() const;
+
+		static void	setDisconnectEvent	( bool event );
+		static void	setPolloutEvent		( bool event );
 
 		void		serverSetup				();
 		void		serverLoop				();

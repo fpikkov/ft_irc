@@ -51,9 +51,25 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 
 	std::string responseMessage = findAndReplacePlaceholders( templateMessage, fields );
 
-	// TODO: Mark client for removal if they have disconnected
 	sendMessage( client, responseMessage );
 }
+
+/**
+ * @brief Sends a buffered partial message to the client.
+ *
+ * @param client The client which should receive the buffered message.
+ */
+void	Response::sendPartialResponse( Client& client )
+{
+	std::string bufferedMessage = client.getSendBuffer();
+
+	if ( bufferedMessage.empty() ) return ;
+
+	client.clearSendBuffer();
+
+	sendMessage( client, bufferedMessage );
+}
+
 
 
 /// Static member variable setters
@@ -65,7 +81,11 @@ void	Response::setServerVersion	( const std::string& version )	{ _version = vers
 
 /// Static helper functions
 
-bool	Response::sendMessage( Client& client, const std::string& message )
+/**
+ * @brief Sends a composed message to client.
+ * When message couldn't be sent, appends the message to the client send buffer.
+ */
+void	Response::sendMessage( Client& client, const std::string& message )
 {
 	ssize_t bytes = send( client.getFd(), message.c_str(), message.length(), MSG_NOSIGNAL );
 
@@ -75,25 +95,27 @@ bool	Response::sendMessage( Client& client, const std::string& message )
 		{
 			if ( client.appendToSendBuffer(message) )
 			{
-				// TODO: Change the client's pollfd to POLLOUT and send the buffered message
-				// !!! TODO: Use Client's booleans _active and _pollout here, then checck for them in the Server loop !!!
-				return (true);
+				client.setPollout(true);
+				Server::setPolloutEvent(true);
+				return ;
 			}
 		}
-		// TODO: Mark for removal here
-		return (false);
+		client.setActive(false);
+		Server::setDisconnectEvent(true);
+		return ;
 	}
 	else if ( bytes < static_cast<ssize_t>(message.length()) )
 	{
 		if ( client.appendToSendBuffer(message.substr(bytes)) )
 		{
-			// TODO: Change the client's pollfd to POLLOUT and send the partial buffered message
-			return (true);
+			client.setPollout(true);
+			Server::setPolloutEvent(true);
+			return ;
 		}
-		// TODO: Mark for removal here
-		return (false);
+		client.setActive(false);
+		Server::setDisconnectEvent(true);
+		return ;
 	}
-	return (true);
 }
 
 std::string	Response::findAndReplacePlaceholders( const std::string& template_string, const string_map& placeholders )

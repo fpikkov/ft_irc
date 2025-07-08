@@ -21,7 +21,7 @@ class Response
 
 		static std::string	getResponseTemplate			( int code );
 		static std::string	findAndReplacePlaceholders	( const std::string& template_string, const string_map& placeholders );
-		static bool			sendMessage					( Client& client, const std::string& message );
+		static void			sendMessage					( Client& client, const std::string& message );
 
 	public:
 		/// Static member variable setters
@@ -31,6 +31,7 @@ class Response
 
 		/// Functions for sending messages
 		static void	sendResponseCode( int code, Client& client, const string_map& placeholders );
+		static void	sendPartialResponse( Client& client );
 
 
 		/// Response codes

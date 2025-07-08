@@ -33,8 +33,8 @@ public:
 	bool									isAuthenticated		() const;
 	std::unordered_set<std::string>&		getChannels			();
 	sockaddr&								getClientAddress	();
-	std::string&							getReceiveBuffer	();
-	std::string&							getSendBuffer		();
+	const std::string&						getReceiveBuffer	() const noexcept;
+	const std::string&						getSendBuffer		() const noexcept;
 	bool									getActive			() const noexcept;
 	bool									getPollout			() const noexcept;
 
@@ -52,6 +52,8 @@ public:
 	// Buffer management
 	bool		appendToReceiveBuffer	( const std::string& data );
 	bool		appendToSendBuffer		( const std::string& data );
+	void		clearReceiveBuffer		();
+	void		clearSendBuffer			();
 	bool		isReceiveBufferComplete	() const;
 	bool		isSendBufferComplete	() const;
 	std::string	extractLineFromReceive	();

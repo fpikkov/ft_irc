@@ -21,8 +21,8 @@ const std::string&						Client::getUsername			() const noexcept	{ return _userna
 const std::string&						Client::getHostname			() const noexcept	{ return _hostname; }
 const std::string&						Client::getNickname			() const noexcept	{ return _nickname; }
 const std::string&						Client::getRealname			() const noexcept	{ return _realname; }
-std::string&							Client::getReceiveBuffer	()					{ return _receiveBuffer; }
-std::string&							Client::getSendBuffer		()					{ return _sendBuffer; }
+const std::string&						Client::getReceiveBuffer	() const noexcept	{ return _receiveBuffer; }
+const std::string&						Client::getSendBuffer		() const noexcept	{ return _sendBuffer; }
 sockaddr&								Client::getClientAddress	()					{ return _clientAddress; }
 bool									Client::isAuthenticated		() const			{ return _authenticated; }
 std::unordered_set<std::string>&		Client::getChannels			()					{ return _channels; }
@@ -71,6 +71,9 @@ bool	Client::appendToSendBuffer(const std::string& data)
 	_sendBuffer += data;
 	return true;
 }
+
+void	Client::clearReceiveBuffer		()			{ _receiveBuffer.clear(); }
+void	Client::clearSendBuffer			()			{ _sendBuffer.clear(); }
 
 /**
  * @brief Checks if the receive buffer contains a complete message

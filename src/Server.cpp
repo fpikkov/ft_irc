@@ -7,6 +7,8 @@
 /// Static member variables
 
 bool	Server::_terminate = false;
+bool	Server::_disconnectEvent = false;
+bool	Server::_polloutEvent = false;
 
 
 /// Constructors and destructors
@@ -51,6 +53,12 @@ Server::~Server()
 const std::string&	Server::getServerStartTime	() const { return (_serverStartTime); }
 const std::string&	Server::getServerHostname	() const { return (_serverHostname); }
 const std::string&	Server::getServerVersion	() const { return (_serverVersion); }
+
+
+/// Setters
+
+void	Server::setDisconnectEvent	( bool event ) { _disconnectEvent = event; }
+void	Server::setPolloutEvent		( bool event ) { _polloutEvent = event; }
 
 
 /// Member functions
