@@ -38,7 +38,7 @@ class CommandHandler
 
 	public:
 			CommandHandler(Server& server);
-			void	handleCommand(Client& client, Command const& cmd);
+			void	handleCommand(Client& client, const Command& cmd);
 };
 
 
