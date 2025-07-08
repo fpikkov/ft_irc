@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandHandler.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rkhakimu <rkhakimu@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/08 14:12:42 by rkhakimu         ###   ########.fr       */
+/*   Updated: 2025/07/08 15:24:25 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,17 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
 }
 
+/*Command handler function, for fast execution of any command.
+  This function iterates through _handlers(map of command keys and funcs),
+  finds a match, and executes the command internally.
+  Server response to client will also be sent internally.
+  If no match is found, server immediately responds with unknown command error.*/
+  
 void    CommandHandler::handleCommand(Client& client, const Command& cmd)
 {
-	
+	auto it = _handlers.find(cmd.command);
+	if (it != _handlers.end())
+		it->second(client, cmd);
+	else
+		//Respond with ERR_UNKNOWNCOMMAND.
 }
