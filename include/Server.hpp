@@ -1,9 +1,12 @@
 #pragma once
 
 #include "headers.hpp"
-#include "Client.hpp"
 #include <vector>
 #include <unordered_map>
+
+struct Command;
+
+class Client;
 
 class Server
 {
