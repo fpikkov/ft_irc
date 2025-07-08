@@ -117,7 +117,6 @@ void	Server::serverLoop()
 				}
 				else // Client is sending a new message
 				{
-					// TODO: Double check if the same fd has queued up messages in the sendBuffer
 					if ( !receiveClientMessage( fd.fd ) )
 						continue ;
 				}
@@ -278,7 +277,7 @@ void	Server::disconnectClients()
 	_disconnectEvent = false;
 }
 
-// Client messaging
+/// Client messaging
 
 bool	Server::receiveClientMessage( int file_descriptor )
 {
@@ -315,15 +314,6 @@ bool	Server::receiveClientMessage( int file_descriptor )
 	}
 	else
 	{
-		/**
-		 * TODO: SEND_MSG
-		 * Process the received message.
-		 * Check if the message was partial so it should be stored with Client
-		 * If full message has been received (and Client buffer is empty)
-		 * 	 parse the string to command structure
-		 * Immediately send() the response to the client when a valid command was parsed
-		 */
-
 		Client& client = _clients[file_descriptor];
 
 		if ( client.appendToReceiveBuffer( std::string(buffer.data(), bytes) ))
@@ -338,7 +328,7 @@ bool	Server::receiveClientMessage( int file_descriptor )
 		}
 		else // Client attempted to overflow our buffer
 		{
-			// Message the client with response code 417
+			// TODO: Message the client with response code 417
 			_clients[file_descriptor].setActive(false);
 			_disconnectEvent = true;
 			if ( irc::EXTENDED_DEBUG_LOGGING )
