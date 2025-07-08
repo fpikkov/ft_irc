@@ -125,9 +125,7 @@ void	Server::serverLoop()
 			}
 			else if ( fd.revents & POLLOUT ) // Server is ready to send message to client
 			{
-				/**
-				 * TODO: SEND_MSG Figure out the steps
-				 */
+				Response::sendPartialResponse( _clients[fd.fd] );
 			}
 			else if ( fd.revents & ( POLLERR | POLLHUP | POLLNVAL ) ) // Remove client on error or hangup
 			{
