@@ -16,7 +16,7 @@ Client::~Client	() {}
 
 // Getters
 
-const int								Client::getFd				() const noexcept	{ return _clientFd; }
+int										Client::getFd				() const noexcept	{ return _clientFd; }
 const std::string&						Client::getUsername			() const noexcept	{ return _username; }
 const std::string&						Client::getHostname			() const noexcept	{ return _hostname; }
 const std::string&						Client::getNickname			() const noexcept	{ return _nickname; }

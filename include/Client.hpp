@@ -25,7 +25,7 @@ public:
 	~Client();
 
 	// Getters
-	const int								getFd				() const noexcept;
+	int										getFd				() const noexcept;
 	const std::string&						getUsername			() const noexcept;
 	const std::string&						getHostname			() const noexcept;
 	const std::string&						getNickname			() const noexcept;

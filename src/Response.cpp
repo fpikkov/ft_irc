@@ -73,11 +73,15 @@ void	Response::sendPartialResponse( Client& client )
 
 
 
-/// Static member variable setters
+/// Static member variable initialization and setters
 
-void	Response::setServerDate		( const std::string& date )		{ _date = date; }
-void	Response::setServerName		( const std::string& name )		{ _server = name; }
-void	Response::setServerVersion	( const std::string& version )	{ _version = version; }
+std::string	Response::_date;
+std::string	Response::_server;
+std::string	Response::_version;
+
+void		Response::setServerDate		( const std::string& date )		{ _date = date; }
+void		Response::setServerName		( const std::string& name )		{ _server = name; }
+void		Response::setServerVersion	( const std::string& version )	{ _version = version; }
 
 
 /// Static helper functions

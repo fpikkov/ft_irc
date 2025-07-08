@@ -6,10 +6,10 @@
 namespace irc
 {
 	// Minor memory optimization
-	constexpr const bool const MEMORY_SAVING = true;
+	constexpr const bool MEMORY_SAVING = true;
 
 	// Additional debug messaging
-	constexpr const bool const EXTENDED_DEBUG_LOGGING = true;
+	constexpr const bool EXTENDED_DEBUG_LOGGING = true;
 
 	// Customizable server version
 	constexpr const char* const SERVER_VERSION = "v1.0";

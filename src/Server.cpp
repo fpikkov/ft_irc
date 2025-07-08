@@ -357,7 +357,7 @@ void	Server::setClientsToPollout()
 		{
 			for ( auto& element : _fds )
 			{
-				if ( element.fd == fd )
+				if ( element.fd == static_cast<int>(fd) )
 				{
 					element.events |= POLLOUT;
 					client.setPollout(false);
@@ -374,7 +374,7 @@ void	Server::setClientsToPollout()
 	_polloutEvent = false;
 }
 
-void	Server::executeCommand(Client &client, Command const &cmd)
+void	Server::executeCommand( [[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd )
 {
 	//int	cmd_id = identifyCommand(cmd);
 }
