@@ -6,13 +6,36 @@
 /*   By: rkhakimu <rkhakimu@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/08 13:56:21 by rkhakimu         ###   ########.fr       */
+/*   Updated: 2025/07/08 14:12:42 by rkhakimu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CommandHandler.hpp"
 
-CommandHandler::CommandHandler(Server& server) : _server(server) {}
+CommandHandler::CommandHandler(Server& server) : _server(server)
+{
+	// Registration commands
+	_handlers["PASS"]		= [this](Client& c, const Command& cmd) { handlePass(c, cmd); };
+	_handlers["NICK"] 		= [this](Client& c, const Command& cmd) { handleNick(c, cmd); };
+	_handlers["USER"] 		= [this](Client& c, const Command& cmd) { handleUser(c, cmd); };
+
+	// Message commands
+	_handlers["PRIVMSG"] 	= [this](Client& c, const Command& cmd) { handlePrivmsg(c, cmd); };
+	_handlers["NOTICE"] 	= [this](Client& c, const Command& cmd) { handleNotice(c, cmd); };
+
+	// Channel commands
+	_handlers["JOIN"]		= [this](Client& c, const Command& cmd) { handleJoin(c, cmd); };
+	_handlers["PART"]		= [this](Client& c, const Command& cmd) { handlePart(c, cmd); };
+	_handlers["KICK"]		= [this](Client& c, const Command& cmd) { handleKick(c, cmd); };
+	_handlers["INVITE"]		= [this](Client& c, const Command& cmd) { handleInvite(c, cmd); };
+	_handlers["TOPIC"]		= [this](Client& c, const Command& cmd) { handleTopic(c, cmd); };
+	_handlers["MODE"]		= [this](Client& c, const Command& cmd) { handleMode(c, cmd); };
+
+	//Rest of the commands
+	_handlers["QUIT"]		= [this](Client& c, const Command& cmd) { handleQuit(c, cmd); };
+	_handlers["PING"]		= [this](Client& c, const Command& cmd) { handlePing(c, cmd); };
+	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
+}
 
 void    CommandHandler::handleCommand(Client& client, const Command& cmd)
 {
