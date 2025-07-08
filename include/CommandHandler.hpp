@@ -1,6 +1,8 @@
+#pragma once
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Command.hpp"
+#include "Response.hpp"
 #include <functional>
 #include <unordered_map>
 
