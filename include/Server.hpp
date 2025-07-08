@@ -4,6 +4,7 @@
 #include "Client.hpp"
 #include <vector>
 #include <unordered_map>
+#include "CommandHandler.hpp"
 
 class Server
 {
