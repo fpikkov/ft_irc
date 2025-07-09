@@ -20,6 +20,7 @@ class Response
 		Response() = delete;
 
 		static std::string	getResponseTemplate			( int code );
+		static std::string	getCommandTemplate			( const std::string& command );
 		static std::string	findAndReplacePlaceholders	( const std::string& template_string, const string_map& placeholders );
 		static void			sendMessage					( Client& client, const std::string& message );
 
@@ -31,7 +32,11 @@ class Response
 
 		/// Functions for sending messages
 		static void	sendResponseCode					( int code, Client& client, const string_map& placeholders );
+		static void	sendResponseCommand					( const std::string& command, Client& source, Client& target, const string_map& placeholders );
 		static void	sendPartialResponse					( Client& client );
+
+		static void sendPing							( Client& target, const std::string& token );
+		static void sendPong							( Client& target, const std::string& token );
 
 
 		/// Response codes
@@ -54,6 +59,7 @@ class Response
 		static constexpr int ERR_NEEDMOREPARAMS = 461;
 		static constexpr int ERR_ALREADYREGISTRED = 462;
 		static constexpr int ERR_PASSWDMISMATCH = 464;
+		static constexpr int ERR_TOOMANYCHANNELS = 405;
 
 
 		/// Channel operations
@@ -87,5 +93,17 @@ class Response
 		static constexpr int RPL_WHOISPERATOR = 313;
 		static constexpr int RPL_ENDOFWHOIS = 318;
 
+
+		/// Message of the day
+		static constexpr int RPL_MOTDSTART = 375;
+		static constexpr int RPL_MOTD = 372;
+		static constexpr int RPL_ENDOFMOTD = 376;
+
+		static constexpr int ERR_NOMOTD = 422;
+
+
+		/// Disabled features
+		static constexpr int ERR_SUMMONDISABLED = 445;
+		static constexpr int ERR_USERSDISABLED = 446;
 
 };

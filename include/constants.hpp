@@ -5,6 +5,28 @@
 
 namespace irc
 {
+	// Available channel modes
+	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
+
+	// Channel limit (CHANLIMIT)
+	constexpr const int const MAX_CHANNELS = 20;
+
+	// Channel character limit (CHANNELLEN)
+	constexpr const int const MAX_CHANNEL_LENGTH = 16;
+
+	// Nickname character limit (MAXNICKLEN & NICKLEN)
+	constexpr const int const MAX_NICKNAME_LENGTH = 16;
+
+	// Topic character limit (TOPICLEN)
+	constexpr const int const MAX_TOPIC_LENGTH = 64;
+
+	// Server info used in RPL_WHOISSERVER
+	constexpr const char* const SERVER_INFO = "Helsinki, FI";
+
+	// Password requirement
+	constexpr const bool const REQUIRE_PASSWORD = false;
+
+
 	// Minor memory optimization
 	constexpr const bool MEMORY_SAVING = true;
 
@@ -33,6 +55,7 @@ namespace irc
 	constexpr const char* const LOG_FAIL = "\033[1;31mFAILURE\033[0m";
 	constexpr const char* const LOG_SUCCESS = "\033[1;32mSUCCESS\033[0m";
 	constexpr const char* const LOG_DEBUG = "\033[1;36mDEBUG\033[0m";
+
 
 	// Macros
 	inline void print( const auto& msg ) { std::cout << msg << '\n'; }
