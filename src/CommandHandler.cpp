@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandHandler.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rkhakimu <rkhakimu@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 17:42:51 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 18:31:48 by rkhakimu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -349,3 +349,23 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 
 // TODO broadcasting automation.
 
+void CommandHandler::handlePing(Client& client, const Command& cmd)
+{
+	if (cmd.params.empty())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}}); // The outer { ... } is for the map initializer. The inner { ... } is for each key-value pair.
+		return ;
+	}
+	std::string token = cmd.params[0];
+	//sending PONG reply?
+	std::string replyPong = "PONG" + token +"\r\n";
+}
+
+void CommandHandler::handlePong(Client& client, const Command& cmd)
+{
+	if (cmd.params.empty())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}}); // The outer { ... } is for the map initializer. The inner { ... } is for each key-value pair.
+		return ;
+	}
+}
