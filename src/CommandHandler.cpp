@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommandHandler.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rkhakimu <rkhakimu@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/08 18:13:34 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 12:23:00 by rkhakimu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,20 +97,20 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 {
 	if (client.isAuthenticated())
 	{
-		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client);
+		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client, {});
 		return ;
 	}
 	
 	if (cmd.params.empty())
 	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client);
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
 		return ;
 	}
 	
 	const std::string& providedPassword = cmd.params[0];
 	if (providedPassword != _server.getPassword())
 	{
-		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client);
+		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
 		return ;
 	}
 	
@@ -135,7 +135,7 @@ static bool	isValidNick(const std::string& nick)
 	};
 
 	char firstChar = nick[0];
-	if (!isLetter(firstChar) && !isSpecial(first))
+	if (!isLetter(firstChar) && !isSpecial(firstChar))
 		return false;
 	
 	for (size_t i = 1; i < nick.length(); ++i)
@@ -151,7 +151,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 {
 	if (cmd.params.empty())
 	{
-		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client);
+		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client, {});
 		return ;
 	}
 	
@@ -159,7 +159,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	
 	if (!isValidNick(newNick))
 	{
-		Response::sendResponseCode(Response::ERR_ERRONEUSNICKNAME, client)
+		Response::sendResponseCode(Response::ERR_ERRONEUSNICKNAME, client, {});
 		return ;
 	}
 
@@ -167,7 +167,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	{
 		if (clientObject.getNickname() == newNick)
 		{
-			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client);
+			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
 			return ;
 		}
 	}
@@ -177,3 +177,8 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 /* 
 [ \ ] ^ _ ` { | }
 */
+
+void CommandHandler::handleUser(Client& client, const Command& cmd)
+{
+	
+}

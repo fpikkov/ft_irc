@@ -42,9 +42,11 @@ class Server
 		Server( const std::string port, const std::string password );
 		~Server();
 
-		const std::string&	getServerStartTime	() const;
-		const std::string&	getServerHostname	() const;
-		const std::string&	getServerVersion	() const;
+		const std::string&							getServerStartTime	() const;
+		const std::string&							getServerHostname	() const;
+		const std::string&							getServerVersion	() const;
+		const std::unordered_map<unsigned, Client>& getClients			() const;
+		const std::string&							getPassword			() const;
 
 		static void	setDisconnectEvent	( bool event );
 		static void	setPolloutEvent		( bool event );
@@ -65,7 +67,5 @@ class Server
 			public:
 				const char* what() const noexcept override;
 		};
-
-		const	std::string& getClients() const;
 };
 

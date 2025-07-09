@@ -22,7 +22,8 @@ Server::Server( const std::string port, const std::string password ) :
 	_serverSocket( -1 ),
 	_serverStartTime( Logger::timestamp() ),
 	_serverHostname( fetchHostname() ),
-	_serverVersion( irc::SERVER_VERSION )
+	_serverVersion( irc::SERVER_VERSION ),
+	_commandHandler(*this)
 {
 	signalSetup( true );
 
@@ -395,4 +396,5 @@ Channel*	Server::findChannel(std::string& channelName)
 
 const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }
 
-const	std::string& Server::getClients() const { return _clients; }
+const	std::unordered_map<unsigned, Client>& Server::getClients() const { return _clients; }
+const	std::string& Server::getPassword() const { return _password; }

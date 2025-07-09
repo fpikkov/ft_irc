@@ -39,6 +39,8 @@ class CommandHandler
 			void handlePong(Client&, const Command&);
 
 	public:
+			CommandHandler() = default;
+			~CommandHandler() = default;
 			CommandHandler(Server& server);
 			void	handleCommand(Client& client, const Command& cmd);
 };
