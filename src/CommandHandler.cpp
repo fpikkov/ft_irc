@@ -6,7 +6,7 @@
 /*   By: rkhakimu <rkhakimu@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 14:49:51 by rkhakimu         ###   ########.fr       */
+/*   Updated: 2025/07/09 14:58:39 by rkhakimu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,3 +261,6 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 	client.setRealname(realname);
 	client.setAuthenticated(true);
 }
+
+/* Rest of the commands */
+
