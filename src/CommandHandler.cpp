@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 12:34:02 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 12:36:35 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 			Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {});
 			return ;
 		}
-		Response::sendResponseCode
+		//Response::sendResponseCode
 	}
 	//TODO:
 	//		Check client has registered. DONE
@@ -141,7 +141,7 @@ static bool	isValidNick(const std::string& nick)
 	};
 
 	char firstChar = nick[0];
-	if (!isLetter(firstChar) && !isSpecial(firstCharChar))
+	if (!isLetter(firstChar) && !isSpecial(firstChar))
 		return false;
 	
 	for (size_t i = 1; i < nick.length(); ++i)
@@ -157,7 +157,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 {
 	if (cmd.params.empty())
 	{
-		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client, {}, {});
+		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client, {});
 		return ;
 	}
 	
