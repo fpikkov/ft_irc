@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 12:27:40 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 12:33:25 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	if (client.isAuthenticated())
 	{
 		Response::sendResponseCode(Response::ERR_ALREADYREGISTRED, client, {}); //TODO, fix this embarrasing typo. Its unhinged
+		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client, {});
 		return ;
 	}
 	
@@ -141,7 +142,7 @@ static bool	isValidNick(const std::string& nick)
 	};
 
 	char firstChar = nick[0];
-	if (!isLetter(firstChar) && !isSpecial(firstChar))
+	if (!isLetter(firstChar) && !isSpecial(firstCharChar))
 		return false;
 	
 	for (size_t i = 1; i < nick.length(); ++i)
@@ -157,7 +158,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 {
 	if (cmd.params.empty())
 	{
-		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client, {});
+		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client, {}, {});
 		return ;
 	}
 	
@@ -174,6 +175,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 		if (clientObject.getNickname() == newNick)
 		{
 			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
+			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
 			return ;
 		}
 	}
@@ -183,3 +185,8 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 /* 
 [ \ ] ^ _ ` { | }
 */
+
+void CommandHandler::handleUser(Client& client, const Command& cmd)
+{
+	
+}

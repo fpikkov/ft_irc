@@ -52,7 +52,7 @@ class Response
 		static constexpr int ERR_NICKNAMEINUSE = 433;
 		static constexpr int ERR_NOTREGISTERED = 451;
 		static constexpr int ERR_NEEDMOREPARAMS = 461;
-		static constexpr int ERR_ALREADYREGISTRED = 462;
+		static constexpr int ERR_ALREADYREGISTERED = 462;
 		static constexpr int ERR_PASSWDMISMATCH = 464;
 
 

@@ -172,7 +172,7 @@ std::string	Response::getResponseTemplate( int code )
 		case ERR_NICKNAMEINUSE:		return ":<server> <code> <nick> <new_nick> :Nickname is already in use\r\n";
 		case ERR_NOTREGISTERED:		return ":<server> <code> <nick> :You have not registered\r\n";
 		case ERR_NEEDMOREPARAMS:	return ":<server> <code> <nick> <command> :Not enough parameters\r\n";
-		case ERR_ALREADYREGISTRED:	return ":<server> <code> <nick> :You may not re-register\r\n";
+		case ERR_ALREADYREGISTERED:	return ":<server> <code> <nick> :You may not re-register\r\n";
 		case ERR_PASSWDMISMATCH:	return ":<server> <code> <nick> :Password incorrect\r\n";
 
 
