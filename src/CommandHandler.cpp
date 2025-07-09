@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 13:23:28 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 13:26:14 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 			Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {});
 			return ;
 		}
+		//Send to all clients who belong in the channel.
 	}
 	else
 	{
@@ -98,7 +99,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 			Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {});
 			return ;
 		}
-		//Response::sendResponseCode
+		//Send to the recipient client
 	}
 }
 
