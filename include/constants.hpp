@@ -5,6 +5,21 @@
 
 namespace irc
 {
+	// Minor memory optimization
+	constexpr const bool MEMORY_SAVING = true;
+
+	// Additional debug messaging
+	constexpr const bool EXTENDED_DEBUG_LOGGING = true;
+
+	// Customizable server version
+	constexpr const char* const SERVER_VERSION = "v1.0";
+
+	// Hostname length limit in the POSIX standard
+	constexpr size_t const MAX_HOSTNAME_LENGTH = 64;
+
+	// Default hostname
+	constexpr const char* const DEFAULT_HOSTNAME = "localhost";
+
 	// Backlog value for listen. System maximum is 4096
 	constexpr int const MAX_CONNECTION_REQUESTS = 128;
 

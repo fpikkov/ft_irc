@@ -1,13 +1,17 @@
 #include "Server.hpp"
+#include "Client.hpp"
 #include "constants.hpp"
 #include "Logger.hpp"
 #include <termios.h>
+#include "Response.hpp"
 #include "Command.hpp"
 #include "Channels.hpp"
 
 /// Static member variables
 
 bool	Server::_terminate = false;
+bool	Server::_disconnectEvent = false;
+bool	Server::_polloutEvent = false;
 
 
 /// Constructors and destructors
@@ -15,15 +19,20 @@ bool	Server::_terminate = false;
 Server::Server( const std::string port, const std::string password ) :
 	_port( std::stoi(port) ),
 	_password( password ),
-	_serverSocket(-1)
+	_serverSocket( -1 ),
+	_serverStartTime( Logger::timestamp() ),
+	_serverHostname( fetchHostname() ),
+	_serverVersion( irc::SERVER_VERSION )
 {
 	signalSetup( true );
-
-	_serverStartTime = Logger::timestamp();
 
 	((sockaddr_in *)&_serverAddress)->sin_family = AF_INET;
 	((sockaddr_in *)&_serverAddress)->sin_addr.s_addr = INADDR_ANY;
 	((sockaddr_in *)&_serverAddress)->sin_port = htons( _port );
+
+	Response::setServerDate		( _serverStartTime );
+	Response::setServerName		( _serverHostname );
+	Response::setServerVersion	( _serverVersion);
 }
 
 Server::~Server()
@@ -41,6 +50,18 @@ Server::~Server()
 
 	signalSetup( false );
 }
+
+/// Getters
+
+const std::string&	Server::getServerStartTime	() const { return (_serverStartTime); }
+const std::string&	Server::getServerHostname	() const { return (_serverHostname); }
+const std::string&	Server::getServerVersion	() const { return (_serverVersion); }
+
+
+/// Setters
+
+void	Server::setDisconnectEvent	( bool event ) { _disconnectEvent = event; }
+void	Server::setPolloutEvent		( bool event ) { _polloutEvent = event; }
 
 
 /// Member functions
@@ -87,7 +108,6 @@ void	Server::serverLoop()
 		}
 
 		std::vector<pollfd>	newClients;
-		std::vector<int>	removeClientFd;
 
 		for ( auto& fd : _fds )
 		{
@@ -100,27 +120,31 @@ void	Server::serverLoop()
 				}
 				else // Client is sending a new message
 				{
-					// TODO: Double check if the same fd has queued up messages in the sendBuffer
-					if ( !receiveClientMessage( fd.fd, removeClientFd ) )
+					if ( !receiveClientMessage( fd.fd ) )
 						continue ;
 				}
 			}
 			else if ( fd.revents & POLLOUT ) // Server is ready to send message to client
 			{
-				/**
-				 * TODO: SEND_MSG Figure out the steps
-				 */
+				Response::sendPartialResponse( _clients[fd.fd] );
+				if ( _clients[fd.fd].getPollout() == false )
+					fd.events &= ~POLLOUT;
 			}
 			else if ( fd.revents & ( POLLERR | POLLHUP | POLLNVAL ) ) // Remove client on error or hangup
 			{
-				removeClientFd.push_back(fd.fd);
+				_clients[fd.fd].setActive(false);
+				_disconnectEvent = true;
+				if ( irc::EXTENDED_DEBUG_LOGGING )
+					irc::log_event( "POLL", irc::LOG_DEBUG, "client has disconnected due to error" );
 			}
 		}
 
 		if ( !newClients.empty() )
 			_fds.insert( _fds.end(), newClients.begin(), newClients.end() );
-		if ( !removeClientFd.empty() ) // Comes after adding clients as they may have already dc'd
-			disconnectClients( removeClientFd );
+		if ( _polloutEvent )
+			setClientsToPollout();
+		if ( _disconnectEvent ) // Comes after adding clients as they may have already dc'd
+			disconnectClients();
 	}
 }
 
@@ -156,6 +180,18 @@ void	Server::signalHandler( int signum )
 {
 	if ( signum == SIGQUIT || signum == SIGINT )
 		Server::_terminate = true;
+}
+
+
+/// Hostname
+
+std::string	Server::fetchHostname()
+{
+	std::vector<char>	hostname( irc::MAX_HOSTNAME_LENGTH );
+
+	if ( gethostname(hostname.data(), irc::MAX_HOSTNAME_LENGTH - 1) == 0 )
+		return (std::string(hostname.data()));
+	return (irc::DEFAULT_HOSTNAME);
 }
 
 
@@ -203,21 +239,28 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	return ( true );
 }
 
-void	Server::disconnectClients( std::vector<int>& remove_clients )
+/**
+ * @brief Disconnects all clients marked as inactive.
+ * Closes the associated file descriptor and removes the associated pollfd.
+ */
+void	Server::disconnectClients()
 {
 	/**
-	 * NOTE: Clients may disconnect when:
-	 * 		poll event flags are POLLHUP, POLLERR or POLLNVAL
-	 * 		recv buffer is 0,
-	 * 		recv buffer is <0 without errno EAGAIN or EWOULDBLOCK
-	 * 		send return is <0 without errno EAGAIN or EWOULDBLOCK : TODO SEND_MSG
-	 *
 	 * 1. Remove client
 	 * 2. Close it's associated fd
 	 * 3. Remove associated data such as in channels // TODO: when Channels are set up
 	 * 4. Log the disconnect as an event
 	 */
-	for ( int fd : remove_clients )
+
+	std::vector<int> clientsToRemove;
+
+	for ( const auto& [fd, client] : _clients )
+	{
+		if ( client.getActive() == false )
+			clientsToRemove.push_back( client.getFd() );
+	}
+
+	for ( int fd : clientsToRemove )
 	{
 		close( fd );
 		_clients.erase( fd );
@@ -230,14 +273,16 @@ void	Server::disconnectClients( std::vector<int>& remove_clients )
 				break ;
 			}
 		}
-		// TODO: Notify channels about the disconnect
+		// TODO: Notify channel users about the disconnect AND remove the client from user lists
 		irc::log_event("DISCONNECT", irc::LOG_SUCCESS, "client fd " + std::to_string(fd));
 	}
+
+	_disconnectEvent = false;
 }
 
-// Client messaging
+/// Client messaging
 
-bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove_clients )
+bool	Server::receiveClientMessage( int file_descriptor )
 {
 	/**
 	 * 1. Receive message from client
@@ -253,31 +298,28 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 
 	if ( bytes < 0 )
 	{
-		if ( errno != EAGAIN && errno != EWOULDBLOCK ) // client has disconnected
+		if ( errno != EAGAIN && errno != EWOULDBLOCK )
 		{
-			remove_clients.push_back(file_descriptor);
+			_clients[file_descriptor].setActive(false);
+			_disconnectEvent = true;
+			if ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event( "RECV", irc::LOG_DEBUG, "client has disconnected" );
 			return (false);
 		}
 	}
-	else if ( bytes == 0 ) // client has disconnected
+	else if ( bytes == 0 )
 	{
-		remove_clients.push_back(file_descriptor);
+		_clients[file_descriptor].setActive(false);
+		_disconnectEvent = true;
+		if ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event( "RECV", irc::LOG_DEBUG, "client has disconnected" );
 		return (false);
 	}
 	else
 	{
-		/**
-		 * TODO: SEND_MSG
-		 * Process the received message.
-		 * Check if the message was partial so it should be stored with Client
-		 * If full message has been received (and Client buffer is empty)
-		 * 	 parse the string to command structure
-		 * Immediately send() the response to the client when a valid command was parsed
-		 */
-
 		Client& client = _clients[file_descriptor];
 
-		if ( client.appendToReceiveBuffer( std::string(buffer.data(), buffer.size() - 1) ))
+		if ( client.appendToReceiveBuffer( std::string(buffer.data(), bytes) ))
 		{
 			if ( client.isReceiveBufferComplete() )
 			{
@@ -295,14 +337,46 @@ bool	Server::receiveClientMessage( int file_descriptor, std::vector<int>& remove
 		}
 		else // Client attempted to overflow our buffer
 		{
-			remove_clients.push_back(file_descriptor);
-			return false;
+			// TODO: Message the client with response code 417
+			_clients[file_descriptor].setActive(false);
+			_disconnectEvent = true;
+			if ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event( "RECV", irc::LOG_DEBUG, "input line too long, dropping connection" );
+			return (false);
 		}
 	}
 	return (true);
 }
 
-void	Server::executeCommand(Client &client, Command const &cmd)
+/**
+ * @brief Adds POLLOUT flag to the pollfd events for clients with buffered outgoing messages.
+ */
+void	Server::setClientsToPollout()
+{
+	for ( auto& [fd, client] : _clients )
+	{
+		if ( client.getPollout() )
+		{
+			for ( auto& element : _fds )
+			{
+				if ( element.fd == static_cast<int>(fd) )
+				{
+					element.events |= POLLOUT;
+					client.setPollout(false);
+
+					if ( irc::EXTENDED_DEBUG_LOGGING )
+						irc::log_event( "POLL", irc::LOG_DEBUG, "polling out to client" );
+
+					break ;
+				}
+			}
+		}
+	}
+
+	_polloutEvent = false;
+}
+
+void	Server::executeCommand( Client& client, Command& cmd )
 {
 	this->_commandHandler.handleCommand(client, cmd);
 }

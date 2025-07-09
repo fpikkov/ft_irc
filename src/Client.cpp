@@ -3,11 +3,11 @@
 
 // Constructors/Destructor
 
-Client::Client	() : _clientFd(-1), _authenticated(false)
+Client::Client	() : _clientFd(-1), _authenticated(false), _active(true), _pollout(false)
 {
 	_clientAddress = {};
 }
-Client::Client	( int client_fd ) : _clientFd( client_fd ), _authenticated(false)
+Client::Client	( int client_fd ) : _clientFd( client_fd ), _authenticated(false), _active(true), _pollout(false)
 {
 	_clientAddress = {};
 }
@@ -16,17 +16,18 @@ Client::~Client	() {}
 
 // Getters
 
-const int								Client::getFd				() const noexcept	{ return _clientFd; }
+int										Client::getFd				() const noexcept	{ return _clientFd; }
 const std::string&						Client::getUsername			() const noexcept	{ return _username; }
 const std::string&						Client::getHostname			() const noexcept	{ return _hostname; }
 const std::string&						Client::getNickname			() const noexcept	{ return _nickname; }
 const std::string&						Client::getRealname			() const noexcept	{ return _realname; }
-std::string&							Client::getReceiveBuffer	()					{ return _receiveBuffer; }
-std::string&							Client::getSendBuffer		()					{ return _sendBuffer; }
+const std::string&						Client::getReceiveBuffer	() const noexcept	{ return _receiveBuffer; }
+const std::string&						Client::getSendBuffer		() const noexcept	{ return _sendBuffer; }
 sockaddr&								Client::getClientAddress	()					{ return _clientAddress; }
 bool									Client::isAuthenticated		() const			{ return _authenticated; }
 std::unordered_set<std::string>&		Client::getChannels			()					{ return _channels; }
-
+bool									Client::getActive			() const noexcept	{ return _active; }
+bool									Client::getPollout			() const noexcept	{ return _pollout; }
 
 // Setters
 
@@ -39,6 +40,8 @@ void	Client::setClientAddress	( sockaddr address )				{ _clientAddress = address
 void	Client::setAuthenticated	(bool auth)							{ _authenticated = auth; }
 void	Client::setReceiveBuffer	( const std::string& buffer )		{ _receiveBuffer = buffer; }
 void	Client::setSendBuffer		( const std::string& buffer )		{ _sendBuffer = buffer; }
+void	Client::setActive			( bool active )						{ _active = active; }
+void	Client::setPollout			( bool required )					{ _pollout = required; }
 
 
 // Buffer management
@@ -68,6 +71,9 @@ bool	Client::appendToSendBuffer(const std::string& data)
 	_sendBuffer += data;
 	return true;
 }
+
+void	Client::clearReceiveBuffer		()			{ _receiveBuffer.clear(); }
+void	Client::clearSendBuffer			()			{ _sendBuffer.clear(); }
 
 /**
  * @brief Checks if the receive buffer contains a complete message

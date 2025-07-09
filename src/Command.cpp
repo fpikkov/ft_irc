@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 13:21:55 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/08 18:08:23 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 11:28:04 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,11 @@ static  std::string stringToUpper(std::string cmd)
 
 static  std::string joinTrail(std::string token, std::istringstream &iss)
 {
-    std::string trail;
+	std::string trail;
 
-    std::getline(iss, trail);
+	std::getline(iss, trail);
 
-    return token.substr(1) + trail;
+	return token.substr(1) + trail;
 }
 
 /* msgToCmd uses istringstream to tokenize the message.
@@ -43,13 +43,13 @@ static  std::string joinTrail(std::string token, std::istringstream &iss)
    Command is always stored in uppercase, hence the stringToupper helper function.
    If a trailing parameter is found, joinTrail joins rest of the stringstream into a single parameter.
    Thus concluding the process and returning the finished cmd structure*/
-   
+
 Command msgToCmd(std::string message)
 {
-    Command             cmd;
-    std::istringstream  iss(message);
-    std::string         token;
-    size_t              token_counter = 0;
+	Command				cmd;
+	std::istringstream	iss(message);
+	std::string			token;
+	size_t				token_counter = 0;
 
     while (iss >> token)
     {
