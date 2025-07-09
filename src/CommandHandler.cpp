@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 17:39:55 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 17:42:48 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -310,4 +310,42 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 }
 
 /* Rest of the commands */
+
+void CommandHandler::handleQuit(Client& client, const Command& cmd)
+{
+	std::string quitMessage = "AWOLNATION - RUN";
+	if (!cmd.params.empty())
+	{
+		quitMessage = cmd.params[0];
+		if (!quitMessage.empty() && quitMessage[0] == ':')
+			quitMessage = quitMessage.substr(1);
+	}
+	
+	//For every channel the "client" is a member of
+	for (const std::string& channelName : client.getChannels())
+	{
+		// Finding the channel object by name
+		Channel* channel = _server.findChannel(const_cast<std::string&>(channelName));
+		// If channel does not exist
+		if (!channel) continue;
+		// For every member in this channel
+		for (int memberFd : channel->getMembers())
+		{
+			if (memberFd == client.getFd()) continue;
+			// Find member client object by the fd, because Channel class tracks members as a set of file descriptors (int), not as Client objects.
+			// In order to be able to send a message we need Client object, not just fd.
+			const auto& allClients = _server.getClients();
+			auto memberIt = allClients.find(memberFd);
+			if (memberIt != allClients.end())
+			{
+				Client& channelMember = const_cast<Client&>(memberIt->second);
+				//sending message here (Mr. @Fpikkov)
+			}
+		}
+		channel->removeMember(client.getFd());
+	}
+	client.setActive(false);
+}
+
+// TODO broadcasting automation.
 
