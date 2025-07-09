@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 13:26:14 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 15:37:05 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 	std::string	target = cmd.params[0];
 	std::string	message = cmd.params[1];
 
-	if (target[0] == '#')
+	if (target[0] == '#' || target[0] == '&')
 	{
 		target = stringToLower(target); //Channels are stored in lowercase.
 		Channel *channel = _server.findChannel(target);
@@ -130,9 +130,24 @@ void	CommandHandler::handleNotice(Client& client, const Command& cmd)
 
 /* CHANNEL COMMANDS*/
 
-void	CommandHandler::handleJoin(Client&, const Command&)
+void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 {
+	std::string	target = stringToLower(cmd.params[0]); //Channel names are stored in lowercase..
+	if (!cmd.params[1].empty())
+		std::string	key = cmd.params[1];
 	
+	//Edge cases
+	if (client.getChannels().count() > USER_MAX_CHANNELS) //TODO: Add constant for max channels.
+	{
+		Response::sendResponseCode(Response::ERR_TOOMANYCHANNELS, client, {}); //TODO: Add response for toomanychannels.
+		return ;
+	}
+	
+	Channel* channel = _server.findChannel(target);
+	if (!channel)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {});
+	}
 }
 
 /* REGISTRATION COMMANDS*/
