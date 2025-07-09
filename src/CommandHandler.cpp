@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/08 18:13:34 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 12:27:40 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,19 +50,19 @@ void    CommandHandler::handleCommand(Client& client, const Command& cmd)
 	if (it != _handlers.end())
 		it->second(client, cmd);
 	else
-		//Response::sendResponeCode(Respones::ERR_, client)
+		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {});
 }
 
 void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 {
 	if (!client.isAuthenticated())
 	{
-		//Response::sendResponseCode(Response::ERR_, client)
+		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
 		return ;
 	}
 	else if (cmd.params.size() < 2)
 	{
-		//Response::SendResponse(Response::) not enough params.
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
 		return ;
 	}
 
@@ -74,20 +74,26 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 		Channel *channel = _server.findChannel(target);
 		if (!channel)
 		{
-			//Response::sendRespone(Response::);
+			Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {});
 			return ;
 		}
 	}
 	else
 	{
-		Client	recipient = _server.findUser(target);
+		Client	*recipient = _server.findUser(target);
+		if (!recipient)
+		{
+			Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {});
+			return ;
+		}
+		Response::sendResponseCode
 	}
 	//TODO:
-	//		Check client has registered.
-	//		Check parameter count, expected: Target and Message.
-	//		Check target, channel starts with '#', user privmsg target is nickname.
-	//		Check if target exists. Channel or user?
-	//		Find target and send the message.
+	//		Check client has registered. DONE
+	//		Check parameter count, expected: Target and Message. DONE
+	//		Check target, channel starts with '#', user privmsg target is nickname.  DONE
+	//		Check if target exists. Channel or user? DONE
+	//		Find target and send the message. How to send?
 	//		Broadcast function needed for sending messages to channels.
 	//		Double check if 
 }
@@ -97,20 +103,20 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 {
 	if (client.isAuthenticated())
 	{
-		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client);
+		Response::sendResponseCode(Response::ERR_ALREADYREGISTRED, client, {}); //TODO, fix this embarrasing typo. Its unhinged
 		return ;
 	}
 	
 	if (cmd.params.empty())
 	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client);
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
 		return ;
 	}
 	
 	const std::string& providedPassword = cmd.params[0];
 	if (providedPassword != _server.getPassword())
 	{
-		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client);
+		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
 		return ;
 	}
 	
@@ -135,7 +141,7 @@ static bool	isValidNick(const std::string& nick)
 	};
 
 	char firstChar = nick[0];
-	if (!isLetter(firstChar) && !isSpecial(first))
+	if (!isLetter(firstChar) && !isSpecial(firstChar))
 		return false;
 	
 	for (size_t i = 1; i < nick.length(); ++i)
@@ -151,7 +157,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 {
 	if (cmd.params.empty())
 	{
-		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client);
+		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client, {});
 		return ;
 	}
 	
@@ -159,7 +165,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	
 	if (!isValidNick(newNick))
 	{
-		Response::sendResponseCode(Response::ERR_ERRONEUSNICKNAME, client)
+		Response::sendResponseCode(Response::ERR_ERRONEUSNICKNAME, client, {});
 		return ;
 	}
 
@@ -167,7 +173,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	{
 		if (clientObject.getNickname() == newNick)
 		{
-			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client);
+			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
 			return ;
 		}
 	}

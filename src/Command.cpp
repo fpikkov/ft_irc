@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 13:21:55 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 11:28:04 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 12:26:01 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,7 @@ static  std::string stringToUpper(std::string cmd)
 
 /* joinTrail will pick up the token where ':' was found,
    and join it with the rest of the stringstream, which is picked up with std::getline.
-   token.substr(1) gets rid of the ':' character.
-   if token is ":hello", and trail is "there friends", "hello there friends" is returned.*/
+   if token is ":hello", and trail is "there friends", ":hello there friends" is returned.*/
 
 static  std::string joinTrail(std::string token, std::istringstream &iss)
 {
@@ -34,7 +33,7 @@ static  std::string joinTrail(std::string token, std::istringstream &iss)
 
 	std::getline(iss, trail);
 
-	return token.substr(1) + trail;
+	return token + trail;
 }
 
 /* msgToCmd uses istringstream to tokenize the message.

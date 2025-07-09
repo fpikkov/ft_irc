@@ -381,12 +381,22 @@ void	Server::executeCommand( Client& client, Command& cmd )
 	this->_commandHandler.handleCommand(client, cmd);
 }
 
-Channel*	Server::findChannel(std::string& channelName)
+Channel*	Server::findChannel( std::string& channelName )
 {
 	for (auto& channel : _channels)
 	{
 		if (channel.getName() == channelName)
 			return &channel;
+	}
+	return nullptr;
+}
+
+Client*	Server::findUser( std::string& nickName )
+{
+	for (auto& client : _clients)
+	{
+		if (client.second.getNickname() == nickName)
+			return &client.second;
 	}
 	return nullptr;
 }
