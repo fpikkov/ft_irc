@@ -8,7 +8,8 @@
  * Client may be modified if an error occurs when sending a message.
  *
  * Accepted placeholder keys:
- * target, command, channel, users, names, topic, user_modes, channel_modes, symbol, realname, server_info
+ * target, command, channel, users, names, topic, user modes, channel modes,
+ * symbol, real name, server info, text, new nick, param, value
  *
  * @param code The response code to send.
  * @param client The client who will receive the response. Nick, user and host placeholders are fetched from this.
@@ -32,17 +33,21 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 	};
 	if ( !irc::MEMORY_SAVING )
 	{
-		fields["target"] = "";
-		fields["command"] = "";
-		fields["channel"] = "";
-		fields["users"] = "";
-		fields["names"] = "";
-		fields["topic"] = "";
-		fields["user_modes"] = "";
-		fields["channel_modes"] = "";
-		fields["symbol"] = "";
-		fields["realname"] = "";
-		fields["server_info"] = "";
+		fields["target"] = "*";
+		fields["command"] = "*";
+		fields["channel"] = "*";
+		fields["users"] = "*";
+		fields["names"] = "*";
+		fields["topic"] = "*";
+		fields["user modes"] = "***";
+		fields["channel modes"] = "***";
+		fields["symbol"] = "*";
+		fields["real name"] = "*";
+		fields["server info"] = "***";
+		fields["text"] = "***";
+		fields["new nick"] = "*";
+		fields["param"] = "*";
+		fields["value"] = "***";
 	}
 	for ( const auto& [placeholder, value] : placeholders )
 	{
@@ -157,18 +162,18 @@ std::string	Response::getResponseTemplate( int code )
 	switch ( code )
 	{
 		/// Connection registration
-		case RPL_WELCOME:			return ":<server> <code> <nick> :Welcome to the Internet Relay Network <nick>!<user>@<host>\r\n";
+		case RPL_WELCOME:			return ":<server> <code> <nick> :Welcome to the Internet Relay Network <nick>\r\n";
 		case RPL_YOURHOST:			return ":<server> <code> <nick> :Your host is <server>, running version <version>\r\n";
 		case RPL_CREATED:			return ":<server> <code> <nick> :This server was created <date>\r\n";
-		case RPL_MYINFO:			return ":<server> <code> <nick> <server> <version> <user_modes> <channel_modes>\r\n";
-		case RPL_ISUPPORT:			return ":<server> <code> <nick> <param>=[<value>] ... :are supported by this server\r\n";
+		case RPL_MYINFO:			return ":<server> <code> <nick> <server> <version> <user modes> <channel modes>\r\n";
+		case RPL_ISUPPORT:			return ":<server> <code> <nick> <param>=<value> :are supported by this server\r\n";
 
 		case ERR_NONICKNAMEGIVEN:	return ":<server> <code> <nick> :No nickname given\r\n";
-		case ERR_ERRONEUSNICKNAME:	return ":<server> <code> <nick> <new_nick> :Erroneous nickname\r\n";
-		case ERR_NICKNAMEINUSE:		return ":<server> <code> <nick> <new_nick> :Nickname is already in use\r\n";
+		case ERR_ERRONEUSNICKNAME:	return ":<server> <code> <nick> <new nick> :Erroneous nickname\r\n";
+		case ERR_NICKNAMEINUSE:		return ":<server> <code> <nick> <new nick> :Nickname is already in use\r\n";
 		case ERR_NOTREGISTERED:		return ":<server> <code> <nick> :You have not registered\r\n";
 		case ERR_NEEDMOREPARAMS:	return ":<server> <code> <nick> <command> :Not enough parameters\r\n";
-		case ERR_ALREADYREGISTRED:	return ":<server> <code> <nick> :You may not re-register\r\n";
+		case ERR_ALREADYREGISTRED:	return ":<server> <code> <nick> :You may not reregister\r\n";
 		case ERR_PASSWDMISMATCH:	return ":<server> <code> <nick> :Password incorrect\r\n";
 
 
@@ -196,10 +201,22 @@ std::string	Response::getResponseTemplate( int code )
 		case ERR_NOTEXTTOSEND:		return ":<server> <code> <nick> :No text to send\r\n";
 		case ERR_UNKNOWNCOMMAND:	return ":<server> <code> <nick> <command> :Unknown command\r\n";
 
-		case RPL_WHOISUSER:			return ":<server> <code> <nick> <target> <user> <host> * :<realname>\r\n";
-		case RPL_WHOISSERVER:		return ":<server> <code> <nick> <target> <server> :<server_info>\r\n";
+		case RPL_WHOISUSER:			return ":<server> <code> <nick> <target> <user> <host> * :<real name>\r\n";
+		case RPL_WHOISSERVER:		return ":<server> <code> <nick> <target> <server> :<server info>\r\n";
 		case RPL_WHOISPERATOR:		return ":<server> <code> <nick> <target> :is an IRC operator\r\n";
 		case RPL_ENDOFWHOIS:		return ":<server> <code> <nick> <target> :End of /WHOIS list\r\n";
+
+		/// Message of the day
+		case RPL_MOTDSTART:			return "<server> <code> <nick> :- <server> Message of the day -\r\n";
+		case RPL_MOTD:				return "<server> <code> <nick> :- <text> -\r\n";
+		case RPL_ENDOFMOTD:			return "<server> <code> <nick> :End of /MOTD command\r\n";
+
+		case ERR_NOMOTD:			return "<server> <code> <nick> :MOTD File is missing\r\n";
+
+
+		/// Disabled features
+		case ERR_SUMMONDISABLED:	return "<server> <code> <nick> :SUMMON has been disabled\r\n";
+		case ERR_USERSDISABLED:		return "<server> <code> <nick> :USERS has been disabled\r\n";
 
 
 		default:

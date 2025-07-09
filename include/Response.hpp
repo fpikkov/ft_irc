@@ -88,4 +88,16 @@ class Response
 		static constexpr int RPL_ENDOFWHOIS = 318;
 
 
+		/// Message of the day
+		static constexpr int RPL_MOTDSTART = 375;
+		static constexpr int RPL_MOTD = 372;
+		static constexpr int RPL_ENDOFMOTD = 376;
+
+		static constexpr int ERR_NOMOTD = 422;
+
+
+		/// Disabled features
+		static constexpr int ERR_SUMMONDISABLED = 445;
+		static constexpr int ERR_USERSDISABLED = 446;
+
 };
