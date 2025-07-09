@@ -6,13 +6,16 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 15:39:38 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 17:39:55 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-
 #include "CommandHandler.hpp"
+#include "Channels.hpp"
+#include "Client.hpp"
+#include "Response.hpp"
+#include "Server.hpp"
+#include "Command.hpp"
 
 CommandHandler::CommandHandler(Server& server) : _server(server)
 {
@@ -133,23 +136,52 @@ void	CommandHandler::handleNotice(Client& client, const Command& cmd)
 
 void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 {
-	std::string	target = stringToLower(cmd.params[0]); //Channel names are stored in lowercase..
-	if (!cmd.params[1].empty())
-		std::string	key = cmd.params[1];
-	
-	//Edge cases
+	if (cmd.params[0].empty())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
+		return ;
+	}
 	if (client.getChannels().count() > USER_MAX_CHANNELS) //TODO: Add constant for max channels.
 	{
 		Response::sendResponseCode(Response::ERR_TOOMANYCHANNELS, client, {}); //TODO: Add response for toomanychannels.
 		return ;
 	}
 	
+	std::string	target = stringToLower(cmd.params[0]); //Channel names are stored in lowercase..
+	std::string	key;
+	if (!cmd.params[1].empty())
+		key = cmd.params[1];
+	
 	Channel* channel = _server.findChannel(target);
 	if (!channel)
 	{
-		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {});
+		_server.addChannel(target);
+		channel = _server.findChannel(target);
 	}
+	if (channel->isFull())
+	{
+		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {});
+		return ;
+	}
+	if (channel->isInviteOnly())
+	{
+		//check if the user is actually invited before turning them down.
+		Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {});
+		return ;
+	}
+	if (channel->getKey() && key.empty() || channel->getKey() != key)
+	{
+		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {});
+		return ;
+	}
+	//TODO: Check rest of the cases.
+	//		make the user an operator when creating channel.
+	//		make sure to check if user is invited when checking isinviteonly/
+	//		make a check for if the channel is already full!!
+	channel->addMember(client.getFd());
 }
+//Build a broadcast function, that flexibly allows sending a message to all clients in the channel.
+//Take the message in as a parameter for a flexible use.
 
 /* REGISTRATION COMMANDS*/
 
