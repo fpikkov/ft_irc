@@ -402,6 +402,11 @@ Client*	Server::findUser( std::string& nickName )
 	return nullptr;
 }
 
+void	Server::addChannel(const std::string channelName)
+{
+	Channel	channel(channelName);
+	_channels.push_back(channel);	
+}
 /// Exceptions
 
 const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }
