@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 12:36:35 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 13:23:28 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,17 @@ void    CommandHandler::handleCommand(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {});
 }
 
+static	std::string	stringToLower(std::string channelName)
+{
+	for (size_t i = 0; i < channelName.length(); i++)
+	{
+		std::tolower(channelName[i]);
+	}
+	return (channelName);
+}
+
+/* MESSAGE COMMANDS*/
+
 void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 {
 	if (!client.isAuthenticated())
@@ -71,6 +82,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 
 	if (target[0] == '#')
 	{
+		target = stringToLower(target); //Channels are stored in lowercase.
 		Channel *channel = _server.findChannel(target);
 		if (!channel)
 		{
@@ -88,16 +100,41 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 		}
 		//Response::sendResponseCode
 	}
-	//TODO:
-	//		Check client has registered. DONE
-	//		Check parameter count, expected: Target and Message. DONE
-	//		Check target, channel starts with '#', user privmsg target is nickname.  DONE
-	//		Check if target exists. Channel or user? DONE
-	//		Find target and send the message. How to send?
-	//		Broadcast function needed for sending messages to channels.
-	//		Double check if 
 }
 
+/* NOTE: NOTICE is very much like PRIVMSG, but it does not care about errors.
+   No replies are expected from either the server or the recipient.*/
+   
+void	CommandHandler::handleNotice(Client& client, const Command& cmd)
+{
+	std::string	target = cmd.params[0];
+	std::string	message = cmd.params[1];
+
+	if (target[0] == '#')
+	{
+		target = stringToLower(target);
+		Channel	*channel = _server.findChannel(target);
+		if (!channel)
+			return ;
+		//Send the message to the clients who belong to server.
+	}
+	else
+	{
+		Client *recipient = _server.findUser(target);
+		if (!recipient)
+			return ;
+		//Send the message to the recipient.
+	}
+}
+
+/* CHANNEL COMMANDS*/
+
+void	CommandHandler::handleJoin(Client&, const Command&)
+{
+	
+}
+
+/* REGISTRATION COMMANDS*/
 
 void	CommandHandler::handlePass(Client& client, const Command& cmd)
 {
