@@ -6,13 +6,10 @@
 /*   By: rkhakimu <rkhakimu@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2025/07/09 14:24:15 by rkhakimu         ###   ########.fr       */
-=======
-/*   Updated: 2025/07/09 13:26:14 by ahentton         ###   ########.fr       */
->>>>>>> 3fb401e3157ed5381347f5126f1382ba8e5864ca
+/*   Updated: 2025/07/09 14:49:51 by rkhakimu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 #include "CommandHandler.hpp"
