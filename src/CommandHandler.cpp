@@ -6,9 +6,10 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 15:37:05 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 15:39:38 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 #include "CommandHandler.hpp"
@@ -170,7 +171,8 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	if (providedPassword != _server.getPassword())
 	{
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
-		return ;
+		if (irc::PASSWORD_REQUIRED)
+			return ;
 	}
 	
 	client.setAuthenticated(true);
@@ -227,7 +229,6 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 		if (clientObject.getNickname() == newNick)
 		{
 			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
-			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
 			return ;
 		}
 	}
@@ -237,8 +238,44 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 /* 
 [ \ ] ^ _ ` { | }
 */
-
+/* USER <username> <mode> <unused> <realname> */
 void CommandHandler::handleUser(Client& client, const Command& cmd)
 {
+	if (client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client, {});
+		return ;
+	}
 	
+	if (cmd.params.size() < 4)
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}}); // The outer { ... } is for the map initializer. The inner { ... } is for each key-value pair.
+		return ;
+	}
+
+	std::string username = cmd.params[0];
+	std::string realname = cmd.params[3];
+	
+	if (username.empty())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}});
+		return ;
+	}
+	
+	// Truncating username to 10 chars (USERLEN)
+	const size_t USERLEN = 10;
+	if (username.length() > USERLEN)
+		username = username.substr(0, USERLEN);
+	
+	username = "~" + username;
+
+	if (!realname.empty() && realname[0] == ':')
+		realname = realname.substr(1);
+	
+	client.setUsername(username);
+	client.setRealname(realname);
+	client.setAuthenticated(true);
 }
+
+/* Rest of the commands */
+
