@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 12:33:25 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/09 12:34:02 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,6 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 {
 	if (client.isAuthenticated())
 	{
-		Response::sendResponseCode(Response::ERR_ALREADYREGISTRED, client, {}); //TODO, fix this embarrasing typo. Its unhinged
 		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client, {});
 		return ;
 	}
