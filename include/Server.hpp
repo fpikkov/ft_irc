@@ -61,6 +61,7 @@ class Server
 		void		disconnectClients		();
 		bool		receiveClientMessage	( int file_descriptor );
 		void		executeCommand			( Client& client, Command& cmd);
+		void		addChannel				( const std::string channelName);
 
 		class InvalidClientException: public std::exception
 		{
