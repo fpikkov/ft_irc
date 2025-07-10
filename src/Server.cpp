@@ -382,7 +382,7 @@ void	Server::executeCommand( Client& client, Command& cmd )
 	this->_commandHandler.handleCommand(client, cmd);
 }
 
-Channel*	Server::findChannel( std::string& channelName )
+Channel*	Server::findChannel( const std::string& channelName )
 {
 	for (auto& channel : _channels)
 	{
