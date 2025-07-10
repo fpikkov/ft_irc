@@ -47,6 +47,7 @@ class Server
 		const std::string&							getServerVersion	() const;
 		const std::unordered_map<unsigned, Client>& getClients			() const;
 		const std::string&							getPassword			() const;
+		const std::vector<Channel>					getChannels			() const;
 
 		static void	setDisconnectEvent	( bool event );
 		static void	setPolloutEvent		( bool event );

@@ -412,4 +412,5 @@ void	Server::addChannel(const std::string channelName)
 const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }
 
 const	std::unordered_map<unsigned, Client>& Server::getClients() const { return _clients; }
+const	std::vector<Channel> Server::getChannels() const { return _channels; }
 const	std::string& Server::getPassword() const { return _password; }
