@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/10 14:54:02 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/10 16:54:53 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,9 +199,43 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			return ;
 	}
 }
-//Build a broadcast function, that flexibly allows sending a message to all clients in the channel.
-//Take the message in as a parameter for a flexible use.
 
+void	CommandHandler::handlePart(Client& client, const Command& cmd)
+{
+	if (!client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
+		return ;
+	}
+	if (cmd.params.size() < 1)
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "PART"}});
+		return ;
+	}
+	
+	std::string	channelName = stringToLower(cmd.params[0]); //Channel names are stored in lowercase
+	std::string	optionalMessage = (cmd.params.size() > 1) ? cmd.params[1] : "";
+	
+	Channel* channel = _server.findChannel(channelName);
+	if (!channel)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channelName}});
+		return ;
+	}
+	if (!channel->isMember(client.getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_NOTONCHANNEL, client, {{"channel", channel->getName()}});
+		return ;
+	}
+	//Broadcast a parting message to all users in the channel, and the user who is leaving.
+	//if (!optionalMessage.isEmpty()): Conconate the default parting message and optionalMessage
+	channel->removeMember(client.getFd());
+	if (channel->isEmpty())
+	{
+		_server.removeChannel(channel->getName());
+		return ;
+	}
+}
 /* REGISTRATION COMMANDS*/
 
 void	CommandHandler::handlePass(Client& client, const Command& cmd)
