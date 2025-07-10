@@ -9,26 +9,26 @@ namespace irc
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
 
 	// Channel limit (CHANLIMIT)
-	constexpr const int const MAX_CHANNELS = 20;
+	constexpr const int MAX_CHANNELS = 20;
 
 	// Channel character limit (CHANNELLEN)
-	constexpr const int const MAX_CHANNEL_LENGTH = 16;
+	constexpr const int MAX_CHANNEL_LENGTH = 16;
 
 	// Nickname character limit (MAXNICKLEN & NICKLEN)
-	constexpr const int const MAX_NICKNAME_LENGTH = 16;
+	constexpr const int MAX_NICKNAME_LENGTH = 16;
 
 	// Topic character limit (TOPICLEN)
-	constexpr const int const MAX_TOPIC_LENGTH = 64;
+	constexpr const int MAX_TOPIC_LENGTH = 64;
 
 	// Server info used in RPL_WHOISSERVER
 	constexpr const char* const SERVER_INFO = "Helsinki, FI";
 
 	// Password requirement
-	constexpr const bool const REQUIRE_PASSWORD = false;
+	constexpr const bool REQUIRE_PASSWORD = false;
 
 
 	// Should the server notify user on hostname lookup
-	constexpr const bool const ANNOUNCE_CLIENT_LOOKUP = true;
+	constexpr const bool ANNOUNCE_CLIENT_LOOKUP = true;
 
 	// Server notice on fetching hostname
 	constexpr const char* const CLIENT_HOSTNAME_MESSAGE = "Looking up your hostname...";
@@ -50,19 +50,19 @@ namespace irc
 	constexpr const char* const SERVER_VERSION = "v1.0";
 
 	// Hostname length limit in the POSIX standard
-	constexpr size_t const MAX_HOSTNAME_LENGTH = 64;
+	constexpr const size_t MAX_HOSTNAME_LENGTH = 64;
 
 	// Default hostname
 	constexpr const char* const DEFAULT_HOSTNAME = "localhost";
 
 	// Backlog value for listen. System maximum is 4096
-	constexpr int const MAX_CONNECTION_REQUESTS = 128;
+	constexpr const int MAX_CONNECTION_REQUESTS = 128;
 
 	// Buffer size as defined in the IRC protocol
-	constexpr size_t const MAX_IRC_MESSAGE_LENGTH = 512;
+	constexpr const size_t MAX_IRC_MESSAGE_LENGTH = 512;
 
 	// Maximum incomplete message buffer size
-	constexpr int const MAX_CLIENT_BUFFER_SIZE = 4096;
+	constexpr const int MAX_CLIENT_BUFFER_SIZE = 4096;
 
 	// Logging statuses
 	constexpr const char* const LOG_FAIL = "\033[1;31mFAILURE\033[0m";
