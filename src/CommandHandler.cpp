@@ -202,13 +202,15 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		if (channel->isInvited(client.getFd()))
 		{
 			if (channel->addMember(client.getFd()) == true)
-				/*TODO: send confirmation user has joined the channel.*/ ;
+			{
+				/*TODO: send confirmation user has joined the channel.*/
+			}
 		}
 		else
 			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", channel->getName()}});
 		return ;
 	}
-	if (channel->getKey() && key.empty() || channel->getKey() != key)
+	if ((channel->getKey()).has_value() && channel->getKey() != key)
 	{
 		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channel->getName()}});
 		return ;
@@ -216,7 +218,9 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	else
 	{
 		if (channel->addMember(client.getFd()) == true)
-			/*TODO: Send confirmation to the client they joined a channel.*/ ;
+		{
+			/*TODO: Send confirmation to the client they joined a channel.*/
+		}
 		else
 			return ;
 	}
