@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/10 16:54:53 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/10 17:13:57 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,6 +158,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		key = cmd.params[1];
 	
 	Channel* channel = _server.findChannel(target);
+	
 	if (!channel)
 	{
 		_server.addChannel(target);
@@ -170,11 +171,13 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		//Client does not need confirmation that they were made operator in this instance.
 		return ;
 	}
+	
 	if (channel->isFull())
 	{
 		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {{"channel", channel->getName()}});
 		return ;
 	}
+	
 	if (channel->isInviteOnly())
 	{
 		if (channel->isInvited(client.getFd()))
@@ -186,6 +189,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", channel->getName()}});
 		return ;
 	}
+	
 	if (channel->getKey() && key.empty() || channel->getKey() != key)
 	{
 		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channel->getName()}});
@@ -217,6 +221,7 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 	std::string	optionalMessage = (cmd.params.size() > 1) ? cmd.params[1] : "";
 	
 	Channel* channel = _server.findChannel(channelName);
+	
 	if (!channel)
 	{
 		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channelName}});
@@ -227,6 +232,7 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NOTONCHANNEL, client, {{"channel", channel->getName()}});
 		return ;
 	}
+	
 	//Broadcast a parting message to all users in the channel, and the user who is leaving.
 	//if (!optionalMessage.isEmpty()): Conconate the default parting message and optionalMessage
 	channel->removeMember(client.getFd());
@@ -236,6 +242,35 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 		return ;
 	}
 }
+
+void	CommandHandler::handleKick(Client& client, const Command& cmd)
+{
+	if (!client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
+		return ;
+	}
+	if (cmd.params.size() < 2)
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "KICK"}});
+		return ;
+	}
+
+	Channel*	channel = _server.findChannel(cmd.params[0]);
+	Client*		kickNick = _server.findUser(cmd.params[1]);
+
+	if (!channel)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel"}, cmd.params[0]});
+		return ;
+	}
+	if (!kickNick)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"nick", kickNick}})
+		return ;
+	}
+}
+
 /* REGISTRATION COMMANDS*/
 
 void	CommandHandler::handlePass(Client& client, const Command& cmd)
