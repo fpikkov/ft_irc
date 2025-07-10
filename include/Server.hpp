@@ -57,7 +57,7 @@ class Server
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
 		void		disconnectClients		( std::vector<int>& remove_clients );
 		bool		receiveClientMessage	( int file_descriptor, std::vector<int>& remove_clients );
-		Channel*	findChannel				( std::string& channelName );
+		Channel*	findChannel				( const std::string& channelName );
 		Client*		findUser				( std::string& nickName );
 		void		disconnectClients		();
 		bool		receiveClientMessage	( int file_descriptor );
