@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 17:42:51 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/10 14:51:35 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 	}
 	else if (cmd.params.size() < 2)
 	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "PRIVMSG"}});
 		return ;
 	}
 
@@ -90,7 +90,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 		Channel *channel = _server.findChannel(target);
 		if (!channel)
 		{
-			Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {});
+			Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", target}});
 			return ;
 		}
 		//Send to all clients who belong in the channel.
@@ -100,7 +100,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 		Client	*recipient = _server.findUser(target);
 		if (!recipient)
 		{
-			Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {});
+			Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"nick", target}});
 			return ;
 		}
 		//Send to the recipient client
@@ -136,14 +136,19 @@ void	CommandHandler::handleNotice(Client& client, const Command& cmd)
 
 void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 {
+	if (!client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
+		return ;
+	}
 	if (cmd.params[0].empty())
 	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "JOIN"}});
 		return ;
 	}
 	if (client.getChannels().count() > USER_MAX_CHANNELS) //TODO: Add constant for max channels.
 	{
-		Response::sendResponseCode(Response::ERR_TOOMANYCHANNELS, client, {}); //TODO: Add response for toomanychannels.
+		Response::sendResponseCode(Response::ERR_TOOMANYCHANNELS, client, {{"channel", cmd.params[0]}}); //TODO: Add response for toomanychannels.
 		return ;
 	}
 	
@@ -157,28 +162,42 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		_server.addChannel(target);
 		channel = _server.findChannel(target);
+		if (!key.empty())
+			channel->setKey(key);
+		channel->addMember(client.getFd());
+		channel->addOperator(client.getFd());
+		//Send confirmation to the client they joined the channel.
+		//Client does not need confirmation that they were made operator in this instance.
+		return ;
 	}
 	if (channel->isFull())
 	{
-		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {});
+		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {{"channel", channel->getName()}});
 		return ;
 	}
 	if (channel->isInviteOnly())
 	{
-		//check if the user is actually invited before turning them down.
-		Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {});
+		if (channel->isInvited(client.getFd()))
+		{
+			if (channel->addMember(client.getFd() == true)
+				//send confirmation user has joined the channel.
+		}
+		else
+			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", channel->getName()}});
 		return ;
 	}
 	if (channel->getKey() && key.empty() || channel->getKey() != key)
 	{
-		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {});
+		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channel->getName()}});
 		return ;
 	}
-	//TODO: Check rest of the cases.
-	//		make the user an operator when creating channel.
-	//		make sure to check if user is invited when checking isinviteonly/
-	//		make a check for if the channel is already full!!
-	channel->addMember(client.getFd());
+	else
+	{
+		if (channel->addMember(client.getFd()) == true)
+			//Send confirmation to the client they joined a channel.
+		else
+			return ;
+	}
 }
 //Build a broadcast function, that flexibly allows sending a message to all clients in the channel.
 //Take the message in as a parameter for a flexible use.
