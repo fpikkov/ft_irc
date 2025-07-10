@@ -402,10 +402,22 @@ Client*	Server::findUser( std::string& nickName )
 	return nullptr;
 }
 
-void	Server::addChannel(const std::string channelName)
+void	Server::addChannel( const std::string channelName )
 {
 	Channel	channel(channelName);
 	_channels.push_back(channel);	
+}
+
+void	Server::removeChannel( const std::string& channelName)
+{
+	for (auto it = _channels.begin(); it != _channels.end(); it++)
+	{
+		if (it->getName() == channelName)
+		{
+			_channels.erase(it);
+			return ;
+		}
+	}
 }
 /// Exceptions
 
