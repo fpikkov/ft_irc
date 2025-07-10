@@ -58,7 +58,7 @@ class Server
 		void		disconnectClients		( std::vector<int>& remove_clients );
 		bool		receiveClientMessage	( int file_descriptor, std::vector<int>& remove_clients );
 		Channel*	findChannel				( const std::string& channelName );
-		Client*		findUser				( std::string& nickName );
+		Client*		findUser				( const std::string& nickName );
 		void		disconnectClients		();
 		bool		receiveClientMessage	( int file_descriptor );
 		void		executeCommand			( Client& client, Command& cmd);

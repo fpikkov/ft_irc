@@ -392,7 +392,7 @@ Channel*	Server::findChannel( const std::string& channelName )
 	return nullptr;
 }
 
-Client*	Server::findUser( std::string& nickName )
+Client*	Server::findUser( const std::string& nickName )
 {
 	for (auto& client : _clients)
 	{
