@@ -23,6 +23,7 @@ const std::string&						Client::getNickname			() const noexcept	{ return _nickna
 const std::string&						Client::getRealname			() const noexcept	{ return _realname; }
 const std::string&						Client::getReceiveBuffer	() const noexcept	{ return _receiveBuffer; }
 const std::string&						Client::getSendBuffer		() const noexcept	{ return _sendBuffer; }
+const std::string&						Client::getIpAddress		() const noexcept	{ return _ipAddress; }
 sockaddr&								Client::getClientAddress	()					{ return _clientAddress; }
 bool									Client::isAuthenticated		() const			{ return _authenticated; }
 std::unordered_set<std::string>&		Client::getChannels			()					{ return _channels; }
@@ -36,6 +37,7 @@ void	Client::setUsername			( const std::string& username )		{ _username = userna
 void	Client::setHostname			( const std::string& hostname )		{ _hostname = hostname; }
 void	Client::setNickname			( const std::string& nickname )		{ _nickname = nickname; }
 void	Client::setRealname			( const std::string& realname )		{ _realname = realname; }
+void	Client::setIpAddress		( const std::string& address )		{ _ipAddress = address; }
 void	Client::setClientAddress	( sockaddr address )				{ _clientAddress = address; }
 void	Client::setAuthenticated	(bool auth)							{ _authenticated = auth; }
 void	Client::setReceiveBuffer	( const std::string& buffer )		{ _receiveBuffer = buffer; }

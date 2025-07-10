@@ -221,12 +221,16 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
 	if ( newClientSocket < 0 )
 	{
-		irc::log_event("NEW CONNECTION", irc::LOG_FAIL, "accept failed");
+		irc::log_event("CONNECTION", irc::LOG_FAIL, "accept failed");
 		return ( false ) ;
 	}
 
+	irc::log_event("CONNECTION", irc::LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
+
 	newClient.setClientFd( newClientSocket );
 	newClient.setClientAddress( clientAddress );
+
+	Server::fetchClientIp( newClient );
 
 	pollfd	clientPoll;
 	clientPoll.fd = newClientSocket;
@@ -236,7 +240,6 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 
 	_clients[newClientSocket] = newClient;
 
-	irc::log_event("NEW CONNECTION", irc::LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
 	return ( true );
 }
 
@@ -349,6 +352,9 @@ bool	Server::receiveClientMessage( int file_descriptor )
 	return (true);
 }
 
+
+/// Helper functions
+
 /**
  * @brief Adds POLLOUT flag to the pollfd events for clients with buffered outgoing messages.
  */
@@ -405,8 +411,40 @@ Client*	Server::findUser( std::string& nickName )
 void	Server::addChannel(const std::string channelName)
 {
 	Channel	channel(channelName);
-	_channels.push_back(channel);	
+	_channels.push_back(channel);
 }
+
+/**
+ * @brief Attempts to look up the new client's ip address
+ *
+ * @param client Whose ip address to fetch and store.
+ */
+void	Server::fetchClientIp( Client& client )
+{
+	std::string	ip = {};
+
+	if ( irc::EXTENDED_DEBUG_LOGGING && irc::ANNOUNCE_CLIENT_LOOKUP )
+		irc::log_event("CONNECTION", irc::LOG_DEBUG, "looking up client hostname");
+	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
+		Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_MESSAGE );
+
+	if ( ((sockaddr_in *)&client.getClientAddress())->sin_family == AF_INET )
+		inet_ntop( AF_INET, ((sockaddr_in *)&client.getClientAddress()), ip.data(), INET_ADDRSTRLEN );
+	else if ( ((sockaddr_in *)&client.getClientAddress())->sin_family == AF_INET6 )
+		inet_ntop( AF_INET6, ((sockaddr_in6 *)&client.getClientAddress()), ip.data(), INET6_ADDRSTRLEN );
+
+	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
+	{
+		if ( ip.empty() )
+			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_FAILURE_MESSAGE );
+		else
+			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_SUCCESS_MESSAGE );
+	}
+
+	client.setIpAddress( ip );
+}
+
+
 /// Exceptions
 
 const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }

@@ -14,6 +14,7 @@ private:
 	std::unordered_set<std::string>	_channels;
 	std::string						_receiveBuffer;
 	std::string						_sendBuffer;
+	std::string						_ipAddress;
 	sockaddr						_clientAddress;
 	bool							_active;
 	bool							_pollout;
@@ -32,6 +33,7 @@ public:
 	const std::string&						getRealname			() const noexcept;
 	bool									isAuthenticated		() const;
 	std::unordered_set<std::string>&		getChannels			();
+	const std::string&						getIpAddress		() const noexcept;
 	sockaddr&								getClientAddress	();
 	const std::string&						getReceiveBuffer	() const noexcept;
 	const std::string&						getSendBuffer		() const noexcept;
@@ -44,6 +46,7 @@ public:
 	void		setHostname				( std::string const &hostname );
 	void		setNickname				( std::string const &nickname );
 	void		setRealname				( std::string const &realname );
+	void		setIpAddress			( std::string const &address );
 	void		setClientAddress		( sockaddr address );
 	void		setAuthenticated		( bool auth );
 	void		setActive				( bool active );

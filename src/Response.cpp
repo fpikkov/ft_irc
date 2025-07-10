@@ -3,12 +3,59 @@
 #include "Client.hpp"
 #include "constants.hpp"
 
+
+/**
+ * @brief Relays a command to specified client. Used in broadcasting messages on a channel.
+ *
+ * Accepted placeholder keys:
+ * target, message, channel, reason, new nick, topic, flags
+ *
+ * @param command The command successfully ran by thhe source client.
+ * @param source The client who ran the command.
+ * @param target The client who will receive notice on the same channel.
+ * @param placeholders Mandatory map of placeholder values.
+ */
+void	Response::sendResponseCommand( const std::string& command, Client& source, Client& target, const string_map& placeholders )
+{
+	std::string	templateMessage = getCommandTemplate( command );
+
+	if ( templateMessage.empty() )
+		return ;
+
+	string_map fields =
+	{
+		{ "nick", source.getNickname() },
+		{ "user", source.getUsername() },
+		{ "host", source.getHostname() },
+		{ "target", "" },
+		{ "message", "" },
+		{ "channel", "" },
+		{ "reason", "" },
+		{ "new nick", "" },
+		{ "topic", "" },
+		{ "flags", "" }
+	};
+
+	for ( const auto& [placeholder, value] : placeholders )
+	{
+		if ( placeholder == "target" && fields["reason"].empty() )
+			fields["reason"] = value;
+
+		fields[placeholder] = value;
+	}
+
+	std::string responseMessage = findAndReplacePlaceholders( templateMessage, fields );
+
+	sendMessage( target, responseMessage );
+}
+
 /**
  * @brief Sends a forrmatted response to the client specified by the client fd.
  * Client may be modified if an error occurs when sending a message.
  *
  * Accepted placeholder keys:
- * target, command, channel, users, names, topic, user_modes, channel_modes, symbol, realname, server_info
+ * target, command, channel, users, names, topic, user modes, channel modes,
+ * symbol, real name, server info, text, new nick, param, value
  *
  * @param code The response code to send.
  * @param client The client who will receive the response. Nick, user and host placeholders are fetched from this.
@@ -32,17 +79,21 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 	};
 	if ( !irc::MEMORY_SAVING )
 	{
-		fields["target"] = "";
-		fields["command"] = "";
-		fields["channel"] = "";
-		fields["users"] = "";
-		fields["names"] = "";
-		fields["topic"] = "";
-		fields["user_modes"] = "";
-		fields["channel_modes"] = "";
-		fields["symbol"] = "";
-		fields["realname"] = "";
-		fields["server_info"] = "";
+		fields["target"] = "*";
+		fields["command"] = "*";
+		fields["channel"] = "*";
+		fields["users"] = "*";
+		fields["names"] = "*";
+		fields["topic"] = "*";
+		fields["user modes"] = "***";
+		fields["channel modes"] = "***";
+		fields["symbol"] = "*";
+		fields["real name"] = "*";
+		fields["server info"] = "***";
+		fields["text"] = "***";
+		fields["new nick"] = "*";
+		fields["param"] = "*";
+		fields["value"] = "***";
 	}
 	for ( const auto& [placeholder, value] : placeholders )
 	{
@@ -71,6 +122,75 @@ void	Response::sendPartialResponse( Client& client )
 	sendMessage( client, bufferedMessage );
 }
 
+/**
+ * @brief Used for sending serverside notices to clients.
+ *
+ * @param client Who will receive the notice.
+ * @param notice Text to send.
+ */
+void Response::sendServerNotice( Client& client, const std::string& notice )
+{
+	std::string	templateMessage = getCommandTemplate( "NOTICE" );
+
+	if ( templateMessage.empty() )
+		return ;
+
+	size_t startPosition = templateMessage.find("NOTICE");
+
+	if ( startPosition == std::string::npos )
+		return ;
+
+	size_t endPosition = templateMessage.find("\r\n", startPosition);
+
+	if ( endPosition == std::string::npos )
+		return ;
+
+	templateMessage = ":<server> " + templateMessage.substr( startPosition, endPosition - startPosition ) + " <notice> \r\n";
+
+	string_map fields =
+	{
+		{ "server", _server },
+		{ "target", "*" },
+		{ "message", "***" },
+		{ "notice", notice }
+	};
+
+	if ( !client.getNickname().empty() )
+		fields["nick"] = client.getNickname();
+
+	std::string responseMessage = findAndReplacePlaceholders( templateMessage, fields );
+
+	sendMessage( client, responseMessage );
+}
+
+
+/// Ping-Pong messaging
+
+/**
+ * @brief Sends PING message used in checking for inactive clients
+ *
+ * @param target Who should receive the message.
+ * @param token The server getting pinged.
+ */
+void Response::sendPing( Client& target, const std::string& token )
+{
+	std::string responseMessage = ":" + _server + " PING " + _server + " :" + token + "\r\n";
+
+	sendMessage( target, responseMessage );
+}
+
+/**
+ * @brief Sends PONG message used in checking for inactive clients
+ *
+ * @param target Who should receive the message.
+ * @param token The daemon getting ponged (usually the client who is the target).
+ */
+void Response::sendPong( Client& target, const std::string& token )
+{
+	std::string responseMessage = ":" + _server + " PONG " + _server + " :" + token + "\r\n";
+
+	sendMessage( target, responseMessage );
+}
 
 
 /// Static member variable initialization and setters
@@ -151,29 +271,60 @@ std::string	Response::findAndReplacePlaceholders( const std::string& template_st
 }
 
 /**
+ * @brief Selects the message template for a given command.
+ *
+ * @param command The command ran in string form.
+ * @return Template message if match is found, otherwise empty string.
+ */
+std::string	Response::getCommandTemplate( const std::string& command )
+{
+	string_map validCommands =
+	{
+		{"PRIVMSG", ":<nick>!<user>@<host> PRIVMSG <target> :<message>\r\n"},
+		{"NOTICE", ":<nick>!<user>@<host> NOTICE <target> :<message>\r\n"},
+		{"JOIN", ":<nick>!<user>@<host> JOIN <channel>\r\n"},
+		{"PART", ":<nick>!<user>@<host> PART <channel> :<reason>\r\n"},
+		{"QUIT", ":<nick>!<user>@<host> QUIT :<reason>\r\n"},
+		{"NICK", ":<nick>!<user>@<host> NICK :<new nick>\r\n"},
+		{"KICK", ":<nick>!<user>@<host> KICK <channel> <target> :<reason>\r\n"},
+		{"TOPIC", ":<nick>!<user>@<host> TOPIC <channel> :<topic>\r\n"},
+		{"MODE", ":<nick>!<user>@<host> MODE <channel> <flags> <target>\r\n"},
+		{"INVITE", ":<nick>!<user>@<host> INVITE <target> :<channel>\r\n"}
+	};
+
+	for ( const auto& [key, value] : validCommands )
+	{
+		if ( key == command )
+			return (value);
+	}
+	return ("");
+}
+
+/**
  * @brief Selects the message template for a given response code.
  *
  * @param code The response code to use to fetch a message template.
- * @return If match found then associated message, otherwise empty string
+ * @return If match found then associated message, otherwise empty string.
  */
 std::string	Response::getResponseTemplate( int code )
 {
 	switch ( code )
 	{
 		/// Connection registration
-		case RPL_WELCOME:			return ":<server> <code> <nick> :Welcome to the Internet Relay Network <nick>!<user>@<host>\r\n";
+		case RPL_WELCOME:			return ":<server> <code> <nick> :Welcome to the Internet Relay Network <nick>\r\n";
 		case RPL_YOURHOST:			return ":<server> <code> <nick> :Your host is <server>, running version <version>\r\n";
 		case RPL_CREATED:			return ":<server> <code> <nick> :This server was created <date>\r\n";
-		case RPL_MYINFO:			return ":<server> <code> <nick> <server> <version> <user_modes> <channel_modes>\r\n";
-		case RPL_ISUPPORT:			return ":<server> <code> <nick> <param>=[<value>] ... :are supported by this server\r\n";
+		case RPL_MYINFO:			return ":<server> <code> <nick> <server> <version> <user modes> <channel modes>\r\n";
+		case RPL_ISUPPORT:			return ":<server> <code> <nick> <param>=<value> :are supported by this server\r\n";
 
 		case ERR_NONICKNAMEGIVEN:	return ":<server> <code> <nick> :No nickname given\r\n";
-		case ERR_ERRONEUSNICKNAME:	return ":<server> <code> <nick> <new_nick> :Erroneous nickname\r\n";
-		case ERR_NICKNAMEINUSE:		return ":<server> <code> <nick> <new_nick> :Nickname is already in use\r\n";
+		case ERR_ERRONEUSNICKNAME:	return ":<server> <code> <nick> <new nick> :Erroneous nickname\r\n";
+		case ERR_NICKNAMEINUSE:		return ":<server> <code> <nick> <new nick> :Nickname is already in use\r\n";
 		case ERR_NOTREGISTERED:		return ":<server> <code> <nick> :You have not registered\r\n";
 		case ERR_NEEDMOREPARAMS:	return ":<server> <code> <nick> <command> :Not enough parameters\r\n";
-		case ERR_ALREADYREGISTERED:	return ":<server> <code> <nick> :You may not re-register\r\n";
+		case ERR_ALREADYREGISTERED:	return ":<server> <code> <nick> :You may not reregister\r\n";
 		case ERR_PASSWDMISMATCH:	return ":<server> <code> <nick> :Password incorrect\r\n";
+		case ERR_TOOMANYCHANNELS:	return ":<server> <code> <nick> <channel> :You have joined too many channels";
 
 
 		/// Channel operations
@@ -200,10 +351,22 @@ std::string	Response::getResponseTemplate( int code )
 		case ERR_NOTEXTTOSEND:		return ":<server> <code> <nick> :No text to send\r\n";
 		case ERR_UNKNOWNCOMMAND:	return ":<server> <code> <nick> <command> :Unknown command\r\n";
 
-		case RPL_WHOISUSER:			return ":<server> <code> <nick> <target> <user> <host> * :<realname>\r\n";
-		case RPL_WHOISSERVER:		return ":<server> <code> <nick> <target> <server> :<server_info>\r\n";
+		case RPL_WHOISUSER:			return ":<server> <code> <nick> <target> <user> <host> * :<real name>\r\n";
+		case RPL_WHOISSERVER:		return ":<server> <code> <nick> <target> <server> :<server info>\r\n";
 		case RPL_WHOISPERATOR:		return ":<server> <code> <nick> <target> :is an IRC operator\r\n";
 		case RPL_ENDOFWHOIS:		return ":<server> <code> <nick> <target> :End of /WHOIS list\r\n";
+
+		/// Message of the day
+		case RPL_MOTDSTART:			return "<server> <code> <nick> :- <server> Message of the day -\r\n";
+		case RPL_MOTD:				return "<server> <code> <nick> :- <text> -\r\n";
+		case RPL_ENDOFMOTD:			return "<server> <code> <nick> :End of /MOTD command\r\n";
+
+		case ERR_NOMOTD:			return "<server> <code> <nick> :MOTD File is missing\r\n";
+
+
+		/// Disabled features
+		case ERR_SUMMONDISABLED:	return "<server> <code> <nick> :SUMMON has been disabled\r\n";
+		case ERR_USERSDISABLED:		return "<server> <code> <nick> :USERS has been disabled\r\n";
 
 
 		default:
