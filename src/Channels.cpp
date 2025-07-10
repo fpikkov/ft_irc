@@ -20,6 +20,7 @@ void	Channel::setTopic(const std::string& topic)					{ _topic = topic;}
 void	Channel::setInviteOnly(bool inviteonly)						{ _inviteOnly = inviteonly; }
 void	Channel::setTopicLocked(bool topiclocked)					{ _topicLocked = topiclocked; }
 void	Channel::setUserLimit(int limit)							{ _userLimit = limit; }
+void	Channel::setKey(const std::string& key)						{ _key = key; }
 
 //Membership management
 
@@ -30,6 +31,13 @@ bool	Channel::addMember(int clientFd)
 	auto result = _members.insert(clientFd);// The insert method returns a std::pair (std::pair<iterator, bool> insert(const value_type& value);)
 	return result.second;
 }
+
+bool	Channel::addOperator(int clientFd)
+{
+	auto result = _operators.insert(clientFd);
+	return result.second;
+}
+
 void	Channel::removeMember(int clientFd)							{ _members.erase(clientFd); }
 // If clientFd is present, the iterator returned will not be equal to _operators.end() and the function returns true.
 // If clientFd is not present, the iterator will be equal to _operators.end() and the function returns false.
