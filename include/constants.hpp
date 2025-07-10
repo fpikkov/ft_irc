@@ -29,6 +29,9 @@ namespace irc
 	// Password requirement
 	constexpr const bool REQUIRE_PASSWORD = false;
 
+	// Should broadcasts send the message to the originator
+	constexpr const bool BROADCAST_TO_ORIGIN = false;
+
 
 	// Should the server notify user on hostname lookup
 	constexpr const bool ANNOUNCE_CLIENT_LOOKUP = true;

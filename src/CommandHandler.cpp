@@ -116,20 +116,39 @@ void	CommandHandler::handleNotice( Client& client, const Command& cmd)
 	std::string	target = cmd.params[0];
 	std::string	message = cmd.params[1];
 
+	if ( message.empty() )
+		return ;
+
 	if (target[0] == '#')
 	{
 		target = stringToLower(target);
 		Channel	*channel = _server.findChannel(target);
 		if (!channel)
 			return ;
+
 		//Send the message to the clients who belong to server.
+		const auto& allClients = _server.getClients();
+
+		for ( auto fd : channel->getMembers() )
+		{
+			if ( fd == client.getFd() && !irc::BROADCAST_TO_ORIGIN ) continue;
+
+			auto memberIt = allClients.find(fd);
+			if (memberIt != allClients.end())
+			{
+				Client& channelMember = const_cast<Client&>(memberIt->second);
+				Response::sendResponseCommand("NOTICE", client, channelMember, {{ "message", message }});
+			}
+		}
 	}
 	else
 	{
 		Client *recipient = _server.findUser(target);
 		if (!recipient)
 			return ;
+
 		//Send the message to the recipient.
+		Response::sendResponseCommand("NOTICE", client, *recipient, {{ "message", message }});
 	}
 }
 
@@ -352,7 +371,7 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 		// For every member in this channel
 		for (int memberFd : channel->getMembers())
 		{
-			if (memberFd == client.getFd()) continue;
+			if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
 			// Find member client object by the fd, because Channel class tracks members as a set of file descriptors (int), not as Client objects.
 			auto memberIt = allClients.find(memberFd);
 			if (memberIt != allClients.end())
