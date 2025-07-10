@@ -122,6 +122,47 @@ void	Response::sendPartialResponse( Client& client )
 	sendMessage( client, bufferedMessage );
 }
 
+/**
+ * @brief Used for sending serverside notices to clients.
+ *
+ * @param client Who will receive the notice.
+ * @param notice Text to send.
+ */
+void Response::sendServerNotice( Client& client, const std::string& notice )
+{
+	std::string	templateMessage = getCommandTemplate( "NOTICE" );
+
+	if ( templateMessage.empty() )
+		return ;
+
+	size_t startPosition = templateMessage.find("NOTICE");
+
+	if ( startPosition == std::string::npos )
+		return ;
+
+	size_t endPosition = templateMessage.find("\r\n", startPosition);
+
+	if ( endPosition == std::string::npos )
+		return ;
+
+	templateMessage = ":<server> " + templateMessage.substr( startPosition, endPosition - startPosition ) + " <notice> \r\n";
+
+	string_map fields =
+	{
+		{ "server", _server },
+		{ "target", "*" },
+		{ "message", "***" },
+		{ "notice", notice }
+	};
+
+	if ( !client.getNickname().empty() )
+		fields["nick"] = client.getNickname();
+
+	std::string responseMessage = findAndReplacePlaceholders( templateMessage, fields );
+
+	sendMessage( client, responseMessage );
+}
+
 
 /// Ping-Pong messaging
 
@@ -239,16 +280,16 @@ std::string	Response::getCommandTemplate( const std::string& command )
 {
 	string_map validCommands =
 	{
-		{"PRIVMSG", ":<nick>!<user>@<host> PRIVMSG <target> :<message>"},
-		{"NOTICE", ":<nick>!<user>@<host> PRIVMSG <target> :<message>"},
-		{"JOIN", ":<nick>!<user>@<host> JOIN <channel>"},
-		{"PART", ":<nick>!<user>@<host> PART <channel> :<reason>"},
-		{"QUIT", ":<nick>!<user>@<host> QUIT :<reason>"},
-		{"NICK", ":<nick>!<user>@<host> NICK :<new nick>"},
-		{"KICK", ":<nick>!<user>@<host> KICK <channel> <target> :<reason>"},
-		{"TOPIC", ":<nick>!<user>@<host> TOPIC <channel> :<topic>"},
-		{"MODE", ":<nick>!<user>@<host> MODE <channel> <flags> <target>"},
-		{"INVITE", ":<nick>!<user>@<host> INVITE <target> :<channel>"}
+		{"PRIVMSG", ":<nick>!<user>@<host> PRIVMSG <target> :<message>\r\n"},
+		{"NOTICE", ":<nick>!<user>@<host> NOTICE <target> :<message>\r\n"},
+		{"JOIN", ":<nick>!<user>@<host> JOIN <channel>\r\n"},
+		{"PART", ":<nick>!<user>@<host> PART <channel> :<reason>\r\n"},
+		{"QUIT", ":<nick>!<user>@<host> QUIT :<reason>\r\n"},
+		{"NICK", ":<nick>!<user>@<host> NICK :<new nick>\r\n"},
+		{"KICK", ":<nick>!<user>@<host> KICK <channel> <target> :<reason>\r\n"},
+		{"TOPIC", ":<nick>!<user>@<host> TOPIC <channel> :<topic>\r\n"},
+		{"MODE", ":<nick>!<user>@<host> MODE <channel> <flags> <target>\r\n"},
+		{"INVITE", ":<nick>!<user>@<host> INVITE <target> :<channel>\r\n"}
 	};
 
 	for ( const auto& [key, value] : validCommands )

@@ -27,6 +27,19 @@ namespace irc
 	constexpr const bool const REQUIRE_PASSWORD = false;
 
 
+	// Should the server notify user on hostname lookup
+	constexpr const bool const ANNOUNCE_CLIENT_LOOKUP = true;
+
+	// Server notice on fetching hostname
+	constexpr const char* const CLIENT_HOSTNAME_MESSAGE = "Looking up your hostname...";
+
+	// Server notice on hostname lookup failure
+	constexpr const char* const CLIENT_HOSTNAME_FAILURE_MESSAGE = "Couldn't look up your hostname";
+
+	// Server notice on hostname lookup success
+	constexpr const char* const CLIENT_HOSTNAME_SUCCESS_MESSAGE = "Hostname retrieved";
+
+
 	// Minor memory optimization
 	constexpr const bool MEMORY_SAVING = true;
 

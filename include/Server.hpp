@@ -28,10 +28,11 @@ class Server
 		Server( const Server& )					= delete;
 		Server& operator=( const Server& )		= delete;
 
-		void		signalSetup			( bool start ) noexcept;
-		static void signalHandler		( int signum );
-		std::string	fetchHostname		();
-		void		setClientsToPollout	();
+		void				signalSetup			( bool start ) noexcept;
+		static void 		signalHandler		( int signum );
+		std::string			fetchHostname		();
+		static void			fetchClientIp		( Client& client );
+		void				setClientsToPollout	();
 
 	public:
 		Server( const std::string port, const std::string password );

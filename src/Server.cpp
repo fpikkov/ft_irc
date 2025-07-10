@@ -226,6 +226,8 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	newClient.setClientFd( newClientSocket );
 	newClient.setClientAddress( clientAddress );
 
+	Server::fetchClientIp( newClient );
+
 	pollfd	clientPoll;
 	clientPoll.fd = newClientSocket;
 	clientPoll.events = POLLIN;
@@ -377,6 +379,38 @@ void	Server::setClientsToPollout()
 void	Server::executeCommand( [[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd )
 {
 	//int	cmd_id = identifyCommand(cmd);
+}
+
+
+/// Helper functions
+
+/**
+ * @brief Attempts to look up the new client's ip address
+ *
+ * @param client Whose ip address to fetch and store.
+ */
+void	Server::fetchClientIp( Client& client )
+{
+	std::string	ip = {};
+
+	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
+		Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_MESSAGE );
+
+	if ( ((sockaddr_in *)&client.getClientAddress())->sin_family == AF_INET )
+		inet_ntop( AF_INET, ((sockaddr_in *)&client.getClientAddress()), ip.data(), INET_ADDRSTRLEN );
+	else if ( ((sockaddr_in *)&client.getClientAddress())->sin_family == AF_INET6 )
+		inet_ntop( AF_INET6, ((sockaddr_in6 *)&client.getClientAddress()), ip.data(), INET6_ADDRSTRLEN );
+
+	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
+	{
+		if ( ip.empty() )
+			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_FAILURE_MESSAGE );
+		else
+			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_SUCCESS_MESSAGE );
+	}
+
+
+	client.setIpAddress( ip );
 }
 
 
