@@ -108,9 +108,12 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 	}
 }
 
-/* NOTE: NOTICE is very much like PRIVMSG, but it does not care about errors.
-   No replies are expected from either the server or the recipient.*/
-
+/**
+ * NOTE: NOTICE is very much like PRIVMSG, but it does not care about errors.
+ * No replies are expected from either the server or the recipient.
+ *
+ * If no message is contained, then nothing will be sent to the target(s).
+ */
 void	CommandHandler::handleNotice( Client& client, const Command& cmd)
 {
 	std::string	target = cmd.params[0];
@@ -147,7 +150,6 @@ void	CommandHandler::handleNotice( Client& client, const Command& cmd)
 		if (!recipient)
 			return ;
 
-		//Send the message to the recipient.
 		Response::sendResponseCommand("NOTICE", client, *recipient, {{ "message", message }});
 	}
 }
