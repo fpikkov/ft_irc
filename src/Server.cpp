@@ -219,9 +219,11 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	int	newClientSocket = accept( _serverSocket, &clientAddress, &clientAddrLen );
 	if ( newClientSocket < 0 )
 	{
-		irc::log_event("NEW CONNECTION", irc::LOG_FAIL, "accept failed");
+		irc::log_event("CONNECTION", irc::LOG_FAIL, "accept failed");
 		return ( false ) ;
 	}
+
+	irc::log_event("CONNECTION", irc::LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
 
 	newClient.setClientFd( newClientSocket );
 	newClient.setClientAddress( clientAddress );
@@ -236,7 +238,6 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 
 	_clients[newClientSocket] = newClient;
 
-	irc::log_event("NEW CONNECTION", irc::LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
 	return ( true );
 }
 
@@ -393,6 +394,8 @@ void	Server::fetchClientIp( Client& client )
 {
 	std::string	ip = {};
 
+	if ( irc::EXTENDED_DEBUG_LOGGING && irc::ANNOUNCE_CLIENT_LOOKUP )
+		irc::log_event("CONNECTION", irc::LOG_DEBUG, "looking up client hostname");
 	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
 		Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_MESSAGE );
 
@@ -408,7 +411,6 @@ void	Server::fetchClientIp( Client& client )
 		else
 			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_SUCCESS_MESSAGE );
 	}
-
 
 	client.setIpAddress( ip );
 }
