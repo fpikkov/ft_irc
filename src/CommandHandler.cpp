@@ -16,6 +16,7 @@
 #include "Response.hpp"
 #include "Server.hpp"
 #include "Command.hpp"
+#include "constants.hpp"
 
 CommandHandler::CommandHandler(Server& server) : _server(server)
 {
@@ -47,8 +48,8 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
   finds a match, and executes the command internally.
   Server response to client will also be sent internally.
   If no match is found, server immediately responds with unknown command error.*/
-  
-void    CommandHandler::handleCommand(Client& client, const Command& cmd)
+
+void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 {
 	auto it = _handlers.find(cmd.command);
 	if (it != _handlers.end())
@@ -109,8 +110,8 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 
 /* NOTE: NOTICE is very much like PRIVMSG, but it does not care about errors.
    No replies are expected from either the server or the recipient.*/
-   
-void	CommandHandler::handleNotice(Client& client, const Command& cmd)
+
+void	CommandHandler::handleNotice( Client& client, const Command& cmd)
 {
 	std::string	target = cmd.params[0];
 	std::string	message = cmd.params[1];
@@ -146,17 +147,17 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "JOIN"}});
 		return ;
 	}
-	if (client.getChannels().count() > USER_MAX_CHANNELS) //TODO: Add constant for max channels.
+	if (client.getChannels().size() > irc::MAX_CHANNELS)
 	{
-		Response::sendResponseCode(Response::ERR_TOOMANYCHANNELS, client, {{"channel", cmd.params[0]}}); //TODO: Add response for toomanychannels.
+		Response::sendResponseCode(Response::ERR_TOOMANYCHANNELS, client, {{"channel", cmd.params[0]}});
 		return ;
 	}
-	
+
 	std::string	target = stringToLower(cmd.params[0]); //Channel names are stored in lowercase..
 	std::string	key;
 	if (!cmd.params[1].empty())
 		key = cmd.params[1];
-	
+
 	Channel* channel = _server.findChannel(target);
 	if (!channel)
 	{
@@ -179,8 +180,8 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		if (channel->isInvited(client.getFd()))
 		{
-			if (channel->addMember(client.getFd() == true)
-				//send confirmation user has joined the channel.
+			if (channel->addMember(client.getFd()) == true)
+				/*TODO: send confirmation user has joined the channel.*/ ;
 		}
 		else
 			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", channel->getName()}});
@@ -194,7 +195,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	else
 	{
 		if (channel->addMember(client.getFd()) == true)
-			//Send confirmation to the client they joined a channel.
+			/*TODO: Send confirmation to the client they joined a channel.*/ ;
 		else
 			return ;
 	}
@@ -211,21 +212,21 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client, {});
 		return ;
 	}
-	
+
 	if (cmd.params.empty())
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
 		return ;
 	}
-	
+
 	const std::string& providedPassword = cmd.params[0];
 	if (providedPassword != _server.getPassword())
 	{
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
-		if (irc::PASSWORD_REQUIRED)
+		if ( irc::REQUIRE_PASSWORD )
 			return ;
 	}
-	
+
 	client.setAuthenticated(true);
 }
 
@@ -236,7 +237,7 @@ static bool	isValidNick(const std::string& nick)
 {
 	if (nick.empty() || nick.length() > 9)
 		return false;
-	
+
 	auto isLetter = [](char c) { return std::isalpha(static_cast<unsigned char>(c)); };
 	auto isDigit = [](char c) { return std::isdigit(static_cast<unsigned char>(c)); };
 	auto isSpecial = [](char c)
@@ -249,7 +250,7 @@ static bool	isValidNick(const std::string& nick)
 	char firstChar = nick[0];
 	if (!isLetter(firstChar) && !isSpecial(firstChar))
 		return false;
-	
+
 	for (size_t i = 1; i < nick.length(); ++i)
 	{
 		char c = nick[i];
@@ -266,9 +267,9 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NONICKNAMEGIVEN, client, {});
 		return ;
 	}
-	
+
 	std::string newNick = cmd.params[0];
-	
+
 	if (!isValidNick(newNick))
 	{
 		Response::sendResponseCode(Response::ERR_ERRONEUSNICKNAME, client, {});
@@ -286,7 +287,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	client.setNickname(newNick);
 }
 
-/* 
+/*
 [ \ ] ^ _ ` { | }
 */
 /* USER <username> <mode> <unused> <realname> */
@@ -297,7 +298,7 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_ALREADYREGISTERED, client, {});
 		return ;
 	}
-	
+
 	if (cmd.params.size() < 4)
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}}); // The outer { ... } is for the map initializer. The inner { ... } is for each key-value pair.
@@ -306,23 +307,22 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 
 	std::string username = cmd.params[0];
 	std::string realname = cmd.params[3];
-	
+
 	if (username.empty())
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}});
 		return ;
 	}
-	
-	// Truncating username to 10 chars (USERLEN)
-	const size_t USERLEN = 10;
-	if (username.length() > USERLEN)
-		username = username.substr(0, USERLEN);
-	
+
+	// Truncating username to configurable length (USERLEN)
+	if (username.length() > irc::MAX_USERNAME_LENGTH)
+		username = username.substr(0, irc::MAX_USERNAME_LENGTH);
+
 	username = "~" + username;
 
 	if (!realname.empty() && realname[0] == ':')
 		realname = realname.substr(1);
-	
+
 	client.setUsername(username);
 	client.setRealname(realname);
 	client.setAuthenticated(true);
@@ -332,14 +332,16 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 
 void CommandHandler::handleQuit(Client& client, const Command& cmd)
 {
-	std::string quitMessage = "AWOLNATION - RUN";
+	// Has tto be empty string in case reason is not given.
+	std::string quitMessage = "";
 	if (!cmd.params.empty())
 	{
 		quitMessage = cmd.params[0];
 		if (!quitMessage.empty() && quitMessage[0] == ':')
 			quitMessage = quitMessage.substr(1);
 	}
-	
+	// In order to be able to send a message we need Client object, not just fd. Called once outside of the loop.
+	const auto& allClients = _server.getClients();
 	//For every channel the "client" is a member of
 	for (const std::string& channelName : client.getChannels())
 	{
@@ -352,21 +354,20 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 		{
 			if (memberFd == client.getFd()) continue;
 			// Find member client object by the fd, because Channel class tracks members as a set of file descriptors (int), not as Client objects.
-			// In order to be able to send a message we need Client object, not just fd.
-			const auto& allClients = _server.getClients();
 			auto memberIt = allClients.find(memberFd);
 			if (memberIt != allClients.end())
 			{
 				Client& channelMember = const_cast<Client&>(memberIt->second);
-				//sending message here (Mr. @Fpikkov)
+				Response::sendResponseCommand("QUIT", client, channelMember, {{ "reason", quitMessage }});
 			}
 		}
 		channel->removeMember(client.getFd());
 	}
-	client.setActive(false);
-}
 
-// TODO broadcasting automation.
+	// Client is set as inactive and disconnection event gets announced to the server
+	client.setActive(false);
+	Server::setDisconnectEvent(true);
+}
 
 void CommandHandler::handlePing(Client& client, const Command& cmd)
 {
@@ -376,15 +377,13 @@ void CommandHandler::handlePing(Client& client, const Command& cmd)
 		return ;
 	}
 	std::string token = cmd.params[0];
-	//sending PONG reply?
-	std::string replyPong = "PONG" + token +"\r\n";
+
+	Response::sendPong( client, token );
 }
 
-void CommandHandler::handlePong(Client& client, const Command& cmd)
+void CommandHandler::handlePong( [[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd)
 {
-	if (cmd.params.empty())
-	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}}); // The outer { ... } is for the map initializer. The inner { ... } is for each key-value pair.
-		return ;
-	}
+	// PONG will check if the message matched the serverside ping sent to client
+	// Update client's last active date if implementing timeouts.
+	// Server will NOT respond to pongs.
 }

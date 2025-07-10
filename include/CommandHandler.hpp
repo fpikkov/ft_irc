@@ -1,11 +1,12 @@
 #pragma once
 #include <functional>
 #include <unordered_map>
+#include <iostream>
 
 class	Server;
 class	Client;
 struct	Command;
-class CommandHandler
+class	CommandHandler
 {
 
 	private:
@@ -31,15 +32,17 @@ class CommandHandler
 			void handleInvite(Client&, const Command&);
 			void handleTopic(Client&, const Command&);
 			void handleMode(Client&, const Command&);
-			
+
 			// Rest of the commands
 			void handleQuit(Client&, const Command&);
 			void handlePing(Client&, const Command&);
 			void handlePong(Client&, const Command&);
 
+
 	public:
 			CommandHandler(Server& server);
 			void	handleCommand(Client& client, const Command& cmd);
+
 };
 
 

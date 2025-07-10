@@ -9,13 +9,16 @@ namespace irc
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
 
 	// Channel limit (CHANLIMIT)
-	constexpr const int MAX_CHANNELS = 20;
+	constexpr const size_t MAX_CHANNELS = 20;
 
 	// Channel character limit (CHANNELLEN)
 	constexpr const int MAX_CHANNEL_LENGTH = 16;
 
 	// Nickname character limit (MAXNICKLEN & NICKLEN)
 	constexpr const int MAX_NICKNAME_LENGTH = 16;
+
+	// Username character limit (MAXUSERLEN & USERLEN)
+	constexpr const int MAX_USERNAME_LENGTH = 16;
 
 	// Topic character limit (TOPICLEN)
 	constexpr const int MAX_TOPIC_LENGTH = 64;

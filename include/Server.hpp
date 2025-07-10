@@ -6,10 +6,8 @@
 #include "CommandHandler.hpp"
 
 class	Channel;
-
-struct Command;
-
-class Client;
+struct	Command;
+class	Client;
 
 class Server
 {
