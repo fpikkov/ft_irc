@@ -189,14 +189,15 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			channel->setKey(key);
 		channel->addMember(client.getFd());
 		channel->addOperator(client.getFd());
-		//Send confirmation to the client they joined the channel.
-		//Client does not need confirmation that they were made operator in this instance.
+		broadcastJoin(client, *channel);
 		return ;
 	}
 
+	const std::string channelName = channel->getName();
+
 	if (channel->isFull())
 	{
-		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {{"channel", channel->getName()}});
+		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {{"channel", channelName}});
 		return ;
 	}
 
@@ -206,28 +207,24 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
-				// TODO: broadcast to all members
-				Response::sendResponseCommand("JOIN", client, client, {{"channel", channel->getName()}});
-				// TODO ???: send the client list of active users
+				broadcastJoin(client, *channel);
 			}
 		}
 		else
-			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", channel->getName()}});
+			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", channelName}});
 		return ;
 	}
 
 	if (channel->getKey() && key.empty() || channel->getKey() != key)
 	{
-		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channel->getName()}});
+		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channelName}});
 		return ;
 	}
 	else
 	{
 		if (channel->addMember(client.getFd()) == true)
 		{
-			// TODO: broadcast to all members
-			Response::sendResponseCommand("JOIN", client, client, {{"channel", channel->getName()}});
-			// TODO ???: send the client list of active users
+			broadcastJoin(client, *channel);
 		}
 		else
 			return ;
@@ -503,4 +500,30 @@ void CommandHandler::handlePong( [[maybe_unused]] Client& client, [[maybe_unused
 	// PONG will check if the message matched the serverside ping sent to client
 	// Update client's last active date if implementing timeouts.
 	// Server will NOT respond to pongs.
+}
+
+
+// Helper function
+
+/**
+ * @brief Broadcast JOIN message to all members of a channel. Also outputs the list of NAMES to the client.
+ */
+void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
+{
+	const std::string channelName = channel.getName();
+	const auto& allClients = _server.getClients();
+
+	for ( const auto memberFd : channel.getMembers() )
+	{
+		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
+
+		auto memberIt = allClients.find(memberFd);
+		if (memberIt != allClients.end())
+		{
+			Client& channelMember = const_cast<Client&>(memberIt->second);
+			Response::sendResponseCommand("JOIN", client, channelMember, {{"channel", channelName}});
+			Response::sendResponseCode(Response::RPL_NAMREPLY, client, {{"symbol", ""}, {"channel", channelName}, {"names", channelMember.getNickname()}});
+		}
+	}
+	Response::sendResponseCode(Response::RPL_ENDOFNAMES, client, {{"channel", channelName}});
 }

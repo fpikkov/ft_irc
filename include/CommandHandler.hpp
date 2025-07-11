@@ -5,7 +5,9 @@
 
 class	Server;
 class	Client;
+class	Channel;
 struct	Command;
+
 class	CommandHandler
 {
 
@@ -38,6 +40,9 @@ class	CommandHandler
 			void handlePing(Client&, const Command&);
 			void handlePong(Client&, const Command&);
 
+
+			// Helper function
+			void	broadcastJoin( Client& client, Channel& channel );
 
 	public:
 			CommandHandler(Server& server);
