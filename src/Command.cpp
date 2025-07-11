@@ -16,11 +16,12 @@
   are always stored in uppercase format.*/
 static  std::string stringToUpper(std::string cmd)
 {
+	std::string result;
 	for (size_t i = 0; i < cmd.length(); i++)
 	{
-		std::toupper(cmd[i]);
+		result += std::toupper(cmd[i]);
 	}
-	return (cmd);
+	return (result);
 }
 
 /* joinTrail will pick up the token where ':' was found,

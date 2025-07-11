@@ -60,11 +60,12 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 
 static	std::string	stringToLower(std::string channelName)
 {
+	std::string result;
 	for (size_t i = 0; i < channelName.length(); i++)
 	{
-		std::tolower(channelName[i]);
+		result += std::tolower(channelName[i]);
 	}
-	return (channelName);
+	return (result);
 }
 
 /* MESSAGE COMMANDS*/
@@ -195,6 +196,8 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			channel->setKey(key);
 		channel->addMember(client.getFd());
 		channel->addOperator(client.getFd());
+
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "new channel created");
 		broadcastJoin(client, *channel);
 		return ;
 	}
@@ -284,6 +287,7 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 	// Remove the channel if no members exist
 	if (channel->isEmpty())
 	{
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "removed");
 		_server.removeChannel(channel->getName());
 		return ;
 	}
@@ -480,6 +484,7 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 
 		if (channel->isEmpty())
 		{
+			irc::log_event("CHANNEL", irc::LOG_DEBUG, "removed");
 			_server.removeChannel(channel->getName());
 			return ;
 		}
@@ -520,6 +525,9 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	const std::string channelName = channel.getName();
 	const auto& allClients = _server.getClients();
 
+	if ( irc::EXTENDED_DEBUG_LOGGING )
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast evemt");
+
 	for ( const auto memberFd : channel.getMembers() )
 	{
 		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
@@ -538,6 +546,9 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const std::string& message )
 {
 	const auto& allClients = _server.getClients();
+
+	if ( irc::EXTENDED_DEBUG_LOGGING )
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast evemt");
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
