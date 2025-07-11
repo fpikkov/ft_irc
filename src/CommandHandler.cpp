@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   CommandHandler.cpp                                 :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/11 16:56:26 by ahentton         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "CommandHandler.hpp"
 #include "Channels.hpp"
 #include "Client.hpp"
@@ -18,6 +6,7 @@
 #include "Command.hpp"
 #include "constants.hpp"
 #include <algorithm>
+
 
 CommandHandler::CommandHandler(Server& server) : _server(server)
 {
@@ -671,5 +660,207 @@ void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const s
 			Client& channelMember = const_cast<Client&>(memberIt->second);
 			Response::sendResponseCommand("PRIVMSG", client, channelMember, {{"target", channelMember.getNickname()}, {"message", message}});
 		}
+	}
+}
+
+
+// ======================================================================================================================================================================================================== //
+
+// Handle MODE part
+
+bool CommandHandler::isChannelName(const std::string& name) const
+{
+	return !name.empty() && (name[0] == '#' || name[0] == '&');
+}
+
+std::string CommandHandler::toLowerCase(const std::string& s) const
+{
+	std::string result = s;
+	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+	return result;
+}
+
+void CommandHandler::handleMode(Client& client, const Command& cmd)
+{
+	if (cmd.params.empty())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
+	}
+	const std::string& target = cmd.params[0];
+	if (isChannelName(target))
+	{
+		handleChannelMode(client, cmd, toLowerCase(target));
+	}
+	else
+	{
+		//handlig UserMode
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"command", target}});
+	}
+}
+
+void CommandHandler::handleChannelMode(Client& client, const Command& cmd, const std::string& channelName)
+{
+	Channel* channel = _server.findChannel(channelName); // A pointer here because a channel might not exist (will return a nullptr in this case). A reference would not work here, as reference must always refer to a valid object
+	if (!channel)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channelName}});
+		return ;
+	}
+
+	//Gettign modes of the channel (querying) params[0] = #channel, params[1] = mode string (+i, -k, +o etc.)
+	if (cmd.params.size() == 1)
+	{
+		sendChannelModeReply(client, channel, channelName);
+		return;
+	}
+
+	// Checking operator priviliges
+	if (!channel->isOperator(client.getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_CHANOPRIVSNEEDED, client, {{"channel", channelName}});
+		return ;
+	}
+
+	parseAndApplyChannelModes(client, const_cast<Command&>(cmd), channel, channelName);
+
+}
+
+void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName)
+{
+	std::string modes = "+";
+	std::string params;
+
+	if (channel->isInviteOnly()) modes += "i";
+	if (channel->isTopicLocked()) modes += "t";
+	if (channel->getKey()) // if not a nullptr
+	{
+		modes += "k";
+		params += " " + *channel->getKey(); // dereferencing
+	}
+	if (channel->getUserLimit())
+	{
+		modes += "l";
+		params += " " + std::to_string(channel->getUserLimit());
+	}
+	std::string reply = ":" + _server.getServerHostname() + "MODE" + channelName + " " + modes + params + "\r\n";
+	//Sending message here (client, reply);
+}
+
+// params[0]=channel, params[1]=modes, params[2...]=params
+// MODE #mychan +itk secretkey -o Alice +l 50
+
+void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Channel* channel, const std::string& channelName)
+{
+	std::string modeStr = cmd.params[1];
+	size_t papamIndex = 2;
+
+	bool adding = true;
+
+	for (size_t i; i < modeStr.size(); ++i)
+	{
+		char mode = modeStr[i];
+		if (mode == '+') { adding = true; continue; }
+		if (mode == '-') { adding = false; continue; }
+		switch (mode)
+		{
+			case 'i': handleModeInviteOnly(channel, adding); break;
+			case 't': handleModeTopicLocked(channel, adding); break;
+			case 'k': handleModeKey(client, cmd, channel, adding, papamIndex); break;
+			case 'l': handleModeLimit(client, cmd, channel, adding, papamIndex); break;
+			case 'o': handleModeOperator(client, cmd, channel, adding, papamIndex, channelName); break;
+			default: break;
+		}
+	}
+	broadcastChannelModeChange(client, channel, channelName, modeStr, cmd, papamIndex);
+}
+
+
+void CommandHandler::handleModeInviteOnly(Channel* channel, bool adding)
+{
+	channel->setInviteOnly(adding);
+}
+
+void CommandHandler::handleModeTopicLocked(Channel* channel, bool adding)
+{
+	channel->setTopicLocked(adding);
+}
+
+void CommandHandler::handleModeKey(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex)
+{
+	if (adding)
+	{
+		if (paramIndex >= cmd.params.size())
+		{
+			Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
+			return ;
+		}
+		channel->setKey(cmd.params[paramIndex]);
+		++paramIndex;
+	}
+	else
+	{
+		channel->setKey("");
+	}
+}
+
+void CommandHandler::handleModeLimit(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex)
+{
+	if (adding)
+	{
+		if (paramIndex >= cmd.params.size())
+		{
+			Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
+			return ;
+		}
+		int limit = std::atoi(cmd.params[paramIndex].c_str());
+		channel->setUserLimit(limit);
+		++paramIndex;
+	}
+	else
+	{
+		channel->setUserLimit(0);
+	}
+}
+
+void CommandHandler::handleModeOperator(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex, const std::string& channelName)
+{
+	if (paramIndex >= cmd.params.size())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
+		return ;
+	}
+	Client* targetUser = _server.findUser(cmd.params[paramIndex]);
+	if (!targetUser || !channel->isMember(targetUser->getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_USERNOTINCHANNEL, client, {{"target", cmd.params[paramIndex]}, {"channel", channelName}});
+		return ;
+	}
+	if (adding)
+	{
+		channel->addOperator(targetUser->getFd());
+	}
+	else
+	{
+		channel->removeOperator(targetUser->getFd());
+	}
+	++paramIndex;
+}
+
+void CommandHandler::broadcastChannelModeChange(Client& client, Channel* channel, const std::string& channelName, const std::string& modeStr, const Command& cmd, size_t paramIndex)
+{
+	std::string broadcast = ":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname() + " MODE " + channelName + " " + modeStr;
+	// Append parameters if any
+	for (size_t i = 2; i < paramIndex && i < cmd.params.size(); ++i)
+	{
+		broadcast += " " + cmd.params[i];
+	}
+	broadcast += "\r\n";
+	// Send to all members
+	//Client* memberFd = _server.findUser(cmd.params[paramIndex]);
+	for (auto memberFd : channel->getMembers())
+	{
+		Client* member = _server.findUser(std::to_string(memberFd));
+		//if (member)
+		   //sending message
 	}
 }
