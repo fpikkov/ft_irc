@@ -94,7 +94,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 			Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", target}});
 			return ;
 		}
-		//Send to all clients who belong in the channel.
+		broadcastPrivmsg(client, *channel, message);
 	}
 	else
 	{
@@ -104,7 +104,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 			Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"nick", target}});
 			return ;
 		}
-		//Send to the recipient client
+		Response::sendResponseCommand("PRIVMSG", client, *recipient, {{"target", recipient->getNickname()}, {"message", message}});
 	}
 }
 
@@ -526,4 +526,21 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 		}
 	}
 	Response::sendResponseCode(Response::RPL_ENDOFNAMES, client, {{"channel", channelName}});
+}
+
+void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const std::string& message )
+{
+	const auto& allClients = _server.getClients();
+
+	for ( const auto memberFd : channel.getMembers() )
+	{
+		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
+
+		auto memberIt = allClients.find(memberFd);
+		if (memberIt != allClients.end())
+		{
+			Client& channelMember = const_cast<Client&>(memberIt->second);
+			Response::sendResponseCommand("PRIVMSG", client, channelMember, {{"target", channelMember.getNickname()}, {"message", message}});
+		}
+	}
 }

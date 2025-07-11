@@ -42,7 +42,8 @@ class	CommandHandler
 
 
 			// Helper function
-			void	broadcastJoin( Client& client, Channel& channel );
+			void	broadcastJoin		( Client& client, Channel& channel );
+			void	broadcastPrivmsg	( Client& client, Channel& channel, const std::string& message );
 
 	public:
 			CommandHandler(Server& server);
