@@ -85,6 +85,12 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 	std::string	target = cmd.params[0];
 	std::string	message = cmd.params[1];
 
+	if ( message.empty() )
+	{
+		Response::sendResponseCode(Response::ERR_NOTEXTTOSEND, client, {});
+		return ;
+	}
+
 	if (target[0] == '#' || target[0] == '&')
 	{
 		target = stringToLower(target); //Channels are stored in lowercase.
@@ -534,7 +540,7 @@ void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const s
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
+		if (memberFd == client.getFd()) continue;
 
 		auto memberIt = allClients.find(memberFd);
 		if (memberIt != allClients.end())
