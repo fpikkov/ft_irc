@@ -6,22 +6,22 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 13:21:55 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/09 12:26:01 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/11 16:56:16 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Command.hpp"
+#include <algorithm>
 
 /*Simple helper function to ensure commands
   are always stored in uppercase format.*/
-static  std::string stringToUpper(std::string cmd)
+static	std::string	stringToUpper(const std::string channelName)
 {
-    for (size_t i = 0; i < cmd.length(); i++)
-    {
-        std::toupper(cmd[i]);
-    }
-    return (cmd);
+	std::string result = channelName;
+	std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+	return result;
 }
+
 
 /* joinTrail will pick up the token where ':' was found,
    and join it with the rest of the stringstream, which is picked up with std::getline.

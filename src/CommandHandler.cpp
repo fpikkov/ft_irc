@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/11 15:28:53 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/11 16:56:26 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "Response.hpp"
 #include "Server.hpp"
 #include "Command.hpp"
+#include <algorithm>
 
 CommandHandler::CommandHandler(Server& server) : _server(server)
 {
@@ -57,13 +58,11 @@ void    CommandHandler::handleCommand(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {});
 }
 
-static	std::string	stringToLower(std::string channelName)
+static	std::string	stringToLower(const std::string channelName)
 {
-	for (size_t i = 0; i < channelName.length(); i++)
-	{
-		std::tolower(channelName[i]);
-	}
-	return (channelName);
+	std::string result = channelName;
+	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+	return result;
 }
 
 /* MESSAGE COMMANDS*/
@@ -112,6 +111,11 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
    
 void	CommandHandler::handleNotice(Client& client, const Command& cmd)
 {
+	if (!client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
+		return ;
+	}
 	std::string	target = cmd.params[0];
 	std::string	message = cmd.params[1];
 
@@ -333,6 +337,51 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 	channel->invite(target->getFd());
 	//send INVITE message to the target user.
 	//OPTIONAL: Send a confirmation to the user who sent invite
+}
+
+void	CommandHandler::handleTopic(Client& client, const Command& cmd)
+{
+	if (!client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
+		return ;
+	}
+	if (cmd.params.size() < 1)
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {});
+		return ;
+	}
+
+	std::string	channelName = stringToLower(cmd.params[0]);
+	std::string	newTopic = (cmd.params.size() >= 2) ? cmd.params[1] : "";
+
+	Channel* channel = _server.findChannel(channelName);
+
+	if (!channel)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channelName}});
+		return ;
+	}
+	if (!channel->isMember(client.getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_USERNOTINCHANNEL, client, {{"channel", channelName}});
+		return ;
+	}
+	if (!newTopic.empty())
+	{
+		if (channel->isTopicLocked() && !channel->isOperator(client.getFd()))
+		{
+			Response::sendResponseCode(Response::ERR_CHANOPRIVSNEEDED, client, {{"channel", channel->getName()}});
+			return ;
+		}
+		channel->setTopic(newTopic);
+		//broadcast to all users that topic has been changed.
+	}
+	else
+	{
+		//message the current topic to the requester.
+		//if no topic is set, send "no topic" message.
+	}
 }
 
 /* REGISTRATION COMMANDS*/
