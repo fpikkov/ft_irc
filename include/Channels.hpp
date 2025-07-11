@@ -16,44 +16,45 @@ class Channel
 		bool						_topicLocked;
 		std::optional<std::string>	_key;
 		int							_userLimit;
-	
+
 	public:
 		Channel(const std::string& name);
 
 		//Getters
-		const 	std::string& getName() const;
-		const 	std::string& getTopic() const;
-		const 	std::unordered_set<int>& getMembers() const;
-		const 	std::unordered_set<int>& getOperators() const;
-		bool 	isInviteOnly() const;
-		bool 	isTopicLocked() const;
-		const	std::optional<std::string>& getKey() const;
-		int		getUserLimit() const;
+		const std::string&					getName			() const;
+		const std::string&					getTopic		() const;
+		const std::unordered_set<int>&		getMembers		() const;
+		const std::unordered_set<int>&		getOperators	() const;
+		bool								isInviteOnly	() const;
+		bool								isTopicLocked	() const;
+		const std::optional<std::string>&	getKey			() const;
+		int									getUserLimit	() const;
 
 		//Setters
-		void	setTopic(const std::string& topic);
-		void	setInviteOnly(bool inviteonly);
-		void	setTopicLocked(bool topiclocked);
-		void	setUserLimit(int limit);
-		void	setKey(const std::string& key);
+		void	setTopic		(const std::string& topic);
+		void	setInviteOnly	(bool inviteonly);
+		void	setTopicLocked	(bool topiclocked);
+		void	setUserLimit	(int limit);
+		void	setKey			(const std::string& key);
 
 		//Membership management
-		bool	addMember(int clientFd);
-		bool	addOperator(int clientFd);
-		void	removeMember(int clientFd);
-		bool	isOperator(int clientFd);
+		bool	addMember		(int clientFd);
+		bool	addOperator		(int clientFd);
+		void	removeMember	(int clientFd);
+		void	removeOperator	(int clientFd);
+		bool	isOperator		(int clientFd);
 
 		//Invite management
-		void	invite(int clientFd);
-		bool	isInvited(int clientFd);
-		void	removeInvite(int clientFd);
+		void	invite			(int clientFd);
+		bool	isInvited		(int clientFd);
+		void	removeInvite	(int clientFd);
 
 		//Helpers
-		bool	isMember(int clientFd) const;
-		bool	isFull() const;
-		bool	isEmpty() const;
+		bool	isMember		(int clientFd) const;
+		bool	isFull			() const;
+		bool	isEmpty			() const;
 
-		
+
 };
 
 // _name: Channel name (e.g., #school42).

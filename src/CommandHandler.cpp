@@ -476,6 +476,7 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 			}
 		}
 		channel->removeMember(client.getFd());
+		channel->removeOperator(client.getFd());
 
 		if (channel->isEmpty())
 		{

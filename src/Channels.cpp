@@ -1,6 +1,12 @@
 #include "Channels.hpp"
+#include "constants.hpp"
 
-Channel::Channel(const std::string& name) : _name(name) {};
+Channel::Channel(const std::string& name) :
+	_name(name),
+	_inviteOnly(false),
+	_topicLocked(false),
+	_userLimit(irc::MAX_CHANNELS)
+{};
 
 //Getters
 
@@ -39,6 +45,7 @@ bool	Channel::addOperator(int clientFd)
 }
 
 void	Channel::removeMember(int clientFd)							{ _members.erase(clientFd); }
+void	Channel::removeOperator(int clientFd)						{ _operators.erase(clientFd); }
 // If clientFd is present, the iterator returned will not be equal to _operators.end() and the function returns true.
 // If clientFd is not present, the iterator will be equal to _operators.end() and the function returns false.
 bool	Channel::isOperator(int clientFd)							{ return _operators.find(clientFd) != _operators.end(); }
