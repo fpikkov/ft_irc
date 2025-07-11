@@ -206,7 +206,9 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
-				/*TODO: send confirmation user has joined the channel.*/
+				// TODO: broadcast to all members
+				Response::sendResponseCommand("JOIN", client, client, {{"channel", channel->getName()}});
+				// TODO ???: send the client list of active users
 			}
 		}
 		else
@@ -223,7 +225,9 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		if (channel->addMember(client.getFd()) == true)
 		{
-			/*TODO: Send confirmation to the client they joined a channel.*/
+			// TODO: broadcast to all members
+			Response::sendResponseCommand("JOIN", client, client, {{"channel", channel->getName()}});
+			// TODO ???: send the client list of active users
 		}
 		else
 			return ;

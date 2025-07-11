@@ -45,6 +45,8 @@ namespace irc
 	// Server notice on hostname lookup success
 	constexpr const char* const CLIENT_HOSTNAME_SUCCESS_MESSAGE = "Hostname retrieved";
 
+	// Reveal real hostname
+	constexpr const bool REVEAL_HOSTNAME = true;
 
 	// Minor memory optimization
 	constexpr const bool MEMORY_SAVING = false;

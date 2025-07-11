@@ -40,6 +40,9 @@ void	Response::sendResponseCommand( const std::string& command, Client& source, 
 		{ "flags", "" }
 	};
 
+	if ( irc::REVEAL_HOSTNAME && !source.getIpAddress().empty() )
+		fields["host"] = source.getIpAddress();
+
 	for ( const auto& [placeholder, value] : placeholders )
 	{
 		if ( !value.empty() )
