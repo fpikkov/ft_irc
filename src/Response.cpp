@@ -10,6 +10,10 @@
  * Accepted placeholder keys:
  * target, message, channel, reason, new nick, topic, flags
  *
+ * QUIT: empty reason becomes "Client Quit"
+ * PART: empty reason removes the trailing message
+ * KICK: empty reason becomes source nickname
+ *
  * @param command The command successfully ran by thhe source client.
  * @param source The client who ran the command.
  * @param target The client who will receive notice on the same channel.
@@ -38,10 +42,23 @@ void	Response::sendResponseCommand( const std::string& command, Client& source, 
 
 	for ( const auto& [placeholder, value] : placeholders )
 	{
-		if ( placeholder == "target" && fields["reason"].empty() )
-			fields["reason"] = value;
+		if ( !value.empty() )
+			fields[placeholder] = value;
+	}
 
-		fields[placeholder] = value;
+	if ( command == "QUIT" && fields["reason"].empty() )
+		fields["reason"] = "Client Quit";
+	if ( command == "KICK" && fields["reason"].empty() )
+		fields["reason"] = fields["target"];
+	if ( command == "PART" && fields["reason"].empty() )
+	{
+		size_t clrfPos = templateMessage.find_last_of("\r\n");
+		if ( clrfPos != std::string::npos )
+		{
+			size_t colonPos = templateMessage.find_last_of(" :", clrfPos);
+			if ( colonPos != std::string::npos )
+				templateMessage.erase(colonPos, clrfPos - colonPos);
+		}
 	}
 
 	std::string responseMessage = findAndReplacePlaceholders( templateMessage, fields );
@@ -344,6 +361,8 @@ std::string	Response::getResponseTemplate( int code )
 		case ERR_NOTONCHANNEL:		return ":<server> <code> <nick> <channel> :You're not on that channel\r\n";
 		case ERR_USERONCHANNEL:		return ":<server> <code> <nick> <target> <channel> :User already on channel\r\n";
 
+		/// Channel operators
+		case ERR_CHANOPRIVSNEEDED:	return ":<server> <code> <nick> <channel> :You're not channel operator\r\n";
 
 		/// Message handling
 		case ERR_NOSUCHNICK:		return ":<server> <code> <nick> :No such nickname\r\n";

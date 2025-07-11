@@ -469,6 +469,12 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 			}
 		}
 		channel->removeMember(client.getFd());
+
+		if (channel->isEmpty())
+		{
+			_server.removeChannel(channel->getName());
+			return ;
+		}
 	}
 
 	// Client is set as inactive and disconnection event gets announced to the server

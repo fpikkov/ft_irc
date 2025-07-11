@@ -80,6 +80,8 @@ class Response
 		static constexpr int ERR_NOTONCHANNEL = 442;
 		static constexpr int ERR_USERONCHANNEL = 443;
 
+		/// Channel operators
+		static constexpr int ERR_CHANOPRIVSNEEDED = 482;
 
 		/// Message handling
 		static constexpr int ERR_NOSUCHNICK = 401;
