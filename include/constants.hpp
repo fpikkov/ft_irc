@@ -47,7 +47,7 @@ namespace irc
 
 
 	// Minor memory optimization
-	constexpr const bool MEMORY_SAVING = true;
+	constexpr const bool MEMORY_SAVING = false;
 
 	// Additional debug messaging
 	constexpr const bool EXTENDED_DEBUG_LOGGING = true;
