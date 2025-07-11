@@ -388,7 +388,7 @@ void	Server::executeCommand( Client& client, Command& cmd )
 	this->_commandHandler.handleCommand(client, cmd);
 }
 
-Channel*	Server::findChannel( std::string& channelName )
+Channel*	Server::findChannel( const std::string& channelName )
 {
 	for (auto& channel : _channels)
 	{
@@ -398,7 +398,7 @@ Channel*	Server::findChannel( std::string& channelName )
 	return nullptr;
 }
 
-Client*	Server::findUser( std::string& nickName )
+Client*	Server::findUser( const std::string& nickName )
 {
 	for (auto& client : _clients)
 	{
@@ -408,7 +408,7 @@ Client*	Server::findUser( std::string& nickName )
 	return nullptr;
 }
 
-void	Server::addChannel(const std::string channelName)
+void	Server::addChannel( const std::string channelName )
 {
 	Channel	channel(channelName);
 	_channels.push_back(channel);
@@ -445,9 +445,21 @@ void	Server::fetchClientIp( Client& client )
 }
 
 
+void	Server::removeChannel( const std::string& channelName)
+{
+	for (auto it = _channels.begin(); it != _channels.end(); it++)
+	{
+		if (it->getName() == channelName)
+		{
+			_channels.erase(it);
+			return ;
+		}
+	}
+}
 /// Exceptions
 
 const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }
 
 const	std::unordered_map<unsigned, Client>& Server::getClients() const { return _clients; }
+const	std::vector<Channel> Server::getChannels() const { return _channels; }
 const	std::string& Server::getPassword() const { return _password; }

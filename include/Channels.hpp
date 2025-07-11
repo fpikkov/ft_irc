@@ -49,6 +49,7 @@ class Channel
 		void	removeInvite(int clientFd);
 
 		//Helpers
+		bool	isMember(int clientFd) const;
 		bool	isFull() const;
 		bool	isEmpty() const;
 

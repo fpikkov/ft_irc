@@ -46,6 +46,7 @@ class Server
 		const std::string&							getServerVersion	() const;
 		const std::unordered_map<unsigned, Client>& getClients			() const;
 		const std::string&							getPassword			() const;
+		const std::vector<Channel>					getChannels			() const;
 
 		static void	setDisconnectEvent	( bool event );
 		static void	setPolloutEvent		( bool event );
@@ -55,12 +56,13 @@ class Server
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
 		void		disconnectClients		( std::vector<int>& remove_clients );
 		bool		receiveClientMessage	( int file_descriptor, std::vector<int>& remove_clients );
-		Channel*	findChannel				( std::string& channelName );
-		Client*		findUser				( std::string& nickName );
+		Channel*	findChannel				( const std::string& channelName );
+		Client*		findUser				( const std::string& nickName );
 		void		disconnectClients		();
 		bool		receiveClientMessage	( int file_descriptor );
 		void		executeCommand			( Client& client, Command& cmd);
 		void		addChannel				( const std::string channelName);
+		void		removeChannel			( const std::string& channelName);
 
 		class InvalidClientException: public std::exception
 		{

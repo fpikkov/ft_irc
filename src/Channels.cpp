@@ -50,3 +50,12 @@ void	Channel::removeInvite(int clientFd)							{ _invited.erase(clientFd); }
 
 bool	Channel::isFull() const										{ return _userLimit > 0 && _members.size() >= static_cast<size_t>(_userLimit); }
 bool	Channel::isEmpty() const									{ return _members.empty(); }
+bool	Channel::isMember(int clientFd) const
+{
+	for (auto& it : _members)
+	{
+		if (it == clientFd)
+			return true;
+	}
+	return false;
+}
