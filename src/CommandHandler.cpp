@@ -216,10 +216,18 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		return ;
 	}
 
-	if ( (channel->getKey() && key.empty()) || (channel->getKey() != key) )
+	if ( channel->getKey().has_value() )
 	{
-		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channelName}});
-		return ;
+		if ( key.empty() || (channel->getKey().value() != key) )
+		{
+			Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channelName}});
+			return ;
+		}
+		else if ( !key.empty() && channel->getKey().value() == key )
+		{
+			broadcastJoin(client, *channel);
+			return ;
+		}
 	}
 	else
 	{
@@ -742,8 +750,10 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 		modes += "l";
 		params += " " + std::to_string(channel->getUserLimit());
 	}
-	std::string reply = ":" + _server.getServerHostname() + "MODE" + channelName + " " + modes + params + "\r\n";
+	// std::string reply = ":" + _server.getServerHostname() + "MODE" + channelName + " " + modes + params + "\r\n";
 	//Sending message here (client, reply);
+	// TODO: check if the message should be broadcasted to the whole channel
+	Response::sendResponseCommand("MODE", client, client, {{"channel", channelName}, {"flags", modes}, {"target", params}});
 }
 
 // params[0]=channel, params[1]=modes, params[2...]=params
@@ -854,13 +864,15 @@ void CommandHandler::broadcastChannelModeChange(Client& client, Channel* channel
 	{
 		broadcast += " " + cmd.params[i];
 	}
-	broadcast += "\r\n";
+	// broadcast += "\r\n";
 	// Send to all members
 	//Client* memberFd = _server.findUser(cmd.params[paramIndex]);
 	for (auto memberFd : channel->getMembers())
 	{
 		Client* member = _server.findUser(std::to_string(memberFd));
-		//if (member)
-		   //sending message
+
+		if (!member) continue;
+
+		Response::sendResponseCommand("MODE", client, *member, {{"channel", channelName}, {"flags", modeStr}, {"target", broadcast}});
 	}
 }

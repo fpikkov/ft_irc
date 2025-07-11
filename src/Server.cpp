@@ -77,6 +77,9 @@ void	Server::serverSetup()
 	if ( setsockopt( _serverSocket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof( option ) ) < 0 )
 		throw ( std::runtime_error("Error: failed to set socket options.") );
 
+	if ( setsockopt( _serverSocket, SOL_SOCKET, SO_REUSEPORT, &option, sizeof( option ) ) < 0 )
+		throw ( std::runtime_error("Error: failed to set socket options.") );
+
 	if ( bind( _serverSocket, &_serverAddress, sizeof( _serverAddress )) < 0 )
 		throw ( std::runtime_error("Error: failed to bind server socket.") );
 

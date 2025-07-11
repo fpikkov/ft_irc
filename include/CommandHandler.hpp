@@ -36,10 +36,15 @@ class	CommandHandler
 			void handleTopic(Client&, const Command&);
 			void handleMode(Client&, const Command&);
 
+			// Rest of the commands
+			void handleQuit(Client&, const Command&);
+			void handlePing(Client&, const Command&);
+			void handlePong(Client&, const Command&);
+
+
 			// Helper functions for handling modes
 			bool isChannelName(const std::string& name) const;
 			std::string toLowerCase(const std::string& s) const;
-			void handleMode(Client& client, const Command& cmd);
 			void handleChannelMode(Client& client, const Command& cmd, const std::string& channelName);
 			void sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName);
 			void parseAndApplyChannelModes(Client& client, Command& cmd, Channel* channel, const std::string& channelName);
@@ -50,13 +55,7 @@ class	CommandHandler
 			void handleModeOperator(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex, const std::string& channelName);
 			void broadcastChannelModeChange(Client& client, Channel* channel, const std::string& channelName, const std::string& modeStr, const Command& cmd, size_t paramIndex);
 
-			// Rest of the commands
-			void handleQuit(Client&, const Command&);
-			void handlePing(Client&, const Command&);
-			void handlePong(Client&, const Command&);
-
-
-			// Helper function
+			// Helper functions for broadcasting on channels
 			void	broadcastJoin		( Client& client, Channel& channel );
 			void	broadcastPrivmsg	( Client& client, Channel& channel, const std::string& message );
 
