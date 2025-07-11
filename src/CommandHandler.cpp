@@ -55,7 +55,7 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	if (it != _handlers.end())
 		it->second(client, cmd);
 	else
-		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {});
+		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", cmd.command}});
 }
 
 static	std::string	stringToLower(std::string channelName)
@@ -221,7 +221,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		return ;
 	}
 
-	if (channel->getKey() && key.empty() || channel->getKey() != key)
+	if ( (channel->getKey() && key.empty()) || (channel->getKey() != key) )
 	{
 		Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channelName}});
 		return ;

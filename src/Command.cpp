@@ -16,11 +16,11 @@
   are always stored in uppercase format.*/
 static  std::string stringToUpper(std::string cmd)
 {
-    for (size_t i = 0; i < cmd.length(); i++)
-    {
-        std::toupper(cmd[i]);
-    }
-    return (cmd);
+	for (size_t i = 0; i < cmd.length(); i++)
+	{
+		std::toupper(cmd[i]);
+	}
+	return (cmd);
 }
 
 /* joinTrail will pick up the token where ':' was found,
@@ -50,33 +50,33 @@ Command msgToCmd(std::string message)
 	std::string			token;
 	size_t				token_counter = 0;
 
-    while (iss >> token)
-    {
-        if (!token.empty() && token_counter == 0)
-        {
-            if (token[0] == ':')
-                cmd.prefix = token;
-            else
-                cmd.command = stringToUpper(token);
-        }
-        else if (!token.empty() && token_counter == 1)
-        {
-            if (!cmd.prefix.empty())
-                cmd.command = stringToUpper(token);
-            else
-                cmd.params.push_back(token);
-        }
-        else if (!token.empty())
-        {
-            if (token[0] == ':')
-            {
-                cmd.params.push_back(joinTrail(token, iss));
-                return cmd;
-            }
-            else
-                cmd.params.push_back(token);
-        }
-        token_counter++;
-    }
-    return cmd;
+	while (iss >> token)
+	{
+		if (!token.empty() && token_counter == 0)
+		{
+			if (token[0] == ':')
+				cmd.prefix = token;
+			else
+				cmd.command = stringToUpper(token);
+		}
+		else if (!token.empty() && token_counter == 1)
+		{
+			if (!cmd.prefix.empty())
+				cmd.command = stringToUpper(token);
+			else
+				cmd.params.push_back(token);
+		}
+		else if (!token.empty())
+		{
+			if (token[0] == ':')
+			{
+				cmd.params.push_back(joinTrail(token, iss));
+				return cmd;
+			}
+			else
+				cmd.params.push_back(token);
+		}
+		token_counter++;
+	}
+	return cmd;
 }
