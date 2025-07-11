@@ -246,16 +246,11 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 /**
  * @brief Disconnects all clients marked as inactive.
  * Closes the associated file descriptor and removes the associated pollfd.
+ *
+ * NOTE: This will not alert all channel members about the disconnect
  */
 void	Server::disconnectClients()
 {
-	/**
-	 * 1. Remove client
-	 * 2. Close it's associated fd
-	 * 3. Remove associated data such as in channels // TODO: when Channels are set up
-	 * 4. Log the disconnect as an event
-	 */
-
 	std::vector<int> clientsToRemove;
 
 	for ( const auto& [fd, client] : _clients )
@@ -277,7 +272,20 @@ void	Server::disconnectClients()
 				break ;
 			}
 		}
-		// TODO: Notify channel users about the disconnect AND remove the client from user lists
+
+		for ( auto it = _channels.begin(); it != _channels.end(); )
+		{
+			if ( it->isMember(fd) )
+				it->removeMember(fd);
+			if ( it->isOperator(fd) )
+				it->removeOperator(fd);
+
+			if ( it->isEmpty() )
+				it = _channels.erase(it);
+			else
+				++it;
+		}
+
 		irc::log_event("DISCONNECT", irc::LOG_SUCCESS, "client fd " + std::to_string(fd));
 	}
 
@@ -460,6 +468,6 @@ void	Server::removeChannel( const std::string& channelName)
 
 const char*	Server::InvalidClientException::what() const noexcept { return "Error: invalid client"; }
 
-const	std::unordered_map<unsigned, Client>& Server::getClients() const { return _clients; }
-const	std::vector<Channel> Server::getChannels() const { return _channels; }
-const	std::string& Server::getPassword() const { return _password; }
+const	std::unordered_map<unsigned, Client>&	Server::getClients() const	{ return _clients; }
+const	std::vector<Channel>					Server::getChannels() const	{ return _channels; }
+const	std::string&							Server::getPassword() const	{ return _password; }
