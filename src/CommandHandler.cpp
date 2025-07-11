@@ -259,9 +259,22 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 		return ;
 	}
 
-	//Broadcast a parting message to all users in the channel, and the user who is leaving.
-	//if (!optionalMessage.isEmpty()): Conconate the default parting message and optionalMessage
+	// Broadcasts to all members that the user has parted the channel. Empty reason is defaulted to client nicknme.
+	const auto& allClients = _server.getClients();
+	for ( const auto memberFd : channel->getMembers() )
+	{
+		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
+
+		auto memberIt = allClients.find(memberFd);
+		if (memberIt != allClients.end())
+		{
+			Client& channelMember = const_cast<Client&>(memberIt->second);
+			Response::sendResponseCommand("PART", client, channelMember, {{"channel", channelName}, { "reason", optionalMessage }});
+		}
+	}
 	channel->removeMember(client.getFd());
+
+	// Remove the channel if no members exist
 	if (channel->isEmpty())
 	{
 		_server.removeChannel(channel->getName());
