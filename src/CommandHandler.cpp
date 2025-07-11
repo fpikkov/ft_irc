@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/10 17:13:57 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/11 13:42:09 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,7 +218,7 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 	}
 	
 	std::string	channelName = stringToLower(cmd.params[0]); //Channel names are stored in lowercase
-	std::string	optionalMessage = (cmd.params.size() > 1) ? cmd.params[1] : "";
+	std::string	comment = (cmd.params.size() > 1) ? cmd.params[1] : "";
 	
 	Channel* channel = _server.findChannel(channelName);
 	
@@ -234,7 +234,7 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 	}
 	
 	//Broadcast a parting message to all users in the channel, and the user who is leaving.
-	//if (!optionalMessage.isEmpty()): Conconate the default parting message and optionalMessage
+	//if (!comment.isEmpty()): Conconate the default parting message and comment
 	channel->removeMember(client.getFd());
 	if (channel->isEmpty())
 	{
@@ -257,18 +257,39 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 	}
 
 	Channel*	channel = _server.findChannel(cmd.params[0]);
-	Client*		kickNick = _server.findUser(cmd.params[1]);
+	Client*		target = _server.findUser(cmd.params[1]);
+	std::string	comment = (cmd.params.size() > 2) ? cmd.params[3] : "";
 
 	if (!channel)
 	{
-		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel"}, cmd.params[0]});
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", cmd.params[0]}});
 		return ;
 	}
-	if (!kickNick)
+	if (!target)
 	{
-		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"nick", kickNick}})
+		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"target", target->getNickname()}});
 		return ;
 	}
+	if (!channel->isOperator(client.getFd()))
+	{
+		//TODO: add ERR_CHANOPRIVSNEEDED response.
+		Response::sendResponseCode(Response::ERR_CHANOPRIVSNEEDED, client, {{"channel", channel->getName()}});
+		return ;
+	}
+	if (!channel->isMember(target->getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_USERNOTINCHANNEL, client, {{"target", target->getNickname()}, \
+																			{"channel", channel->getName()}});
+		return ;
+	}
+	if (!channel->isMember(client.getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_NOTONCHANNEL, client, {{"channel", channel->getName()}});
+		return ;
+	}
+	channel->removeMember(target->getFd());
+	//broadcast the message a member has been kicked
+	//if comment.empty() = false, join the comment with the default message.
 }
 
 /* REGISTRATION COMMANDS*/
