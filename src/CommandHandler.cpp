@@ -118,7 +118,7 @@ void	CommandHandler::handleNotice( Client& client, const Command& cmd)
 	std::string	target = cmd.params[0];
 	std::string	message = cmd.params[1];
 
-	if ( message.empty() )
+	if ( message.empty() || target.empty() )
 		return ;
 
 	if (target[0] == '#')
