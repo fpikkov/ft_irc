@@ -6,7 +6,7 @@
 /*   By: ahentton <ahentton@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 13:17:30 by ahentton          #+#    #+#             */
-/*   Updated: 2025/07/11 13:42:09 by ahentton         ###   ########.fr       */
+/*   Updated: 2025/07/11 15:28:53 by ahentton         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -290,6 +290,49 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 	channel->removeMember(target->getFd());
 	//broadcast the message a member has been kicked
 	//if comment.empty() = false, join the comment with the default message.
+}
+
+void	CommandHandler::handleInvite(Client& client, const Command& cmd)
+{
+	if (!client.isAuthenticated())
+	{
+		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
+		return ;
+	}
+	if (cmd.params.size() != 2)
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "INVITE"}});
+		return ;
+	}
+
+	std::string	channelName = stringToLower(cmd.params[1]);
+
+	Client* target = _server.findUser(cmd.params[0]); 
+	Channel* channel = _server.findChannel(channelName);
+
+	if (!target)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"target", target->getNickname()}});
+		return ;
+	}
+	if (!channel)
+	{
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channel->getName()}});
+		return ;
+	}
+	if (channel->isMember(target->getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_USERONCHANNEL, client, {{"target", target->getNickname()}});
+		return ;
+	}
+	if (channel->isInviteOnly() && !channel->isOperator(client.getFd()))
+	{
+		Response::sendResponseCode(Response::ERR_CHANOPRIVSNEEDED, client, {{"channel", channel->getName()}});
+		return ;
+	}
+	channel->invite(target->getFd());
+	//send INVITE message to the target user.
+	//OPTIONAL: Send a confirmation to the user who sent invite
 }
 
 /* REGISTRATION COMMANDS*/
