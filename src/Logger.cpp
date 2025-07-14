@@ -1,6 +1,7 @@
 #include "Logger.hpp"
 #include "constants.hpp"
 
+// Adjustable event string length
 size_t	Logger::_functionLength = 8;
 
 Logger::Logger() {}
@@ -36,5 +37,5 @@ void	Logger::log( const std::string& func, const std::string& status, const std:
 
 	eventName.resize(_functionLength, ' ');
 
-	std::cout << time << " [" << status << "]" << " [" << func << "] " << msg << std::endl;
+	std::cout << time << " [" << status << "]" << " [" << eventName << "] " << msg << std::endl;
 }

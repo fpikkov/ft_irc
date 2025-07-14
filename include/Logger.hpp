@@ -9,12 +9,11 @@
 class Logger
 {
 	private:
+		static size_t	_functionLength;
+
 		Logger();
 		Logger( const Logger& )				= delete;
 		Logger& operator=( const Logger& )	= delete;
-
-		static size_t		_functionLength;
-
 
 	public:
 		static Logger&		instance();
