@@ -170,7 +170,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
 		return ;
 	}
-	if (cmd.params[0].empty())
+	if (cmd.params.empty() || cmd.params[0].empty()) // Also check that the vector isn't empty
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "JOIN"}});
 		return ;
@@ -182,9 +182,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	}
 
 	std::string	target = stringToLower(cmd.params[0]); //Channel names are stored in lowercase..
-	std::string	key;
-	if (!cmd.params[1].empty())
-		key = cmd.params[1];
+	std::string	key = (cmd.params.size() > 1) ? cmd.params[1] : "";
 
 	Channel* channel = _server.findChannel(target);
 

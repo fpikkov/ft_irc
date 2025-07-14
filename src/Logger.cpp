@@ -2,7 +2,7 @@
 #include "constants.hpp"
 
 // Adjustable event string length
-size_t	Logger::_functionLength = 8;
+size_t	Logger::_functionLength = 10;
 
 Logger::Logger() {}
 
