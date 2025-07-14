@@ -30,6 +30,7 @@ SRCS =	main.cpp \
 		CommandHandler.cpp \
 		CommandBroadcast.cpp \
 		CommandHelpers.cpp \
+		CommandModes.cpp \
 
 OBJS = ${SRCS:%.cpp=${OBJ_DIR}/%.o}
 

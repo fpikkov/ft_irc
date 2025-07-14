@@ -31,14 +31,14 @@ bool	CommandHandler::isValidNick( const std::string& nick )
 	return true;
 }
 
-std::string CommandHandler::toLowerCase(const std::string& s) const
+std::string	CommandHandler::toLowerCase( const std::string& s )
 {
 	std::string result = s;
 	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
 	return result;
 }
 
-bool CommandHandler::isChannelName(const std::string& name) const
+bool	CommandHandler::isChannelName( const std::string& name )
 {
 	return !name.empty() && (name[0] == '#' || name[0] == '&');
 }
