@@ -94,7 +94,7 @@ void	Server::serverSetup()
 
 	_fds.insert( _fds.cbegin(), serverPoll );
 
-	irc::log_event("SERVER LAUNCH", irc::LOG_SUCCESS, "running on port " + std::to_string(_port));
+	irc::log_event("SERVER", irc::LOG_SUCCESS, "running on port " + std::to_string(_port));
 }
 
 void	Server::serverLoop()
@@ -105,10 +105,9 @@ void	Server::serverLoop()
 		{
 			if ( errno == EINTR ) // Signal was caught during poll
 			{
-				irc::log_event("POLL", irc::LOG_DEBUG, "received shutdown signal");
+				irc::log_event("SERVER", irc::LOG_DEBUG, "shutting down");
 				break ;
 			}
-			irc::log_event("POLL", irc::LOG_FAIL, "shutting down");
 		}
 
 		std::vector<pollfd>	newClients;
@@ -138,8 +137,6 @@ void	Server::serverLoop()
 			{
 				_clients[fd.fd].setActive(false);
 				_disconnectEvent = true;
-				if ( irc::EXTENDED_DEBUG_LOGGING )
-					irc::log_event( "POLL", irc::LOG_DEBUG, "client has disconnected due to error" );
 			}
 		}
 
@@ -228,8 +225,6 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 		return ( false ) ;
 	}
 
-	irc::log_event("CONNECTION", irc::LOG_SUCCESS, "accepted on fd " + std::to_string(newClientSocket));
-
 	newClient.setClientFd( newClientSocket );
 	newClient.setClientAddress( clientAddress );
 
@@ -242,6 +237,8 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	new_clients.push_back(clientPoll);
 
 	_clients[newClientSocket] = newClient;
+
+	irc::log_event("CONNECTION", irc::LOG_SUCCESS, "client connected from " + newClient.getIpAddress());
 
 	return ( true );
 }
@@ -289,7 +286,7 @@ void	Server::disconnectClients()
 				++it;
 		}
 
-		irc::log_event("DISCONNECT", irc::LOG_SUCCESS, "client fd " + std::to_string(fd));
+		irc::log_event("DISCONNECT", irc::LOG_DEBUG, "client: " + std::to_string(fd));
 	}
 
 	_disconnectEvent = false;
@@ -317,8 +314,6 @@ bool	Server::receiveClientMessage( int file_descriptor )
 		{
 			_clients[file_descriptor].setActive(false);
 			_disconnectEvent = true;
-			if ( irc::EXTENDED_DEBUG_LOGGING )
-				irc::log_event( "RECV", irc::LOG_DEBUG, "client has disconnected" );
 			return (false);
 		}
 	}
@@ -326,8 +321,6 @@ bool	Server::receiveClientMessage( int file_descriptor )
 	{
 		_clients[file_descriptor].setActive(false);
 		_disconnectEvent = true;
-		if ( irc::EXTENDED_DEBUG_LOGGING )
-			irc::log_event( "RECV", irc::LOG_DEBUG, "client has disconnected" );
 		return (false);
 	}
 	else
@@ -355,8 +348,6 @@ bool	Server::receiveClientMessage( int file_descriptor )
 			// TODO: Message the client with response code 417
 			_clients[file_descriptor].setActive(false);
 			_disconnectEvent = true;
-			if ( irc::EXTENDED_DEBUG_LOGGING )
-				irc::log_event( "RECV", irc::LOG_DEBUG, "input line too long, dropping connection" );
 			return (false);
 		}
 	}
@@ -381,10 +372,6 @@ void	Server::setClientsToPollout()
 				{
 					element.events |= POLLOUT;
 					client.setPollout(false);
-
-					if ( irc::EXTENDED_DEBUG_LOGGING )
-						irc::log_event( "POLL", irc::LOG_DEBUG, "polling out to client" );
-
 					break ;
 				}
 			}
@@ -419,8 +406,17 @@ Client*	Server::findUser( const std::string& nickName )
 	return nullptr;
 }
 
+/**
+ * @brief Creates a new channel and adds it to the channels vector.
+ * Converts channelName to lowercase as an extra security measure.
+ *
+ * @param channelName Name of the new channel to be created.
+ */
 void	Server::addChannel( const std::string channelName )
 {
+	std::string lowercaseName = channelName;
+	std::transform(lowercaseName.begin(), lowercaseName.end(), lowercaseName.begin(), ::tolower);
+
 	Channel	channel(channelName);
 	_channels.push_back(channel);
 }

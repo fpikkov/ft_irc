@@ -250,7 +250,7 @@ void	Response::sendMessage( Client& client, const std::string& message )
 		client.setActive(false);
 		Server::setDisconnectEvent(true);
 		if ( irc::EXTENDED_DEBUG_LOGGING )
-			irc::log_event( "SEND", irc::LOG_FAIL, "client has dissconnected");
+			irc::log_event( "SEND", irc::LOG_FAIL, "client has disconnected");
 		return ;
 	}
 	else if ( bytes < static_cast<ssize_t>(message.length()) )
@@ -259,18 +259,14 @@ void	Response::sendMessage( Client& client, const std::string& message )
 		{
 			client.setPollout(true);
 			Server::setPolloutEvent(true);
-			if ( irc::EXTENDED_DEBUG_LOGGING )
-				irc::log_event( "SEND", irc::LOG_DEBUG, "partial message sent");
 			return ;
 		}
 		client.setActive(false);
 		Server::setDisconnectEvent(true);
 		if ( irc::EXTENDED_DEBUG_LOGGING )
-			irc::log_event( "SEND", irc::LOG_FAIL, "forcing client disconnection");
+			irc::log_event( "SEND", irc::LOG_FAIL, "dropping client connection");
 		return ;
 	}
-	if ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event( "SEND", irc::LOG_SUCCESS, "message sent successfully");
 }
 
 std::string	Response::findAndReplacePlaceholders( const std::string& template_string, const string_map& placeholders )

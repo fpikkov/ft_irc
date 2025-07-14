@@ -43,9 +43,17 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 {
 	auto it = _handlers.find(cmd.command);
 	if (it != _handlers.end())
+	{
+		if ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event("COMMAND", irc::LOG_DEBUG, cmd.command + " from " + client.getNickname());
 		it->second(client, cmd);
+	}
 	else
+	{
+		if ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + client.getNickname());
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", cmd.command}});
+	}
 }
 
 static	std::string	stringToLower(const std::string channelName)
@@ -184,21 +192,28 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		_server.addChannel(target);
 		channel = _server.findChannel(target);
+
+		if (!channel)
+		{
+			irc::log_event("CHANNEL", irc::LOG_FAIL, "failed to create: " + target);
+			return ;
+		}
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "created: " + target);
+
 		if (!key.empty())
 			channel->setKey(key);
 		channel->addMember(client.getFd());
 		channel->addOperator(client.getFd());
 
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "new channel created");
+		if ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event("CHANNEL", irc::LOG_SUCCESS, client.getNickname() + " joined " + target);
 		broadcastJoin(client, *channel);
 		return ;
 	}
 
-	const std::string channelName = channel->getName();
-
 	if (channel->isFull())
 	{
-		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {{"channel", channelName}});
+		Response::sendResponseCode(Response::ERR_CHANNELISFULL, client, {{"channel", target}});
 		return ;
 	}
 
@@ -208,11 +223,13 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
+				if ( irc::EXTENDED_DEBUG_LOGGING )
+					irc::log_event("CHANNEL", irc::LOG_SUCCESS, client.getNickname() + " joined " + target);
 				broadcastJoin(client, *channel);
 			}
 		}
 		else
-			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", channelName}});
+			Response::sendResponseCode(Response::ERR_INVITEONLYCHAN, client, {{"channel", target}});
 		return ;
 	}
 
@@ -220,12 +237,17 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		if ( key.empty() || (channel->getKey().value() != key) )
 		{
-			Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", channelName}});
+			Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", target}});
 			return ;
 		}
 		else if ( !key.empty() && channel->getKey().value() == key )
 		{
-			broadcastJoin(client, *channel);
+			if (channel->addMember(client.getFd()) == true)
+			{
+				if ( irc::EXTENDED_DEBUG_LOGGING )
+					irc::log_event("CHANNEL", irc::LOG_SUCCESS, client.getNickname() + " joined " + target);
+				broadcastJoin(client, *channel);
+			}
 			return ;
 		}
 	}
@@ -233,10 +255,11 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		if (channel->addMember(client.getFd()) == true)
 		{
+			if ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event("CHANNEL", irc::LOG_SUCCESS, client.getNickname() + " joined " + target);
 			broadcastJoin(client, *channel);
 		}
-		else
-			return ;
+		return ;
 	}
 }
 
@@ -282,12 +305,16 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 			Response::sendResponseCommand("PART", client, channelMember, {{"channel", channelName}, { "reason", optionalMessage }});
 		}
 	}
+
+	// Remove user from the channel
+	if ( irc::EXTENDED_DEBUG_LOGGING )
+		irc::log_event("CHANNEL", irc::LOG_SUCCESS, client.getNickname() + " left " + channelName);
 	channel->removeMember(client.getFd());
 
 	// Remove the channel if no members exist
 	if (channel->isEmpty())
 	{
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "removed");
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "removed: " + channel->getName());
 		_server.removeChannel(channel->getName());
 		return ;
 	}
@@ -431,6 +458,12 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 
 /* REGISTRATION COMMANDS*/
 
+/**
+ * @brief Checks if the user is already authenticated and
+ * if the password provided matches the server password.
+ * Incorrect password is accepted if the server doesn't require a password in the configuration.
+ * Client is only authenticated at the end in case they have filled out user info.
+ */
 void	CommandHandler::handlePass(Client& client, const Command& cmd)
 {
 	if (client.isAuthenticated())
@@ -448,12 +481,17 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	const std::string& providedPassword = cmd.params[0];
 	if (providedPassword != _server.getPassword())
 	{
+		if ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
 		if ( irc::REQUIRE_PASSWORD )
 			return ;
 	}
 
-	client.setAuthenticated(true);
+	if ( irc::EXTENDED_DEBUG_LOGGING )
+		irc::log_event("AUTH", irc::LOG_SUCCESS, "valid password from "+ client.getIpAddress());
+	if ( !client.getUsername().empty() && !client.getHostname().empty() && !client.getRealname().empty() )
+		client.setAuthenticated(true);
 }
 
 
@@ -506,10 +544,14 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	{
 		if (clientObject.getNickname() == newNick)
 		{
+			if ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event("AUTH", irc::LOG_FAIL, newNick + " already in use");
 			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
 			return ;
 		}
 	}
+	if ( irc::EXTENDED_DEBUG_LOGGING )
+		irc::log_event("AUTH", irc::LOG_SUCCESS, newNick + " set");
 	client.setNickname(newNick);
 }
 
@@ -552,6 +594,9 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 	client.setUsername(username);
 	client.setRealname(realname);
 	client.setAuthenticated(true);
+
+	if ( irc::EXTENDED_DEBUG_LOGGING )
+		irc::log_event("AUTH", irc::LOG_SUCCESS, username + " authenticated");
 }
 
 /* Rest of the commands */
@@ -592,7 +637,7 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 
 		if (channel->isEmpty())
 		{
-			irc::log_event("CHANNEL", irc::LOG_DEBUG, "removed");
+			irc::log_event("CHANNEL", irc::LOG_DEBUG, "removed: " + channel->getName());
 			_server.removeChannel(channel->getName());
 			return ;
 		}
@@ -634,7 +679,7 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	const auto& allClients = _server.getClients();
 
 	if ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast evemt");
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
@@ -656,7 +701,7 @@ void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const s
 	const auto& allClients = _server.getClients();
 
 	if ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast evemt");
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
