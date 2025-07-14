@@ -19,6 +19,7 @@ Client::~Client	() {}
 int										Client::getFd				() const noexcept	{ return _clientFd; }
 const std::string&						Client::getUsername			() const noexcept	{ return _username; }
 const std::string&						Client::getHostname			() const noexcept	{ return _hostname; }
+const std::string&						Client::getServername		() const noexcept	{ return _servername; }
 const std::string&						Client::getNickname			() const noexcept	{ return _nickname; }
 const std::string&						Client::getRealname			() const noexcept	{ return _realname; }
 const std::string&						Client::getReceiveBuffer	() const noexcept	{ return _receiveBuffer; }
@@ -35,6 +36,7 @@ bool									Client::getPollout			() const noexcept	{ return _pollout; }
 void	Client::setClientFd			( int fd )							{ _clientFd = fd; }
 void	Client::setUsername			( const std::string& username )		{ _username = username; }
 void	Client::setHostname			( const std::string& hostname )		{ _hostname = hostname; }
+void	Client::setServername		( const std::string& servername )	{ _servername = servername; }
 void	Client::setNickname			( const std::string& nickname )		{ _nickname = nickname; }
 void	Client::setRealname			( const std::string& realname )		{ _realname = realname; }
 void	Client::setIpAddress		( const std::string& address )		{ _ipAddress = address; }

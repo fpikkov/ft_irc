@@ -8,6 +8,7 @@ private:
 	int								_clientFd;
 	std::string						_username;
 	std::string						_hostname;
+	std::string						_servername;
 	std::string						_nickname; // servername
 	std::string						_realname;
 	bool							_authenticated;
@@ -29,6 +30,7 @@ public:
 	int										getFd				() const noexcept;
 	const std::string&						getUsername			() const noexcept;
 	const std::string&						getHostname			() const noexcept;
+	const std::string&						getServername		() const noexcept;
 	const std::string&						getNickname			() const noexcept;
 	const std::string&						getRealname			() const noexcept;
 	bool									isAuthenticated		() const;
@@ -42,11 +44,12 @@ public:
 
 	// Setters
 	void		setClientFd				( int fd );
-	void		setUsername				( std::string const &username );
-	void		setHostname				( std::string const &hostname );
-	void		setNickname				( std::string const &nickname );
-	void		setRealname				( std::string const &realname );
-	void		setIpAddress			( std::string const &address );
+	void		setUsername				( const std::string& username );
+	void		setHostname				( const std::string& hostname );
+	void		setServername			( const std::string& servername );
+	void		setNickname				( const std::string& nickname );
+	void		setRealname				( const std::string& realname );
+	void		setIpAddress			( const std::string& address );
 	void		setClientAddress		( sockaddr address );
 	void		setAuthenticated		( bool auth );
 	void		setActive				( bool active );

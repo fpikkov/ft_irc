@@ -261,6 +261,8 @@ void	Server::disconnectClients()
 
 	for ( int fd : clientsToRemove )
 	{
+		irc::log_event("DISCONNECT", irc::LOG_INFO, _clients[fd].getNickname() + "@" + _clients[fd].getIpAddress());
+
 		close( fd );
 		_clients.erase( fd );
 
@@ -285,8 +287,6 @@ void	Server::disconnectClients()
 			else
 				++it;
 		}
-
-		irc::log_event("DISCONNECT", irc::LOG_DEBUG, "client: " + std::to_string(fd));
 	}
 
 	_disconnectEvent = false;
@@ -428,24 +428,42 @@ void	Server::addChannel( const std::string channelName )
  */
 void	Server::fetchClientIp( Client& client )
 {
-	std::string	ip = {};
+	char			ip_buffer[INET6_ADDRSTRLEN];
+	std::string		ip;
+	sockaddr*		addr;
+
+	addr = &client.getClientAddress();
 
 	if ( irc::EXTENDED_DEBUG_LOGGING && irc::ANNOUNCE_CLIENT_LOOKUP )
 		irc::log_event("CONNECTION", irc::LOG_DEBUG, "looking up client hostname");
 	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
 		Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_MESSAGE );
 
-	if ( ((sockaddr_in *)&client.getClientAddress())->sin_family == AF_INET )
-		inet_ntop( AF_INET, ((sockaddr_in *)&client.getClientAddress()), ip.data(), INET_ADDRSTRLEN );
-	else if ( ((sockaddr_in *)&client.getClientAddress())->sin_family == AF_INET6 )
-		inet_ntop( AF_INET6, ((sockaddr_in6 *)&client.getClientAddress()), ip.data(), INET6_ADDRSTRLEN );
+	if ( addr->sa_family == AF_INET )
+	{
+		sockaddr_in* addr_in = (sockaddr_in*)addr;
+		if ( inet_ntop( AF_INET, &addr_in->sin_addr, ip_buffer, INET_ADDRSTRLEN ) != nullptr )
+			ip = std::string(ip_buffer);
+	}
+	else if ( addr->sa_family == AF_INET6 )
+	{
+		sockaddr_in6* addr_in6 = (sockaddr_in6*)addr;
+		if ( inet_ntop( AF_INET6, &addr_in6->sin6_addr, ip_buffer, INET6_ADDRSTRLEN ) != nullptr )
+			ip = std::string(ip_buffer);
+	}
 
 	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
 	{
 		if ( ip.empty() )
+		{
+			irc::log_event("CONNECTION", irc::LOG_FAIL, "failed to resolve IP address");
 			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_FAILURE_MESSAGE );
+		}
 		else
+		{
+			irc::log_event("CONNECTION", irc::LOG_SUCCESS, "resolved IP: " + ip);
 			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_SUCCESS_MESSAGE );
+		}
 	}
 
 	client.setIpAddress( ip );

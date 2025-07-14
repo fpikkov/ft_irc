@@ -53,11 +53,17 @@ class	CommandHandler
 			void handleModeKey(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex);
 			void handleModeLimit(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex);
 			void handleModeOperator(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex, const std::string& channelName);
-			void broadcastChannelModeChange(Client& client, Channel* channel, const std::string& channelName, const std::string& modeStr, const Command& cmd, size_t paramIndex);
 
-			// Helper functions for broadcasting on channels
+			// Channel broadcasting functions
 			void	broadcastJoin		( Client& client, Channel& channel );
 			void	broadcastPrivmsg	( Client& client, Channel& channel, const std::string& message );
+			void	broadcastNotice		( Client& client, Channel& channel, const std::string& message );
+			void	broadcastPart		( Client& client, Channel& channel, const std::string& message );
+			void	broadcastQuit		( Client& client, const std::string& message );
+			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd, size_t paramIndex );
+
+			// Additional helper functions
+			static bool	isValidNick( const std::string& nick );
 
 	public:
 			CommandHandler(Server& server);

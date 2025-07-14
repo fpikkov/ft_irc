@@ -33,37 +33,32 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
 }
 
-/*Command handler function, for fast execution of any command.
-  This function iterates through _handlers(map of command keys and funcs),
-  finds a match, and executes the command internally.
-  Server response to client will also be sent internally.
-  If no match is found, server immediately responds with unknown command error.*/
-
+/**
+ * Command handler function, for fast execution of any command.
+ * This function iterates through _handlers(map of command keys and funcs),
+ * finds a match, and executes the command internally.
+ * Server response to client will also be sent internally.
+ * If no match is found, server immediately responds with unknown command error.
+ */
 void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 {
 	auto it = _handlers.find(cmd.command);
 	if (it != _handlers.end())
 	{
 		if ( irc::EXTENDED_DEBUG_LOGGING )
-			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + client.getNickname());
+			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + client.getNickname() + "@" + client.getIpAddress());
 		it->second(client, cmd);
 	}
 	else
 	{
 		if ( irc::EXTENDED_DEBUG_LOGGING )
-			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + client.getNickname());
+			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + client.getNickname() + "@" + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", cmd.command}});
 	}
 }
 
-static	std::string	stringToLower(const std::string channelName)
-{
-	std::string result = channelName;
-	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
-	return result;
-}
 
-/* MESSAGE COMMANDS*/
+/* MESSAGE COMMANDS */
 
 void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 {
@@ -89,7 +84,7 @@ void	CommandHandler::handlePrivmsg(Client& client, const Command& cmd)
 
 	if (target[0] == '#' || target[0] == '&')
 	{
-		target = stringToLower(target); //Channels are stored in lowercase.
+		target = toLowerCase(target); //Channels are stored in lowercase.
 		Channel *channel = _server.findChannel(target);
 		if (!channel)
 		{
@@ -123,33 +118,26 @@ void	CommandHandler::handleNotice( Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
 		return ;
 	}
-	std::string	target = cmd.params[0];
-	std::string	message = cmd.params[1];
+	if ( cmd.params.size() < 2)
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "NOTICE"}});
+		return ;
+	}
+
+	std::string	target	= cmd.params[0];
+	std::string	message	= cmd.params[1];
 
 	if ( message.empty() || target.empty() )
 		return ;
 
 	if (target[0] == '#')
 	{
-		target = stringToLower(target);
+		target = toLowerCase(target);
 		Channel	*channel = _server.findChannel(target);
 		if (!channel)
 			return ;
 
-		//Send the message to the clients who belong to server.
-		const auto& allClients = _server.getClients();
-
-		for ( auto fd : channel->getMembers() )
-		{
-			if ( fd == client.getFd() && !irc::BROADCAST_TO_ORIGIN ) continue;
-
-			auto memberIt = allClients.find(fd);
-			if (memberIt != allClients.end())
-			{
-				Client& channelMember = const_cast<Client&>(memberIt->second);
-				Response::sendResponseCommand("NOTICE", client, channelMember, {{ "message", message }});
-			}
-		}
+		broadcastNotice(client, *channel, message);
 	}
 	else
 	{
@@ -181,10 +169,10 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		return ;
 	}
 
-	std::string	target = stringToLower(cmd.params[0]); //Channel names are stored in lowercase..
-	std::string	key = (cmd.params.size() > 1) ? cmd.params[1] : "";
+	std::string	target	= toLowerCase(cmd.params[0]); //Channel names are stored in lowercase..
+	std::string	key		= (cmd.params.size() > 1) ? cmd.params[1] : "";
 
-	Channel* channel = _server.findChannel(target);
+	Channel* channel	= _server.findChannel(target);
 
 	if (!channel)
 	{
@@ -202,7 +190,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			channel->setKey(key);
 		if (channel->addMember(client.getFd()) == true)
 		{
-			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + " joined " + target);
+			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 		}
 		else
 		{
@@ -231,7 +219,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
-				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + " joined " + target);
+				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 				broadcastJoin(client, *channel);
 			}
 		}
@@ -251,7 +239,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
-				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + " joined " + target);
+				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 				broadcastJoin(client, *channel);
 			}
 			return ;
@@ -261,7 +249,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		if (channel->addMember(client.getFd()) == true)
 		{
-			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + " joined " + target);
+			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 			broadcastJoin(client, *channel);
 		}
 		return ;
@@ -281,8 +269,8 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 		return ;
 	}
 
-	std::string	channelName = stringToLower(cmd.params[0]); //Channel names are stored in lowercase
-	std::string	optionalMessage = (cmd.params.size() > 1) ? cmd.params[1] : "";
+	std::string	channelName		= toLowerCase(cmd.params[0]); //Channel names are stored in lowercase
+	std::string	optionalMessage	= (cmd.params.size() > 1) ? cmd.params[1] : "";
 
 	Channel* channel = _server.findChannel(channelName);
 
@@ -297,22 +285,10 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 		return ;
 	}
 
-	// Broadcasts to all members that the user has parted the channel. Empty reason is defaulted to client nicknme.
-	const auto& allClients = _server.getClients();
-	for ( const auto memberFd : channel->getMembers() )
-	{
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-
-		auto memberIt = allClients.find(memberFd);
-		if (memberIt != allClients.end())
-		{
-			Client& channelMember = const_cast<Client&>(memberIt->second);
-			Response::sendResponseCommand("PART", client, channelMember, {{"channel", channelName}, { "reason", optionalMessage }});
-		}
-	}
+	broadcastPart(client, *channel, optionalMessage);
 
 	// Remove user from the channel
-	irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + " left " + channelName);
+	irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " left " + channelName);
 	channel->removeMember(client.getFd());
 
 	// Remove the channel if no members exist
@@ -385,7 +361,7 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 		return ;
 	}
 
-	std::string	channelName = stringToLower(cmd.params[1]);
+	std::string	channelName = toLowerCase(cmd.params[1]);
 
 	Client* target = _server.findUser(cmd.params[0]);
 	Channel* channel = _server.findChannel(channelName);
@@ -428,7 +404,7 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 		return ;
 	}
 
-	std::string	channelName = stringToLower(cmd.params[0]);
+	std::string	channelName = toLowerCase(cmd.params[0]);
 	std::string	newTopic = (cmd.params.size() >= 2) ? cmd.params[1] : "";
 
 	Channel* channel = _server.findChannel(channelName);
@@ -496,36 +472,6 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 		client.setAuthenticated(true);
 }
 
-
-// Helper function for handleNick function
-
-static bool	isValidNick(const std::string& nick)
-{
-	if (nick.empty() || nick.length() > 9)
-		return false;
-
-	auto isLetter = [](char c) { return std::isalpha(static_cast<unsigned char>(c)); };
-	auto isDigit = [](char c) { return std::isdigit(static_cast<unsigned char>(c)); };
-	auto isSpecial = [](char c)
-	{
-		return	c == '[' 	|| c == ']' || c == '\\'
-				|| c == '^' || c == '_' || c == '`'
-				|| c == '{' || c == '}' || c == '|';
-	};
-
-	char firstChar = nick[0];
-	if (!isLetter(firstChar) && !isSpecial(firstChar))
-		return false;
-
-	for (size_t i = 1; i < nick.length(); ++i)
-	{
-		char c = nick[i];
-		if (!isLetter(c) && !isDigit(c) && !isSpecial(c))
-			return false;
-	}
-	return true;
-}
-
 void CommandHandler::handleNick(Client& client, const Command& cmd)
 {
 	if (cmd.params.empty())
@@ -536,7 +482,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 
 	std::string newNick = cmd.params[0];
 
-	if (!isValidNick(newNick))
+	if ( !CommandHandler::isValidNick(newNick) )
 	{
 		Response::sendResponseCode(Response::ERR_ERRONEUSNICKNAME, client, {});
 		return ;
@@ -553,14 +499,14 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 		}
 	}
 	if ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("AUTH", irc::LOG_SUCCESS, newNick + " set");
+		irc::log_event("AUTH", irc::LOG_SUCCESS, newNick + " set by " + client.getIpAddress());
 	client.setNickname(newNick);
 }
 
 /*
 [ \ ] ^ _ ` { | }
 */
-/* USER <username> <mode> <unused> <realname> */
+/* USER <username> <hostname> <servername> <realname> */
 void CommandHandler::handleUser(Client& client, const Command& cmd)
 {
 	if (client.isAuthenticated())
@@ -575,10 +521,12 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 		return ;
 	}
 
-	std::string username = cmd.params[0];
-	std::string realname = cmd.params[3];
+	std::string username	= cmd.params[0];
+	std::string hostname	= cmd.params[1];
+	std::string servername	= cmd.params[2];
+	std::string realname	= cmd.params[3];
 
-	if (username.empty())
+	if (username.empty() || hostname.empty() || servername.empty() || realname.empty())
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}});
 		return ;
@@ -594,10 +542,12 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 		realname = realname.substr(1);
 
 	client.setUsername(username);
+	client.setHostname(hostname);
+	client.setServername(servername);
 	client.setRealname(realname);
 	client.setAuthenticated(true);
 
-	irc::log_event("AUTH", irc::LOG_SUCCESS, username + " authenticated");
+	irc::log_event("AUTH", irc::LOG_SUCCESS, client.getNickname() + "@" + client.getIpAddress() + " authenticated");
 }
 
 /* Rest of the commands */
@@ -612,37 +562,9 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 		if (!quitMessage.empty() && quitMessage[0] == ':')
 			quitMessage = quitMessage.substr(1);
 	}
-	// In order to be able to send a message we need Client object, not just fd. Called once outside of the loop.
-	const auto& allClients = _server.getClients();
-	//For every channel the "client" is a member of
-	for (const std::string& channelName : client.getChannels())
-	{
-		// Finding the channel object by name
-		Channel* channel = _server.findChannel(const_cast<std::string&>(channelName));
-		// If channel does not exist
-		if (!channel) continue;
-		// For every member in this channel
-		for (int memberFd : channel->getMembers())
-		{
-			if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-			// Find member client object by the fd, because Channel class tracks members as a set of file descriptors (int), not as Client objects.
-			auto memberIt = allClients.find(memberFd);
-			if (memberIt != allClients.end())
-			{
-				Client& channelMember = const_cast<Client&>(memberIt->second);
-				Response::sendResponseCommand("QUIT", client, channelMember, {{ "reason", quitMessage }});
-			}
-		}
-		channel->removeMember(client.getFd());
-		channel->removeOperator(client.getFd());
 
-		if (channel->isEmpty())
-		{
-			irc::log_event("CHANNEL", irc::LOG_INFO, "removed: " + channel->getName());
-			_server.removeChannel(channel->getName());
-			return ;
-		}
-	}
+	// Broadcast the client disconnection to each member of every channel they were apart of.
+	broadcastQuit(client, quitMessage);
 
 	// Client is set as inactive and disconnection event gets announced to the server
 	client.setActive(false);
@@ -669,70 +591,9 @@ void CommandHandler::handlePong( [[maybe_unused]] Client& client, [[maybe_unused
 }
 
 
-// Helper function
-
-/**
- * @brief Broadcast JOIN message to all members of a channel. Also outputs the list of NAMES to the client.
- */
-void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
-{
-	const std::string channelName = channel.getName();
-	const auto& allClients = _server.getClients();
-
-	if ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
-
-	for ( const auto memberFd : channel.getMembers() )
-	{
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-
-		auto memberIt = allClients.find(memberFd);
-		if (memberIt != allClients.end())
-		{
-			Client& channelMember = const_cast<Client&>(memberIt->second);
-			Response::sendResponseCommand("JOIN", client, channelMember, {{"channel", channelName}});
-			Response::sendResponseCode(Response::RPL_NAMREPLY, client, {{"symbol", ""}, {"channel", channelName}, {"names", channelMember.getNickname()}});
-		}
-	}
-	Response::sendResponseCode(Response::RPL_ENDOFNAMES, client, {{"channel", channelName}});
-}
-
-void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const std::string& message )
-{
-	const auto& allClients = _server.getClients();
-
-	if ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
-
-	for ( const auto memberFd : channel.getMembers() )
-	{
-		if (memberFd == client.getFd()) continue;
-
-		auto memberIt = allClients.find(memberFd);
-		if (memberIt != allClients.end())
-		{
-			Client& channelMember = const_cast<Client&>(memberIt->second);
-			Response::sendResponseCommand("PRIVMSG", client, channelMember, {{"target", channelMember.getNickname()}, {"message", message}});
-		}
-	}
-}
-
-
 // ======================================================================================================================================================================================================== //
 
-// Handle MODE part
-
-bool CommandHandler::isChannelName(const std::string& name) const
-{
-	return !name.empty() && (name[0] == '#' || name[0] == '&');
-}
-
-std::string CommandHandler::toLowerCase(const std::string& s) const
-{
-	std::string result = s;
-	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
-	return result;
-}
+/* User and channel mode handling */
 
 void CommandHandler::handleMode(Client& client, const Command& cmd)
 {
@@ -808,7 +669,7 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Channel* channel, const std::string& channelName)
 {
 	std::string modeStr = cmd.params[1];
-	size_t papamIndex = 2;
+	size_t paramIndex = 2;
 
 	bool adding = true;
 
@@ -821,13 +682,13 @@ void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Cha
 		{
 			case 'i': handleModeInviteOnly(channel, adding); break;
 			case 't': handleModeTopicLocked(channel, adding); break;
-			case 'k': handleModeKey(client, cmd, channel, adding, papamIndex); break;
-			case 'l': handleModeLimit(client, cmd, channel, adding, papamIndex); break;
-			case 'o': handleModeOperator(client, cmd, channel, adding, papamIndex, channelName); break;
+			case 'k': handleModeKey(client, cmd, channel, adding, paramIndex); break;
+			case 'l': handleModeLimit(client, cmd, channel, adding, paramIndex); break;
+			case 'o': handleModeOperator(client, cmd, channel, adding, paramIndex, channelName); break;
 			default: break;
 		}
 	}
-	broadcastChannelModeChange(client, channel, channelName, modeStr, cmd, papamIndex);
+	broadcastMode(client, *channel, modeStr, cmd, paramIndex);
 }
 
 
@@ -902,23 +763,4 @@ void CommandHandler::handleModeOperator(Client& client, Command& cmd, Channel* c
 	++paramIndex;
 }
 
-void CommandHandler::broadcastChannelModeChange(Client& client, Channel* channel, const std::string& channelName, const std::string& modeStr, const Command& cmd, size_t paramIndex)
-{
-	std::string broadcast = ":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getHostname() + " MODE " + channelName + " " + modeStr;
-	// Append parameters if any
-	for (size_t i = 2; i < paramIndex && i < cmd.params.size(); ++i)
-	{
-		broadcast += " " + cmd.params[i];
-	}
-	// broadcast += "\r\n";
-	// Send to all members
-	//Client* memberFd = _server.findUser(cmd.params[paramIndex]);
-	for (auto memberFd : channel->getMembers())
-	{
-		Client* member = _server.findUser(std::to_string(memberFd));
 
-		if (!member) continue;
-
-		Response::sendResponseCommand("MODE", client, *member, {{"channel", channelName}, {"flags", modeStr}, {"target", broadcast}});
-	}
-}
