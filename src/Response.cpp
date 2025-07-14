@@ -148,7 +148,7 @@ void	Response::sendPartialResponse( Client& client )
  * @param client Who will receive the notice.
  * @param notice Text to send.
  */
-void Response::sendServerNotice( Client& client, const std::string& notice )
+void	Response::sendServerNotice( Client& client, const std::string& notice )
 {
 	std::string	templateMessage = getCommandTemplate( "NOTICE" );
 
@@ -192,7 +192,7 @@ void Response::sendServerNotice( Client& client, const std::string& notice )
  * @param target Who should receive the message.
  * @param token The server getting pinged.
  */
-void Response::sendPing( Client& target, const std::string& token )
+void	Response::sendPing( Client& target, const std::string& token )
 {
 	std::string responseMessage = ":" + _server + " PING " + _server + " :" + token + "\r\n";
 
@@ -205,13 +205,19 @@ void Response::sendPing( Client& target, const std::string& token )
  * @param target Who should receive the message.
  * @param token The daemon getting ponged (usually the client who is the target).
  */
-void Response::sendPong( Client& target, const std::string& token )
+void	Response::sendPong( Client& target, const std::string& token )
 {
 	std::string responseMessage = ":" + _server + " PONG " + _server + " :" + token + "\r\n";
 
 	sendMessage( target, responseMessage );
 }
 
+void	Response::sendWelcome( Client& client )
+{
+	Response::sendResponseCode(Response::RPL_WELCOME, client, {});
+	Response::sendResponseCode(Response::RPL_YOURHOST, client, {});
+	Response::sendResponseCode(Response::RPL_CREATED, client, {});
+}
 
 /// Static member variable initialization and setters
 

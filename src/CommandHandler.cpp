@@ -547,6 +547,7 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 	client.setRealname(realname);
 	client.setAuthenticated(true);
 
+	Response::sendWelcome(client);
 	irc::log_event("AUTH", irc::LOG_SUCCESS, client.getNickname() + "@" + client.getIpAddress() + " authenticated");
 }
 

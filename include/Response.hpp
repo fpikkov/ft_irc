@@ -35,9 +35,12 @@ class Response
 		static void	sendResponseCommand					( const std::string& command, Client& source, Client& target, const string_map& placeholders );
 		static void	sendPartialResponse					( Client& client );
 
-		static void sendServerNotice					( Client& client, const std::string& notice );
-		static void sendPing							( Client& target, const std::string& token );
-		static void sendPong							( Client& target, const std::string& token );
+		static void	sendServerNotice					( Client& client, const std::string& notice );
+		static void	sendPing							( Client& target, const std::string& token );
+		static void	sendPong							( Client& target, const std::string& token );
+
+		/// Welcome the user
+		static void	sendWelcome							( Client& client );
 
 
 		/// Response codes
