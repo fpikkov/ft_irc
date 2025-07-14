@@ -1,6 +1,8 @@
 #include "Logger.hpp"
 #include "constants.hpp"
 
+size_t	Logger::_functionLength = 8;
+
 Logger::Logger() {}
 
 Logger&	Logger::instance()
@@ -20,10 +22,19 @@ std::string	Logger::timestamp()
 	return (oss.str());
 }
 
-// TODO: status can be an integer or bool so we could colorize the logging outputs
+/**
+ * @brief Logs an event to the console with a timestamp.
+ *
+ * @param func Name of the event which occurred.
+ * @param status The status of the event: SUCCESS, FAIL, DEBUG or INFO.
+ * @param msg The message accompanied by the event.
+ */
 void	Logger::log( const std::string& func, const std::string& status, const std::string& msg )
 {
-	std::string	time = timestamp();
+	std::string	time		= timestamp();
+	std::string eventName	= func;
 
-	std::cout << time << " [" << status << "]" << " " << func << " " << msg << std::endl;
+	eventName.resize(_functionLength, ' ');
+
+	std::cout << time << " [" << status << "]" << " [" << func << "] " << msg << std::endl;
 }

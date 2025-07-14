@@ -75,6 +75,7 @@ namespace irc
 	// Logging statuses
 	constexpr const char* const LOG_FAIL	= "\033[1;31mFAILURE\033[0m";
 	constexpr const char* const LOG_SUCCESS	= "\033[1;32mSUCCESS\033[0m";
+	constexpr const char* const LOG_INFO	= "\033[1;33m INFO  \033[0m";
 	constexpr const char* const LOG_DEBUG	= "\033[1;36m DEBUG \033[0m";
 
 
