@@ -31,6 +31,7 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["QUIT"]		= [this](Client& c, const Command& cmd) { handleQuit(c, cmd); };
 	_handlers["PING"]		= [this](Client& c, const Command& cmd) { handlePing(c, cmd); };
 	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
+	_handlers["CAP"]		= [this](Client& c, const Command& cmd) { handleCap(c, cmd); };
 }
 
 /**
@@ -461,15 +462,17 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	const std::string& providedPassword = cmd.params[0];
 	if (providedPassword != _server.getPassword())
 	{
-		irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
+		if ( irc::REQUIRE_PASSWORD )
+			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
 		if ( irc::REQUIRE_PASSWORD )
 			return ;
 	}
 
-	irc::log_event("AUTH", irc::LOG_SUCCESS, "valid password from "+ client.getIpAddress());
-	if ( !client.getUsername().empty() && !client.getHostname().empty() && !client.getRealname().empty() )
-		client.setAuthenticated(true);
+	// TODO: Include the password for the client in their class.
+	// Alternatively a boolean to check if they validated their password.
+	irc::log_event("AUTH", irc::LOG_INFO, "valid password from "+ client.getIpAddress());
+	CommandHandler::confirmAuth(client);
 }
 
 void CommandHandler::handleNick(Client& client, const Command& cmd)
@@ -499,8 +502,9 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 		}
 	}
 	if ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("AUTH", irc::LOG_SUCCESS, newNick + " set by " + client.getIpAddress());
+		irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
 	client.setNickname(newNick);
+	CommandHandler::confirmAuth(client);
 }
 
 /*
@@ -545,10 +549,8 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 	client.setHostname(hostname);
 	client.setServername(servername);
 	client.setRealname(realname);
-	client.setAuthenticated(true);
 
-	Response::sendWelcome(client);
-	irc::log_event("AUTH", irc::LOG_SUCCESS, client.getNickname() + "@" + client.getIpAddress() + " authenticated");
+	CommandHandler::confirmAuth(client);
 }
 
 /* Rest of the commands */
@@ -576,7 +578,7 @@ void CommandHandler::handlePing(Client& client, const Command& cmd)
 {
 	if (cmd.params.empty())
 	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "USER"}}); // The outer { ... } is for the map initializer. The inner { ... } is for each key-value pair.
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "PING"}});
 		return ;
 	}
 	std::string token = cmd.params[0];
@@ -591,6 +593,40 @@ void CommandHandler::handlePong( [[maybe_unused]] Client& client, [[maybe_unused
 	// Server will NOT respond to pongs.
 }
 
+/**
+ * @brief Client Capability request. Used in IRCv3 protocol.
+ */
+void CommandHandler::handleCap(Client& client, const Command& cmd)
+{
+	if (cmd.params.empty())
+	{
+		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "CAP"}});
+		return ;
+	}
+
+	std::string subCommand		= cmd.params[0];
+	std::string capabilities	= ( cmd.params.size() > 1 ? cmd.params[1] : "");
+
+	if (subCommand == "LS")
+	{
+		Response::sendCap(client, subCommand, "");
+	}
+	else if (subCommand == "REQ")
+	{
+		// NAK will reject capability requests instead of ACK which acknowledges them.
+		Response::sendCap(client, "NAK", capabilities);
+	}
+	else if (subCommand == "END")
+	{
+		if (irc::EXTENDED_DEBUG_LOGGING)
+			irc::log_event("CAP", irc::LOG_INFO, "capability negotiation ended for " + client.getIpAddress());
+	}
+	else
+	{
+		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", "CAP " + subCommand}});
+	}
+}
+
 /* User and channel mode handling */
 
 void CommandHandler::handleMode(Client& client, const Command& cmd)
@@ -598,9 +634,10 @@ void CommandHandler::handleMode(Client& client, const Command& cmd)
 	if (cmd.params.empty())
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
+		return ;
 	}
 	const std::string& target = cmd.params[0];
-	if (isChannelName(target))
+	if (CommandHandler::isChannelName(target))
 	{
 		handleChannelMode(client, cmd, toLowerCase(target));
 	}

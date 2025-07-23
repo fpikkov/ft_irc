@@ -214,11 +214,23 @@ void	Response::sendPong( Client& target, const std::string& token )
 	sendMessage( target, responseMessage );
 }
 
+/**
+ * @brief Sends Client Capability responses defined by IRCv3 in order to make Irssi compatible with our server.
+ */
+void	Response::sendCap( Client& client, const std::string& sub_command, const std::string& message )
+{
+	std::string nick = (client.getNickname().empty() ? "*" : client.getNickname());
+	std::string responseMessage = ":" + _server + " CAP " + nick + " " + sub_command + " :" + message + "\r\n";
+
+	Response::sendMessage(client, responseMessage);
+}
+
 void	Response::sendWelcome( Client& client )
 {
 	Response::sendResponseCode(Response::RPL_WELCOME, client, {});
 	Response::sendResponseCode(Response::RPL_YOURHOST, client, {});
 	Response::sendResponseCode(Response::RPL_CREATED, client, {});
+	Response::sendResponseCode(Response::RPL_MYINFO, client, {{"channel modes", irc::CHANNEL_MODES}});
 }
 
 /// Static member variable initialization and setters

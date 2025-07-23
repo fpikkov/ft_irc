@@ -20,26 +20,27 @@ class	CommandHandler
 			std::unordered_map<std::string, HandleFunction>	_handlers;
 
 			// Registration commands
-			void	handlePass(Client&, const Command&);
-			void	handleNick(Client&, const Command&);
-			void	handleUser(Client&, const Command&);
+			void	handlePass		(Client&, const Command&);
+			void	handleNick		(Client&, const Command&);
+			void	handleUser		(Client&, const Command&);
 
 			// Message commands
-			void	handlePrivmsg(Client&, const Command&);
-			void	handleNotice(Client&, const Command&);
+			void	handlePrivmsg	(Client&, const Command&);
+			void	handleNotice	(Client&, const Command&);
 
 			//Channel commands
-			void	handleJoin(Client&, const Command&);
-			void	handlePart(Client&, const Command&);
-			void	handleKick(Client&, const Command&);
-			void	handleInvite(Client&, const Command&);
-			void	handleTopic(Client&, const Command&);
-			void	handleMode(Client&, const Command&);
+			void	handleJoin		(Client&, const Command&);
+			void	handlePart		(Client&, const Command&);
+			void	handleKick		(Client&, const Command&);
+			void	handleInvite	(Client&, const Command&);
+			void	handleTopic		(Client&, const Command&);
+			void	handleMode		(Client&, const Command&);
 
 			// Rest of the commands
-			void	handleQuit(Client&, const Command&);
-			void	handlePing(Client&, const Command&);
-			void	handlePong(Client&, const Command&);
+			void	handleQuit		(Client&, const Command&);
+			void	handlePing		(Client&, const Command&);
+			void	handlePong		(Client&, const Command&);
+			void	handleCap		(Client&, const Command&);
 
 
 			// Helper functions for handling modes
@@ -64,6 +65,7 @@ class	CommandHandler
 			static bool			isValidNick		( const std::string& nick );
 			static bool			isChannelName	( const std::string& name );
 			static std::string	toLowerCase		( const std::string& s );
+			static void			confirmAuth		( Client& client );
 
 	public:
 			CommandHandler(Server& server);

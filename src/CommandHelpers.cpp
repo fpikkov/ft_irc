@@ -1,5 +1,7 @@
 #include "CommandHandler.hpp"
 #include "constants.hpp"
+#include "Client.hpp"
+#include "Response.hpp"
 
 /**
  * @brief Used by handleNick for nickname validation
@@ -41,4 +43,22 @@ std::string	CommandHandler::toLowerCase( const std::string& s )
 bool	CommandHandler::isChannelName( const std::string& name )
 {
 	return !name.empty() && (name[0] == '#' || name[0] == '&');
+}
+
+/**
+ * @brief Authenticates the given client if they have provided with all the required fields.
+ * Sends welcome messages to the client if they were authenticated successfully.
+ *
+ * @param client Who to authenticate.
+ */
+void	CommandHandler::confirmAuth( Client& client )
+{
+	if (!client.getNickname().empty() &&
+		!client.getUsername().empty() &&
+		!client.isAuthenticated())
+	{
+		client.setAuthenticated(true);
+		Response::sendWelcome(client);
+		irc::log_event("AUTH", irc::LOG_SUCCESS, client.getNickname() + "@" + client.getIpAddress() + " authenticated");
+	}
 }
