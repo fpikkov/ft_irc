@@ -46,13 +46,13 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	if (it != _handlers.end())
 	{
 		if ( irc::EXTENDED_DEBUG_LOGGING )
-			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + client.getNickname() + "@" + client.getIpAddress());
+			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		it->second(client, cmd);
 	}
 	else
 	{
 		if ( irc::EXTENDED_DEBUG_LOGGING )
-			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + client.getNickname() + "@" + client.getIpAddress());
+			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", cmd.command}});
 	}
 }
