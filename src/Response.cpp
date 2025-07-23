@@ -97,6 +97,8 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 		{ "server", _server },
 		{ "version", _version }
 	};
+	if ( fields["nick"].empty() )
+		fields["nick"] = "*";
 	if ( !irc::MEMORY_SAVING )
 	{
 		fields["target"] = "*";
@@ -244,7 +246,7 @@ void	Response::sendMessage( Client& client, const std::string& message )
 	{
 		if ( errno == EAGAIN || errno == EWOULDBLOCK )
 		{
-			if ( client.appendToSendBuffer(message) )
+			if ( client.getActive() && client.appendToSendBuffer(message) )
 			{
 				client.setPollout(true);
 				Server::setPolloutEvent(true);
@@ -261,7 +263,7 @@ void	Response::sendMessage( Client& client, const std::string& message )
 	}
 	else if ( bytes < static_cast<ssize_t>(message.length()) )
 	{
-		if ( client.appendToSendBuffer(message.substr(bytes)) )
+		if ( client.getActive() && client.appendToSendBuffer(message.substr(bytes)) )
 		{
 			client.setPollout(true);
 			Server::setPolloutEvent(true);
@@ -338,7 +340,7 @@ std::string	Response::formatCode( int code )
 		formatted += '0';
 	formatted += std::to_string(code);
 
-	return ( formatted );
+	return (formatted);
 }
 
 /**
@@ -357,7 +359,6 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_CREATED:			return ":<server> <code> <nick> :This server was created <date>\r\n";
 		case RPL_MYINFO:			return ":<server> <code> <nick> <server> <version> <user modes> <channel modes>\r\n";
 		case RPL_ISUPPORT:			return ":<server> <code> <nick> <param>=<value> :are supported by this server\r\n";
-
 		case ERR_NONICKNAMEGIVEN:	return ":<server> <code> <nick> :No nickname given\r\n";
 		case ERR_ERRONEUSNICKNAME:	return ":<server> <code> <nick> <new nick> :Erroneous nickname\r\n";
 		case ERR_NICKNAMEINUSE:		return ":<server> <code> <nick> <new nick> :Nickname is already in use\r\n";
@@ -392,6 +393,7 @@ std::string	Response::getResponseTemplate( int code )
 		case ERR_NOSUCHNICK:		return ":<server> <code> <nick> :No such nickname\r\n";
 		case ERR_CANNOTSENDTOCHAN:	return ":<server> <code> <nick> :Cannot send to channel\r\n";
 		case ERR_NOTEXTTOSEND:		return ":<server> <code> <nick> :No text to send\r\n";
+		case ERR_INPUTTOOLONG:		return ":<server> <code> <nick> :Input line was too long\r\n";
 		case ERR_UNKNOWNCOMMAND:	return ":<server> <code> <nick> <command> :Unknown command\r\n";
 
 		case RPL_WHOISUSER:			return ":<server> <code> <nick> <target> <user> <host> * :<real name>\r\n";

@@ -91,6 +91,7 @@ class Response
 		static constexpr int ERR_NOSUCHNICK = 401;
 		static constexpr int ERR_CANNOTSENDTOCHAN = 404;
 		static constexpr int ERR_NOTEXTTOSEND = 412;
+		static constexpr int ERR_INPUTTOOLONG = 417;
 		static constexpr int ERR_UNKNOWNCOMMAND = 421;
 
 

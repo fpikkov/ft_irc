@@ -345,8 +345,8 @@ bool	Server::receiveClientMessage( int file_descriptor )
 		}
 		else // Client attempted to overflow our buffer
 		{
-			// TODO: Message the client with response code 417
-			_clients[file_descriptor].setActive(false);
+			Response::sendResponseCode( Response::ERR_INPUTTOOLONG, client, {} );
+			client.setActive(false);
 			_disconnectEvent = true;
 			return (false);
 		}
