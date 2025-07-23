@@ -107,12 +107,10 @@ void	CommandHandler::broadcastQuit( Client& client, const std::string& message )
 {
 	const auto& allClients = _server.getClients();
 
-	for (const std::string& channelName : client.getChannels())
+	for (std::unordered_set<std::string>::iterator it = client.getChannels().begin(); it != client.getChannels().end();)
 	{
-		// Finding the channel object by name
-		Channel* channel = _server.findChannel(const_cast<std::string&>(channelName));
-		// If channel does not exist
-		if (!channel) continue;
+		Channel* channel = _server.findChannel(*it);
+		if (!channel) { ++it; continue; }
 		// For every member in this channel
 		for (int memberFd : channel->getMembers())
 		{
@@ -125,15 +123,18 @@ void	CommandHandler::broadcastQuit( Client& client, const std::string& message )
 				Response::sendResponseCommand("QUIT", client, channelMember, {{ "reason", message }});
 			}
 		}
+
 		channel->removeMember(client.getFd());
 		channel->removeOperator(client.getFd());
 
-		if (channel->isEmpty()) // TODO: Check that the loop isn't invalidated
+		if (channel->isEmpty())
 		{
 			irc::log_event("CHANNEL", irc::LOG_INFO, "removed: " + channel->getName());
 			_server.removeChannel(channel->getName());
+			it = client.getChannels().erase(it);
 			continue ;
 		}
+		else { ++it; }
 	}
 }
 
