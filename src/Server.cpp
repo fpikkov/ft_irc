@@ -335,12 +335,11 @@ bool	Server::receiveClientMessage( int file_descriptor )
 				//create toupperstr func
 				Command	cmd = msgToCmd(message);
 				executeCommand(client, cmd);
-				//confirm_command(server->client) with send()
 				// TODO: Mr. ahentton please create a command parser for us. DONE
 				// Use client.exractLineFromReceive to get the full message. DONE
 				// Parse the message into command structure, run the command. DONE
-				// Execute the command via server::executeCommand
-				// Reply with send() the result of the process with the associated reply code.
+				// Execute the command via server::executeCommand. DONE
+				// Reply with send() the result of the process with the associated reply code. DONE.
 			}
 		}
 		else // Client attempted to overflow our buffer
