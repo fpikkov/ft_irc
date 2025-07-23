@@ -45,7 +45,7 @@ class	CommandHandler
 
 			// Helper functions for handling modes
 			void	handleChannelMode(Client& client, const Command& cmd, const std::string& channelName);
-			void	sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName);
+			void	sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName, const Command& cmd);
 			void	parseAndApplyChannelModes(Client& client, Command& cmd, Channel* channel, const std::string& channelName);
 			void	handleModeInviteOnly(Channel* channel, bool adding);
 			void	handleModeTopicLocked(Channel* channel, bool adding);
@@ -59,7 +59,7 @@ class	CommandHandler
 			void	broadcastNotice		( Client& client, Channel& channel, const std::string& message );
 			void	broadcastPart		( Client& client, Channel& channel, const std::string& message );
 			void	broadcastQuit		( Client& client, const std::string& message );
-			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd, size_t paramIndex );
+			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd );
 
 			// Static helper functions
 			static bool			isValidNick		( const std::string& nick );

@@ -19,7 +19,7 @@ void CommandHandler::handleChannelMode(Client& client, const Command& cmd, const
 	//Gettign modes of the channel (querying) params[0] = #channel, params[1] = mode string (+i, -k, +o etc.)
 	if (cmd.params.size() == 1)
 	{
-		sendChannelModeReply(client, channel, channelName);
+		sendChannelModeReply(client, channel, channelName); //this function needs to broadcast. Broadcasting requires cmd and paramindex as additional parameters.
 		return;
 	}
 
@@ -33,7 +33,7 @@ void CommandHandler::handleChannelMode(Client& client, const Command& cmd, const
 	parseAndApplyChannelModes(client, const_cast<Command&>(cmd), channel, channelName);
 }
 
-void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName)
+void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName, const Command& cmd)
 {
 	std::string modes = "+";
 	std::string params;
@@ -50,9 +50,7 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 		modes += "l";
 		params += " " + std::to_string(channel->getUserLimit());
 	}
-	// std::string reply = ":" + _server.getServerHostname() + "MODE" + channelName + " " + modes + params + "\r\n";
-	//Sending message here (client, reply);
-	// TODO: check if the message should be broadcasted to the whole channel
+	broadcastMode(client, *channel, params, cmd);
 	Response::sendResponseCommand("MODE", client, client, {{"channel", channelName}, {"flags", modes}, {"target", params}});
 }
 
