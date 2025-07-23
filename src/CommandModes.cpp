@@ -19,7 +19,7 @@ void CommandHandler::handleChannelMode(Client& client, const Command& cmd, const
 	//Gettign modes of the channel (querying) params[0] = #channel, params[1] = mode string (+i, -k, +o etc.)
 	if (cmd.params.size() == 1)
 	{
-		sendChannelModeReply(client, channel, channelName); //this function needs to broadcast. Broadcasting requires cmd and paramindex as additional parameters.
+		sendChannelModeReply(client, channel, channelName, cmd); //this function needs to broadcast. Broadcasting requires cmd and paramindex as additional parameters.
 		return;
 	}
 
@@ -79,7 +79,7 @@ void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Cha
 			default: break;
 		}
 	}
-	broadcastMode(client, *channel, modeStr, cmd, paramIndex);
+	broadcastMode(client, *channel, modeStr, cmd);
 }
 
 
