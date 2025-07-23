@@ -12,24 +12,38 @@
  */
 void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 {
-	const std::string channelName = channel.getName();
-	const auto& allClients = _server.getClients();
+	const std::string	channelName	= channel.getName();
+	const auto&			allClients	= _server.getClients();
+	std::string			namesList;
+
+	// Construct list of NAMES
+	if (!irc::BROADCAST_TO_ORIGIN)
+		namesList += client.getNickname();
 
 	if ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
+	// Announce new channel member to all existing clients
 	for ( const auto memberFd : channel.getMembers() )
 	{
+		// Space separate the NAMES
+		if (!namesList.empty())
+			namesList += " ";
+
 		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
 
 		auto memberIt = allClients.find(memberFd);
 		if (memberIt != allClients.end())
 		{
 			Client& channelMember = const_cast<Client&>(memberIt->second);
+
 			Response::sendResponseCommand("JOIN", client, channelMember, {{"channel", channelName}});
-			Response::sendResponseCode(Response::RPL_NAMREPLY, client, {{"symbol", ""}, {"channel", channelName}, {"names", channelMember.getNickname()}});
+			namesList += channelMember.getNickname();
 		}
 	}
+
+	// Send list of channel members to the client
+	Response::sendResponseCode(Response::RPL_NAMREPLY, client, {{"symbol", ""}, {"channel", channelName}, {"names", namesList}});
 	Response::sendResponseCode(Response::RPL_ENDOFNAMES, client, {{"channel", channelName}});
 }
 
