@@ -89,7 +89,7 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 
 	string_map fields =
 	{
-		{ "code", std::to_string(code) },
+		{ "code", Response::formatCode(code) },
 		{ "nick", client.getNickname() },
 		{ "user", client.getUsername() },
 		{ "host", client.getHostname() },
@@ -320,6 +320,25 @@ std::string	Response::getCommandTemplate( const std::string& command )
 			return (value);
 	}
 	return ("");
+}
+
+/**
+ * @brief Formats the response code. For example '1' becomes '001'
+ *
+ * @param code The response code to send.
+ * @return The response code in string form.
+ */
+std::string	Response::formatCode( int code )
+{
+	std::string formatted;
+
+	if ( code < 100 )
+		formatted += '0';
+	if ( code < 10 )
+		formatted += '0';
+	formatted += std::to_string(code);
+
+	return ( formatted );
 }
 
 /**

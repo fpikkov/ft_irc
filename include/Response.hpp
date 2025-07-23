@@ -19,6 +19,7 @@ class Response
 
 		Response() = delete;
 
+		static std::string	formatCode					( int code );
 		static std::string	getResponseTemplate			( int code );
 		static std::string	getCommandTemplate			( const std::string& command );
 		static std::string	findAndReplacePlaceholders	( const std::string& template_string, const string_map& placeholders );
