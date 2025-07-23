@@ -50,7 +50,6 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 		modes += "l";
 		params += " " + std::to_string(channel->getUserLimit());
 	}
-	// std::string reply = ":" + _server.getServerHostname() + "MODE" + channelName + " " + modes + params + "\r\n";
 	broadcastMode(client, *channel, params, cmd);
 	Response::sendResponseCommand("MODE", client, client, {{"channel", channelName}, {"flags", modes}, {"target", params}});
 }
