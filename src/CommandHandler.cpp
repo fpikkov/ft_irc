@@ -651,7 +651,6 @@ void CommandHandler::handleMode(Client& client, const Command& cmd)
 	}
 	else
 	{
-		//handlig UserMode
-		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"command", target}});
+		return ;
 	}
 }
