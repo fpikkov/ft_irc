@@ -40,6 +40,9 @@ void	Response::sendResponseCommand( const std::string& command, Client& source, 
 		{ "flags", "" }
 	};
 
+	if ( fields["nick"].empty() )
+		fields["nick"] = "*";
+
 	if ( irc::REVEAL_HOSTNAME && !source.getIpAddress().empty() )
 		fields["host"] = source.getIpAddress();
 
@@ -193,7 +196,7 @@ void	Response::sendServerNotice( Client& client, const std::string& notice )
  *
  * TODO:
  * NOTE: Closing link is the most common use case sent with:
- * buffer overflows, server shutdowns, force disconnects, QUIT commands, ping timeouts
+ * buffer overflows, server shutdowns, force disconnects, QUIT commands, ping timeouts, invalid passwords
  */
 void	Response::sendServerError( Client& target, const std::string& ipAddress, const std::string& reason )
 {

@@ -495,17 +495,20 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 
 	for (const auto& [fd, clientObject] : _server.getClients())
 	{
-		if (clientObject.getNickname() == newNick)
+		if (clientObject.getNickname() == newNick && static_cast<int>(fd) != client.getFd() )
 		{
 			if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 				irc::log_event("AUTH", irc::LOG_FAIL, newNick + " already in use");
-			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
+			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {{"new nick", newNick}});
 			return ;
 		}
 	}
-	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
-	client.setNickname(newNick);
+	if (client.getNickname() != newNick)
+	{
+		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
+		client.setNickname(newNick);
+	}
 	CommandHandler::confirmAuth(client);
 }
 
