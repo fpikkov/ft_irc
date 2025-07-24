@@ -58,6 +58,7 @@ class	CommandHandler
 			void	broadcastPrivmsg	( Client& client, Channel& channel, const std::string& message );
 			void	broadcastNotice		( Client& client, Channel& channel, const std::string& message );
 			void	broadcastPart		( Client& client, Channel& channel, const std::string& message );
+			void	broadcastKick		( Client& client, Channel& channel, const std::string & message );
 			void	broadcastQuit		( Client& client, const std::string& message );
 			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd );
 

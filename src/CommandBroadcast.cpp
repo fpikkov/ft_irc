@@ -109,6 +109,24 @@ void	CommandHandler::broadcastPart( Client& client, Channel& channel, const std:
 	}
 }
 
+void	CommandHandler::broadcastKick( Client& client, Channel& channel, const std::string& message )
+{
+	const auto& allClients			=_server.getClients();
+	const std::string channelName	=channel.getName();
+
+	for ( const auto memberFd : channel.getMembers() )
+	{
+		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
+
+		auto memberIt = allClients.find(memberFd);
+		if (memberIt != allClients.end())
+		{
+			Client& channelMember = const_cast<Client&>(memberIt->second);
+			Response::sendResponseCommand("KICK", client, channelMember, {{"channel", channelName}, { "reason", message}});
+		}
+	}
+}
+
 /**
  * @brief Broadcasts QUIT message to all channels which the client was apart of.
  * By the nature of the loop, removes the client from the channel clients list.
