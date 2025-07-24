@@ -388,8 +388,8 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 		return ;
 	}
 	channel->invite(target->getFd());
-	//send INVITE message to the target user.
-	//OPTIONAL: Send a confirmation to the user who sent invite
+	//TODO: send INVITE message to the target user.
+	//TODO OPTIONAL: Send a confirmation to the user who sent invite
 }
 
 void	CommandHandler::handleTopic(Client& client, const Command& cmd)
@@ -428,12 +428,12 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 			return ;
 		}
 		channel->setTopic(newTopic);
-		//broadcast to all users that topic has been changed.
+		//TODO: broadcast to all users that topic has been changed.
 	}
 	else
 	{
-		//message the current topic to the requester.
-		//if no topic is set, send "no topic" message.
+		//TODO: message the current topic to the requester.
+		//TODO: if no topic is set, send "no topic" message.
 	}
 }
 
