@@ -52,13 +52,13 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	auto it = _handlers.find(cmd.command);
 	if (it != _handlers.end())
 	{
-		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::ENABLE_COMMAND_LOGGING )
 			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		it->second(client, cmd);
 	}
 	else
 	{
-		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::ENABLE_COMMAND_LOGGING )
 			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", cmd.command}});
 	}

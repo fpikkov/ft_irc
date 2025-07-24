@@ -51,9 +51,6 @@ namespace irc
 	// Minor memory optimization
 	constexpr const bool MEMORY_SAVING = false;
 
-	// Additional debug messaging
-	constexpr const bool EXTENDED_DEBUG_LOGGING = false;
-
 	// Customizable server version
 	constexpr const char* const SERVER_VERSION = "v1.0";
 
@@ -74,6 +71,12 @@ namespace irc
 
 	// Enable support for the CAP command
 	constexpr const bool ENABLE_CAP_SUPPORT = false;
+
+	// Client command logging
+	constexpr const bool ENABLE_COMMAND_LOGGING = true;
+
+	// Additional debug messaging
+	constexpr const bool EXTENDED_DEBUG_LOGGING = false;
 
 	// Logging statuses
 	constexpr const char* const LOG_FAIL	= "\033[1;31mFAILURE\033[0m";
