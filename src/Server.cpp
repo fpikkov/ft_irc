@@ -438,9 +438,7 @@ void	Server::fetchClientIp( Client& client )
 
 	addr = &client.getClientAddress();
 
-	if ( irc::EXTENDED_DEBUG_LOGGING && irc::ANNOUNCE_CLIENT_LOOKUP )
-		irc::log_event("CONNECTION", irc::LOG_DEBUG, "looking up client hostname");
-	if ( irc::ANNOUNCE_CLIENT_LOOKUP )
+	if constexpr ( irc::ANNOUNCE_CLIENT_LOOKUP )
 		Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_MESSAGE );
 
 	if ( addr->sa_family == AF_INET )
@@ -460,12 +458,14 @@ void	Server::fetchClientIp( Client& client )
 	{
 		if ( ip.empty() )
 		{
-			irc::log_event("CONNECTION", irc::LOG_FAIL, "failed to resolve IP address");
+			if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event("CONNECTION", irc::LOG_FAIL, "failed to resolve IP address");
 			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_FAILURE_MESSAGE );
 		}
 		else
 		{
-			irc::log_event("CONNECTION", irc::LOG_SUCCESS, "resolved IP: " + ip);
+			if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+				irc::log_event("CONNECTION", irc::LOG_SUCCESS, "resolved IP: " + ip);
 			Response::sendServerNotice( client, irc::CLIENT_HOSTNAME_SUCCESS_MESSAGE );
 		}
 	}
