@@ -54,20 +54,13 @@ class Server
 		void		serverSetup				();
 		void		serverLoop				();
 		bool		acceptClientConnection	( std::vector<pollfd>& new_clients );
-		void		disconnectClients		( std::vector<int>& remove_clients );
-		bool		receiveClientMessage	( int file_descriptor, std::vector<int>& remove_clients );
-		Channel*	findChannel				( const std::string& channelName );
-		Client*		findUser				( const std::string& nickName );
-		void		disconnectClients		();
 		bool		receiveClientMessage	( int file_descriptor );
+		void		disconnectClients		();
 		void		executeCommand			( Client& client, Command& cmd);
+
 		void		addChannel				( const std::string channelName);
 		void		removeChannel			( const std::string& channelName);
-
-		class InvalidClientException: public std::exception
-		{
-			public:
-				const char* what() const noexcept override;
-		};
+		Channel*	findChannel				( const std::string& channelName );
+		Client*		findUser				( const std::string& nickName );
 };
 

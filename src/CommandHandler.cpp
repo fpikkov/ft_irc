@@ -34,7 +34,7 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 
 	// Disable CAP if we are not supporting IRCv3
 
-	if constexpr (irc::ENABLE_CAP_SUPPORT)
+	if constexpr ( irc::ENABLE_CAP_SUPPORT )
 	{
 		_handlers["CAP"]		= [this](Client& c, const Command& cmd) { handleCap(c, cmd); };
 	}
@@ -52,13 +52,13 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	auto it = _handlers.find(cmd.command);
 	if (it != _handlers.end())
 	{
-		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::ENABLE_COMMAND_LOGGING )
 			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		it->second(client, cmd);
 	}
 	else
 	{
-		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::ENABLE_COMMAND_LOGGING )
 			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", cmd.command}});
 	}
@@ -462,15 +462,17 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	const std::string& providedPassword = cmd.params[0];
 	if (providedPassword != _server.getPassword())
 	{
-		if ( irc::REQUIRE_PASSWORD )
-			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
-		if ( irc::REQUIRE_PASSWORD )
+		if constexpr ( irc::REQUIRE_PASSWORD )
+		{
+			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
+			// TODO: Reject the Client auth and disconnect them from the server.
+			// Send ERROR Closing link to the client
 			return ;
+		}
 	}
 
-	// TODO: Include the password for the client in their class.
-	// Alternatively a boolean to check if they validated their password.
+	client.setPassValidated(true);
 	irc::log_event("AUTH", irc::LOG_INFO, "valid password from "+ client.getIpAddress());
 	CommandHandler::confirmAuth(client);
 }
@@ -643,7 +645,6 @@ void CommandHandler::handleMode(Client& client, const Command& cmd)
 	}
 	else
 	{
-		//handlig UserMode
-		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"command", target}});
+		return ;
 	}
 }

@@ -55,6 +55,7 @@ void	CommandHandler::confirmAuth( Client& client )
 {
 	if (!client.getNickname().empty() &&
 		!client.getUsername().empty() &&
+		client.getPassValidated() &&
 		!client.isAuthenticated())
 	{
 		client.setAuthenticated(true);
