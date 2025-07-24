@@ -105,7 +105,7 @@ void	Server::serverLoop()
 		{
 			if ( errno == EINTR ) // Signal was caught during poll
 			{
-				irc::log_event("SERVER", irc::LOG_DEBUG, "shutting down");
+				broadcastShutdown( "signaled" );
 				break ;
 			}
 		}
@@ -483,6 +483,17 @@ void	Server::removeChannel( const std::string& channelName)
 			_channels.erase(it);
 			return ;
 		}
+	}
+}
+
+void	Server::broadcastShutdown( const std::string& reason )
+{
+	irc::log_event("SERVER", irc::LOG_DEBUG, "shutting down");
+
+	for ( const auto& [fd, client] : _clients )
+	{
+		if ( client.getActive() )
+			Response::sendServerError(const_cast<Client&>(client), _serverHostname, "Server shutting down: " + reason );
 	}
 }
 

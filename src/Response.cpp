@@ -144,6 +144,9 @@ void	Response::sendPartialResponse( Client& client )
 	sendMessage( client, bufferedMessage );
 }
 
+
+/// Server-specific messaging
+
 /**
  * @brief Used for sending serverside notices to clients.
  *
@@ -185,6 +188,44 @@ void	Response::sendServerNotice( Client& client, const std::string& notice )
 	sendMessage( client, responseMessage );
 }
 
+/**
+ * @brief Used for sending serverside error messages to clients.
+ *
+ * NOTE: Closing link is the most common use case sent with:
+ * buffer overflows, ping timeouts, server shutdowns, force disconnects, QUIT commands
+ */
+void	Response::sendServerError( Client& target, const std::string& ipAddress, const std::string& reason )
+{
+	std::string responseMessage = "ERROR :Closing Link: " + ipAddress + " (" + reason + ")\r\n";
+	sendMessage(target, responseMessage);
+}
+
+
+/**
+ * @brief Sends a welcome message to the client who has successfully authenticated with the server
+ *
+ * @param client The client to welcome.
+ */
+void	Response::sendWelcome( Client& client )
+{
+	Response::sendResponseCode(Response::RPL_WELCOME, client, {});
+	Response::sendResponseCode(Response::RPL_YOURHOST, client, {});
+	Response::sendResponseCode(Response::RPL_CREATED, client, {});
+	Response::sendResponseCode(Response::RPL_MYINFO, client, {{"channel modes", irc::CHANNEL_MODES}});
+}
+
+/**
+ * @brief Sends Client Capability responses defined by IRCv3.
+ *
+ * NOTE: Our server follows the IRCv1 protocol so this can be safely ignored.
+ */
+void	Response::sendCap( Client& client, const std::string& sub_command, const std::string& message )
+{
+	std::string nick = (client.getNickname().empty() ? "*" : client.getNickname());
+	std::string responseMessage = ":" + _server + " CAP " + nick + " " + sub_command + " :" + message + "\r\n";
+
+	Response::sendMessage(client, responseMessage);
+}
 
 /// Ping-Pong messaging
 
@@ -214,24 +255,6 @@ void	Response::sendPong( Client& target, const std::string& token )
 	sendMessage( target, responseMessage );
 }
 
-/**
- * @brief Sends Client Capability responses defined by IRCv3 in order to make Irssi compatible with our server.
- */
-void	Response::sendCap( Client& client, const std::string& sub_command, const std::string& message )
-{
-	std::string nick = (client.getNickname().empty() ? "*" : client.getNickname());
-	std::string responseMessage = ":" + _server + " CAP " + nick + " " + sub_command + " :" + message + "\r\n";
-
-	Response::sendMessage(client, responseMessage);
-}
-
-void	Response::sendWelcome( Client& client )
-{
-	Response::sendResponseCode(Response::RPL_WELCOME, client, {});
-	Response::sendResponseCode(Response::RPL_YOURHOST, client, {});
-	Response::sendResponseCode(Response::RPL_CREATED, client, {});
-	Response::sendResponseCode(Response::RPL_MYINFO, client, {{"channel modes", irc::CHANNEL_MODES}});
-}
 
 /// Static member variable initialization and setters
 
