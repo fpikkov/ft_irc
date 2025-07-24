@@ -1,0 +1,2 @@
+privmsg is broken, does not show up for channel targets. something wrong with broadcasting??
+/invite is unstable, segfaults found.
