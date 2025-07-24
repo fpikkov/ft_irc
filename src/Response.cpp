@@ -262,14 +262,14 @@ void	Response::sendMessage( Client& client, const std::string& message )
 			{
 				client.setPollout(true);
 				Server::setPolloutEvent(true);
-				if ( irc::EXTENDED_DEBUG_LOGGING )
+				if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 					irc::log_event( "SEND", irc::LOG_DEBUG, "reattempting to send message");
 				return ;
 			}
 		}
 		client.setActive(false);
 		Server::setDisconnectEvent(true);
-		if ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 			irc::log_event( "SEND", irc::LOG_FAIL, "client has disconnected");
 		return ;
 	}
@@ -283,7 +283,7 @@ void	Response::sendMessage( Client& client, const std::string& message )
 		}
 		client.setActive(false);
 		Server::setDisconnectEvent(true);
-		if ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 			irc::log_event( "SEND", irc::LOG_FAIL, "dropping client connection");
 		return ;
 	}

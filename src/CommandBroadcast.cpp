@@ -20,7 +20,7 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	if (!irc::BROADCAST_TO_ORIGIN)
 		namesList += client.getNickname();
 
-	if ( irc::EXTENDED_DEBUG_LOGGING )
+	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
 	// Announce new channel member to all existing clients
@@ -51,7 +51,7 @@ void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const s
 {
 	const auto& allClients = _server.getClients();
 
-	if ( irc::EXTENDED_DEBUG_LOGGING )
+	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
 	for ( const auto memberFd : channel.getMembers() )

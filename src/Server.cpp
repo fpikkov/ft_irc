@@ -248,6 +248,10 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
  * Closes the associated file descriptor and removes the associated pollfd.
  *
  * NOTE: This will not alert all channel members about the disconnect
+ *
+ * TODO: Whenever we force a client disconnection (e.g. due to buffer overflow),
+ * then send them a message ccontaining ERROR Closing link.
+ * This isn't applicable to standard disconnection events.
  */
 void	Server::disconnectClients()
 {
@@ -329,9 +333,15 @@ bool	Server::receiveClientMessage( int file_descriptor )
 
 		if ( client.appendToReceiveBuffer( std::string(buffer.data(), bytes) ))
 		{
-			if ( client.isReceiveBufferComplete() )
+			while ( client.isReceiveBufferComplete() )
 			{
 				std::string	message(client.extractLineFromReceive());
+
+				if constexpr (irc::EXTENDED_DEBUG_LOGGING)
+				{
+					irc::log_event("RECV", irc::LOG_DEBUG, message);
+				}
+
 				//create toupperstr func
 				Command	cmd = msgToCmd(message);
 				executeCommand(client, cmd);
