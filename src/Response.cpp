@@ -191,8 +191,9 @@ void	Response::sendServerNotice( Client& client, const std::string& notice )
 /**
  * @brief Used for sending serverside error messages to clients.
  *
+ * TODO:
  * NOTE: Closing link is the most common use case sent with:
- * buffer overflows, ping timeouts, server shutdowns, force disconnects, QUIT commands
+ * buffer overflows, server shutdowns, force disconnects, ping timeouts, QUIT commands
  */
 void	Response::sendServerError( Client& target, const std::string& ipAddress, const std::string& reason )
 {
@@ -304,6 +305,9 @@ void	Response::sendMessage( Client& client, const std::string& message )
 			Server::setPolloutEvent(true);
 			return ;
 		}
+
+		Response::sendServerError( client, client.getIpAddress(), "protocol violation");
+
 		client.setActive(false);
 		Server::setDisconnectEvent(true);
 		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
