@@ -356,25 +356,26 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
 		return ;
 	}
-	if (cmd.params.size() != 2)
+	if ( cmd.params.size() < 2 || cmd.params.empty() )
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "INVITE"}});
 		return ;
 	}
 
 	std::string	channelName = toLowerCase(cmd.params[1]);
+	std::string targetName = cmd.params[0]; // TODO: Please cconfirm that the usernames can also be uppercase
 
-	Client* target = _server.findUser(cmd.params[0]);
+	Client* target = _server.findUser(targetName);
 	Channel* channel = _server.findChannel(channelName);
 
 	if (!target)
 	{
-		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"target", target->getNickname()}});
+		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"target", targetName}});
 		return ;
 	}
 	if (!channel)
 	{
-		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channel->getName()}});
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channelName}});
 		return ;
 	}
 	if (channel->isMember(target->getFd()))
