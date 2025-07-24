@@ -170,7 +170,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "JOIN"}});
 		return ;
 	}
-	if (client.getChannels().size() > irc::MAX_CHANNELS)
+	if (client.getChannels().size() == irc::MAX_CHANNELS)
 	{
 		Response::sendResponseCode(Response::ERR_TOOMANYCHANNELS, client, {{"channel", cmd.params[0]}});
 		return ;
@@ -181,7 +181,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 
 	Channel* channel	= _server.findChannel(target);
 
-	if (!channel)
+	if (!channel) // if channel does not exist, create the channel, add the member to channel and make them an operator.
 	{
 		_server.addChannel(target);
 		channel = _server.findChannel(target);
@@ -195,21 +195,12 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 
 		if (!key.empty())
 			channel->setKey(key);
-		if (channel->addMember(client.getFd()) == true)
-		{
-			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
-		}
-		else
-		{
-			if (channel->isEmpty())
-			{
-				irc::log_event("CHANNEL", irc::LOG_INFO, "removed: " + target);
-				_server.removeChannel(channel->getName());
-				return ;
-			}
-		}
-		channel->addOperator(client.getFd());
 
+		channel->addMember(client.getFd());
+		channel->addOperator(client.getFd());
+		client.joinChannel(channel->getName());
+
+		irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 		broadcastJoin(client, *channel);
 		return ;
 	}
@@ -226,6 +217,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
+				client.joinChannel(channel->getName());
 				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 				broadcastJoin(client, *channel);
 			}
@@ -246,6 +238,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
+				client.joinChannel(channel->getName());
 				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 				broadcastJoin(client, *channel);
 			}
@@ -256,6 +249,7 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 	{
 		if (channel->addMember(client.getFd()) == true)
 		{
+			client.joinChannel(channel->getName());
 			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 			broadcastJoin(client, *channel);
 		}
@@ -294,11 +288,11 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 
 	broadcastPart(client, *channel, optionalMessage);
 
-	// Remove user from the channel
 	irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " left " + channelName);
 	channel->removeMember(client.getFd());
+	client.leaveChannel(channel->getName());
 
-	// Remove the channel if no members exist
+	// Remove the channel if no members exist after leaving.
 	if (channel->isEmpty())
 	{
 		irc::log_event("CHANNEL", irc::LOG_INFO, "removed: " + channelName);
@@ -322,7 +316,7 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 
 	Channel*	channel = _server.findChannel(cmd.params[0]);
 	Client*		target = _server.findUser(cmd.params[1]);
-	std::string	comment = (cmd.params.size() > 2) ? cmd.params[3] : "";
+	std::string	message = (cmd.params.size() > 2) ? cmd.params[3] : "";
 
 	if (!channel)
 	{
@@ -351,8 +345,8 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 		return ;
 	}
 	channel->removeMember(target->getFd());
-	//broadcast the message a member has been kicked
-	//if comment.empty() = false, join the comment with the default message.
+	target->leaveChannel(channel->getName());
+	broadcastKick(client, *channel, message);
 }
 
 void	CommandHandler::handleInvite(Client& client, const Command& cmd)
