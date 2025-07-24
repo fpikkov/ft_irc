@@ -571,6 +571,9 @@ void CommandHandler::handleQuit(Client& client, const Command& cmd)
 	// Broadcast the client disconnection to each member of every channel they were apart of.
 	broadcastQuit(client, quitMessage);
 
+	// Send the closing link message to the client
+	Response::sendServerError(client, client.getIpAddress(), "QUIT");
+
 	// Client is set as inactive and disconnection event gets announced to the server
 	client.setActive(false);
 	Server::setDisconnectEvent(true);

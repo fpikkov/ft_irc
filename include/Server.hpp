@@ -57,6 +57,7 @@ class Server
 		bool		receiveClientMessage	( int file_descriptor );
 		void		disconnectClients		();
 		void		executeCommand			( Client& client, Command& cmd);
+		void		broadcastShutdown		( const std::string& reason );
 
 		void		addChannel				( const std::string channelName);
 		void		removeChannel			( const std::string& channelName);

@@ -105,7 +105,7 @@ void	Server::serverLoop()
 		{
 			if ( errno == EINTR ) // Signal was caught during poll
 			{
-				irc::log_event("SERVER", irc::LOG_DEBUG, "shutting down");
+				broadcastShutdown( "signaled" );
 				break ;
 			}
 		}
@@ -300,14 +300,6 @@ void	Server::disconnectClients()
 
 bool	Server::receiveClientMessage( int file_descriptor )
 {
-	/**
-	 * 1. Receive message from client
-	 * 2. Parse the message { <prefix> <command> <parameters> < : trailing_parameters > }
-	 * 3. Check validity of client
-	 * 4a Set Client properties
-	 * 4b Execute command
-	 * 5. Log the event
-	 */
 	std::vector<char>	buffer( irc::MAX_IRC_MESSAGE_LENGTH + 1 );
 
 	ssize_t bytes = recv( file_descriptor, buffer.data(), irc::MAX_IRC_MESSAGE_LENGTH, 0 );
@@ -342,7 +334,6 @@ bool	Server::receiveClientMessage( int file_descriptor )
 					irc::log_event("RECV", irc::LOG_DEBUG, message);
 				}
 
-				//create toupperstr func
 				Command	cmd = msgToCmd(message);
 				executeCommand(client, cmd);
 			}
@@ -350,6 +341,8 @@ bool	Server::receiveClientMessage( int file_descriptor )
 		else // Client attempted to overflow our buffer
 		{
 			Response::sendResponseCode( Response::ERR_INPUTTOOLONG, client, {} );
+			Response::sendServerError( client, client.getIpAddress(), "protocol violation");
+
 			client.setActive(false);
 			_disconnectEvent = true;
 			return (false);
@@ -483,6 +476,17 @@ void	Server::removeChannel( const std::string& channelName)
 			_channels.erase(it);
 			return ;
 		}
+	}
+}
+
+void	Server::broadcastShutdown( const std::string& reason )
+{
+	irc::log_event("SERVER", irc::LOG_DEBUG, "shutting down");
+
+	for ( const auto& [fd, client] : _clients )
+	{
+		if ( client.getActive() )
+			Response::sendServerError(const_cast<Client&>(client), _serverHostname, "Server shutting down: " + reason );
 	}
 }
 
