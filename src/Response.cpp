@@ -193,7 +193,7 @@ void	Response::sendServerNotice( Client& client, const std::string& notice )
  *
  * TODO:
  * NOTE: Closing link is the most common use case sent with:
- * buffer overflows, server shutdowns, force disconnects, ping timeouts, QUIT commands
+ * buffer overflows, server shutdowns, force disconnects, QUIT commands, ping timeouts
  */
 void	Response::sendServerError( Client& target, const std::string& ipAddress, const std::string& reason )
 {
