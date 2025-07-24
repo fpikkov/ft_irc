@@ -65,6 +65,11 @@ public:
 	std::string	extractLineFromReceive	();
 	std::string extractLineFromSend		();
 
+	// Channel management
+	void		joinChannel			( const std::string& channel );
+	void		leaveChannel		( const std::string& channel );
+	bool		isInChannel			( const std::string& channel ) const;
+
 protected:
 	// Protected setters
 	void		setReceiveBuffer	( std::string const &buffer );
