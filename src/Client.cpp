@@ -110,3 +110,23 @@ std::string Client::extractLineFromSend()
 	_sendBuffer.erase(0, pos + 2);
 	return line;
 }
+
+// Adds a channel to the set of channels the client has joined.
+// No duplicates are possible due to unordered_set.
+void	Client::joinChannel(const std::string& channel)
+{
+	_channels.insert(channel);
+}
+
+void	Client::leaveChannel(const std::string& channel)
+{
+	_channels.erase(channel);
+}
+
+// find(channel) returns an iterator to the channel if present, or channels.end() if not.
+// If not end(), the client is in the channel.
+bool	Client::isInChannel(const std::string& channel) const
+{
+	return _channels.find(channel) != _channels.end();
+}
+

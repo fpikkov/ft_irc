@@ -31,7 +31,13 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["QUIT"]		= [this](Client& c, const Command& cmd) { handleQuit(c, cmd); };
 	_handlers["PING"]		= [this](Client& c, const Command& cmd) { handlePing(c, cmd); };
 	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
-	_handlers["CAP"]		= [this](Client& c, const Command& cmd) { handleCap(c, cmd); };
+
+	// Disable CAP if we are not supporting IRCv3
+
+	if constexpr (irc::ENABLE_CAP_SUPPORT)
+	{
+		_handlers["CAP"]		= [this](Client& c, const Command& cmd) { handleCap(c, cmd); };
+	}
 }
 
 /**
@@ -46,13 +52,13 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	auto it = _handlers.find(cmd.command);
 	if (it != _handlers.end())
 	{
-		if ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		it->second(client, cmd);
 	}
 	else
 	{
-		if ( irc::EXTENDED_DEBUG_LOGGING )
+		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 			irc::log_event("COMMAND", irc::LOG_FAIL, "unknown " + cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", cmd.command}});
 	}
@@ -495,13 +501,13 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	{
 		if (clientObject.getNickname() == newNick)
 		{
-			if ( irc::EXTENDED_DEBUG_LOGGING )
+			if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 				irc::log_event("AUTH", irc::LOG_FAIL, newNick + " already in use");
 			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
 			return ;
 		}
 	}
-	if ( irc::EXTENDED_DEBUG_LOGGING )
+	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
 	client.setNickname(newNick);
 	CommandHandler::confirmAuth(client);
@@ -618,7 +624,7 @@ void CommandHandler::handleCap(Client& client, const Command& cmd)
 	}
 	else if (subCommand == "END")
 	{
-		if (irc::EXTENDED_DEBUG_LOGGING)
+		if constexpr (irc::EXTENDED_DEBUG_LOGGING)
 			irc::log_event("CAP", irc::LOG_INFO, "capability negotiation ended for " + client.getIpAddress());
 	}
 	else

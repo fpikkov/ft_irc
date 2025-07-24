@@ -72,12 +72,14 @@ namespace irc
 	// Maximum incomplete message buffer size
 	constexpr const int MAX_CLIENT_BUFFER_SIZE = 4096;
 
+	// Enable support for the CAP command
+	constexpr const bool ENABLE_CAP_SUPPORT = false;
+
 	// Logging statuses
 	constexpr const char* const LOG_FAIL	= "\033[1;31mFAILURE\033[0m";
 	constexpr const char* const LOG_SUCCESS	= "\033[1;32mSUCCESS\033[0m";
 	constexpr const char* const LOG_INFO	= "\033[1;33m INFO  \033[0m";
 	constexpr const char* const LOG_DEBUG	= "\033[1;36m DEBUG \033[0m";
-
 
 	// Macros
 	inline void print( const auto& msg ) { std::cout << msg << '\n'; }
