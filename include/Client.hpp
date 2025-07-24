@@ -17,6 +17,7 @@ private:
 	std::string						_sendBuffer;
 	std::string						_ipAddress;
 	sockaddr						_clientAddress;
+	bool							_passValidated;
 	bool							_active;
 	bool							_pollout;
 
@@ -39,6 +40,7 @@ public:
 	sockaddr&								getClientAddress	();
 	const std::string&						getReceiveBuffer	() const noexcept;
 	const std::string&						getSendBuffer		() const noexcept;
+	bool									getPassValidated	() const noexcept;
 	bool									getActive			() const noexcept;
 	bool									getPollout			() const noexcept;
 
@@ -52,6 +54,7 @@ public:
 	void		setIpAddress			( const std::string& address );
 	void		setClientAddress		( sockaddr address );
 	void		setAuthenticated		( bool auth );
+	void		setPassValidated		( bool valid );
 	void		setActive				( bool active );
 	void		setPollout				( bool required );
 

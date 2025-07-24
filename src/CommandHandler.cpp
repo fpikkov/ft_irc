@@ -34,7 +34,7 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 
 	// Disable CAP if we are not supporting IRCv3
 
-	if constexpr (irc::ENABLE_CAP_SUPPORT)
+	if constexpr ( irc::ENABLE_CAP_SUPPORT )
 	{
 		_handlers["CAP"]		= [this](Client& c, const Command& cmd) { handleCap(c, cmd); };
 	}
@@ -468,15 +468,17 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	const std::string& providedPassword = cmd.params[0];
 	if (providedPassword != _server.getPassword())
 	{
-		if ( irc::REQUIRE_PASSWORD )
-			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
-		if ( irc::REQUIRE_PASSWORD )
+		if constexpr ( irc::REQUIRE_PASSWORD )
+		{
+			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
+			// TODO: Reject the Client auth and disconnect them from the server.
+			// Send ERROR Closing link to the client
 			return ;
+		}
 	}
 
-	// TODO: Include the password for the client in their class.
-	// Alternatively a boolean to check if they validated their password.
+	client.setPassValidated(true);
 	irc::log_event("AUTH", irc::LOG_INFO, "valid password from "+ client.getIpAddress());
 	CommandHandler::confirmAuth(client);
 }
