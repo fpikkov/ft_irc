@@ -23,9 +23,11 @@ class Response
 		static std::string	getResponseTemplate			( int code );
 		static std::string	getCommandTemplate			( const std::string& command );
 		static std::string	findAndReplacePlaceholders	( const std::string& template_string, const string_map& placeholders );
-		static void			sendMessage					( Client& client, const std::string& message );
 
 	public:
+		/// Function for sending messages directly to the client
+		static void	sendMessage							( Client& client, const std::string& message );
+
 		/// Static member variable setters
 		static void	setServerDate						( const std::string& date );
 		static void	setServerName						( const std::string& name );

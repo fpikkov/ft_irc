@@ -267,6 +267,9 @@ void		Response::setServerVersion	( const std::string& version )	{ _version = ver
 /**
  * @brief Sends a composed message to client.
  * When message couldn't be sent, appends the message to the client send buffer.
+ *
+ * @param client The recipient of the message.
+ * @param message the message to send to the recipient.
  */
 void	Response::sendMessage( Client& client, const std::string& message )
 {
