@@ -37,7 +37,10 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 			Client& channelMember = const_cast<Client&>(memberIt->second);
 
 			Response::sendResponseCommand("JOIN", client, channelMember, {{"channel", channelName}});
-			namesList += channelMember.getNickname();
+			if (channel.isOperator(client.getFd()))
+				namesList += "@" + channelMember.getNickname();
+			else
+				namesList += channelMember.getNickname();
 		}
 	}
 
