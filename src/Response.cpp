@@ -192,11 +192,14 @@ void	Response::sendServerNotice( Client& client, const std::string& notice )
 }
 
 /**
- * @brief Used for sending serverside error messages to clients.
+ * @brief Used for sending serverside closing link message to clients.
  *
- * TODO:
  * NOTE: Closing link is the most common use case sent with:
- * buffer overflows, server shutdowns, force disconnects, QUIT commands, ping timeouts, invalid passwords
+ * buffer overflows, server shutdowns, force disconnects, QUIT commands, invalid passwords, ping timeouts
+ *
+ * @param target Who will receive the message.
+ * @param ipAddress The ip address of the client or server which is disconnecting.
+ * @param reason The explanation of the disconnection.
  */
 void	Response::sendServerError( Client& target, const std::string& ipAddress, const std::string& reason )
 {
@@ -264,6 +267,9 @@ void		Response::setServerVersion	( const std::string& version )	{ _version = ver
 /**
  * @brief Sends a composed message to client.
  * When message couldn't be sent, appends the message to the client send buffer.
+ *
+ * @param client The recipient of the message.
+ * @param message the message to send to the recipient.
  */
 void	Response::sendMessage( Client& client, const std::string& message )
 {
@@ -403,8 +409,11 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_LIST:				return ":<server> <code> <nick> <channel> <users> :<topic>\r\n";
 		case RPL_LISTEND:			return ":<server> <code> <nick> :End of /LIST\r\n";
 		case RPL_NOTOPIC:			return ":<server> <code> <nick> <channel> :No topic is set\r\n";
+		case RPL_TOPIC:				return ":<server> <code> <nick> <channel> :<topic>\r\n";
 		case RPL_NAMREPLY:			return ":<server> <code> <nick> <symbol> <channel> :<names>\r\n";
 		case RPL_ENDOFNAMES:		return ":<server> <code> <nick> <channel> :End of /NAMES\r\n";
+
+		case RPL_INVITING:			return ":<server> <code> <nick> <channel> <nick>\r\n";
 
 		case ERR_NOSUCHCHANNEL:		return ":<server> <code> <nick> <channel> :No such channel\r\n";
 		case ERR_CHANNELISFULL:		return ":<server> <code> <nick> <channel> :Channel is full\r\n";
@@ -428,14 +437,13 @@ std::string	Response::getResponseTemplate( int code )
 
 		case RPL_WHOISUSER:			return ":<server> <code> <nick> <target> <user> <host> * :<real name>\r\n";
 		case RPL_WHOISSERVER:		return ":<server> <code> <nick> <target> <server> :<server info>\r\n";
-		case RPL_WHOISPERATOR:		return ":<server> <code> <nick> <target> :is an IRC operator\r\n";
+		case RPL_WHOISOPERATOR:		return ":<server> <code> <nick> <target> :is an IRC operator\r\n";
 		case RPL_ENDOFWHOIS:		return ":<server> <code> <nick> <target> :End of /WHOIS list\r\n";
 
 		/// Message of the day
 		case RPL_MOTDSTART:			return "<server> <code> <nick> :- <server> Message of the day -\r\n";
 		case RPL_MOTD:				return "<server> <code> <nick> :- <text> -\r\n";
 		case RPL_ENDOFMOTD:			return "<server> <code> <nick> :End of /MOTD command\r\n";
-
 		case ERR_NOMOTD:			return "<server> <code> <nick> :MOTD File is missing\r\n";
 
 

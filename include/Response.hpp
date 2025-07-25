@@ -23,9 +23,11 @@ class Response
 		static std::string	getResponseTemplate			( int code );
 		static std::string	getCommandTemplate			( const std::string& command );
 		static std::string	findAndReplacePlaceholders	( const std::string& template_string, const string_map& placeholders );
-		static void			sendMessage					( Client& client, const std::string& message );
 
 	public:
+		/// Function for sending messages directly to the client
+		static void	sendMessage							( Client& client, const std::string& message );
+
 		/// Static member variable setters
 		static void	setServerDate						( const std::string& date );
 		static void	setServerName						( const std::string& name );
@@ -72,8 +74,11 @@ class Response
 		static constexpr int RPL_LIST = 322;
 		static constexpr int RPL_LISTEND = 323;
 		static constexpr int RPL_NOTOPIC = 331;
+		static constexpr int RPL_TOPIC = 332;
 		static constexpr int RPL_NAMREPLY = 353;
 		static constexpr int RPL_ENDOFNAMES = 366;
+
+		static constexpr int RPL_INVITING = 341;
 
 		static constexpr int ERR_NOSUCHCHANNEL = 403;
 		static constexpr int ERR_CHANNELISFULL = 471;
@@ -99,7 +104,7 @@ class Response
 		/// User information
 		static constexpr int RPL_WHOISUSER = 311;
 		static constexpr int RPL_WHOISSERVER = 312;
-		static constexpr int RPL_WHOISPERATOR = 313;
+		static constexpr int RPL_WHOISOPERATOR = 313;
 		static constexpr int RPL_ENDOFWHOIS = 318;
 
 

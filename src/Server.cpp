@@ -414,8 +414,7 @@ void	Server::addChannel( const std::string channelName )
 	std::string lowercaseName = channelName;
 	std::transform(lowercaseName.begin(), lowercaseName.end(), lowercaseName.begin(), ::tolower);
 
-	Channel	channel(lowercaseName);
-	_channels.push_back(channel);
+	_channels.emplace_back(lowercaseName);
 }
 
 /**
