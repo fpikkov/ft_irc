@@ -190,8 +190,9 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			channel->setKey(key);
 
 		channel->addMember(client.getFd());
-		channel->addOperator(client.getFd());
 		client.joinChannel(channel->getName());
+		channel->addOperator(client.getFd());
+		//TODO: #6 Make sure the user is succesfully made an operator. Irssi does not register this change currently
 
 		irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 		broadcastJoin(client, *channel);
@@ -382,8 +383,9 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 		return ;
 	}
 	channel->invite(target->getFd());
-	//TODO: send INVITE message to the target user. (Issue #3)
-	//TODO OPTIONAL: Send a confirmation to the user who sent invite
+	Response::sendResponseCommand("INVITE", client, *target, {{"target", target->getNickname() }, {"channel", channel->getName()}});
+	//Response::sendMessage( client, "you invited " + target->getNickname() + "to channel" + channel->getName());
+	//TODO: #5 Add reply 341 to confirm inviter that the invite was received and forwarded to the invitee
 }
 
 void	CommandHandler::handleTopic(Client& client, const Command& cmd)
