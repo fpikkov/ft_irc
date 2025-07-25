@@ -72,8 +72,11 @@ class Response
 		static constexpr int RPL_LIST = 322;
 		static constexpr int RPL_LISTEND = 323;
 		static constexpr int RPL_NOTOPIC = 331;
+		static constexpr int RPL_TOPIC = 332;
 		static constexpr int RPL_NAMREPLY = 353;
 		static constexpr int RPL_ENDOFNAMES = 366;
+
+		static constexpr int RPL_INVITING = 341;
 
 		static constexpr int ERR_NOSUCHCHANNEL = 403;
 		static constexpr int ERR_CHANNELISFULL = 471;

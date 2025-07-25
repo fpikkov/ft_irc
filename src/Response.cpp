@@ -406,8 +406,11 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_LIST:				return ":<server> <code> <nick> <channel> <users> :<topic>\r\n";
 		case RPL_LISTEND:			return ":<server> <code> <nick> :End of /LIST\r\n";
 		case RPL_NOTOPIC:			return ":<server> <code> <nick> <channel> :No topic is set\r\n";
+		case RPL_TOPIC:				return ":<server> <code> <nick> <channel> :<topic>\r\n";
 		case RPL_NAMREPLY:			return ":<server> <code> <nick> <symbol> <channel> :<names>\r\n";
 		case RPL_ENDOFNAMES:		return ":<server> <code> <nick> <channel> :End of /NAMES\r\n";
+
+		case RPL_INVITING:			return ":<server> <code> <nick> <channel> <nick>";
 
 		case ERR_NOSUCHCHANNEL:		return ":<server> <code> <nick> <channel> :No such channel\r\n";
 		case ERR_CHANNELISFULL:		return ":<server> <code> <nick> <channel> :Channel is full\r\n";
@@ -438,7 +441,6 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_MOTDSTART:			return "<server> <code> <nick> :- <server> Message of the day -\r\n";
 		case RPL_MOTD:				return "<server> <code> <nick> :- <text> -\r\n";
 		case RPL_ENDOFMOTD:			return "<server> <code> <nick> :End of /MOTD command\r\n";
-
 		case ERR_NOMOTD:			return "<server> <code> <nick> :MOTD File is missing\r\n";
 
 
