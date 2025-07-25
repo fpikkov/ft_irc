@@ -248,10 +248,6 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
  * Closes the associated file descriptor and removes the associated pollfd.
  *
  * NOTE: This will not alert all channel members about the disconnect
- *
- * TODO: Whenever we force a client disconnection (e.g. due to buffer overflow),
- * then send them a message ccontaining ERROR Closing link.
- * This isn't applicable to standard disconnection events.
  */
 void	Server::disconnectClients()
 {
