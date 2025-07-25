@@ -201,3 +201,21 @@ void	CommandHandler::broadcastMode( Client& client, Channel& channel, const std:
 		}
 	}
 }
+
+void	CommandHandler::broadcastTopic( Client& client, Channel& channel, const std::string& newTopic )
+{
+	const auto& 		allClients	= _server.getClients();
+	const std::string	channelName	= channel.getName();
+
+	for ( const auto memberFd : channel.getMembers() )
+	{
+		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
+
+		auto memberIt = allClients.find(memberFd);
+		if (memberIt != allClients.end())
+		{
+			Client& channelMember = const_cast<Client&>(memberIt->second);
+			Response::sendResponseCommand("TOPIC", client, channelMember, {{"channel", channelName}, {"topic", newTopic}});
+		}
+	}
+}

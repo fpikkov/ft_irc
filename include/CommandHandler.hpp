@@ -60,6 +60,7 @@ class	CommandHandler
 			void	broadcastKick		( Client& client, Channel& channel, const std::string & message );
 			void	broadcastQuit		( Client& client, const std::string& message );
 			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd );
+			void	broadcastTopic		( Client& client, Channel& channel, const std::string& newTopic );
 
 			// Static helper functions
 			static bool			isValidNick		( const std::string& nick );
