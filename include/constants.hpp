@@ -30,8 +30,8 @@ namespace irc
 	constexpr const bool REQUIRE_PASSWORD = false;
 
 	// Should broadcasts send the message to the originator
-	constexpr const bool BROADCAST_TO_ORIGIN = false;
-
+	// NOTE: This config may be removed from all references as we always have to broadcast messages back to the originator.
+	constexpr const bool BROADCAST_TO_ORIGIN = true;
 
 	// Should the server notify user on hostname lookup
 	constexpr const bool ANNOUNCE_CLIENT_LOOKUP = true;
@@ -68,9 +68,6 @@ namespace irc
 
 	// Maximum incomplete message buffer size
 	constexpr const int MAX_CLIENT_BUFFER_SIZE = 4096;
-
-	// Enable support for the CAP command
-	constexpr const bool ENABLE_CAP_SUPPORT = false;
 
 	// Client command logging
 	constexpr const bool ENABLE_COMMAND_LOGGING = true;

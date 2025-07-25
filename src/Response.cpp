@@ -40,6 +40,9 @@ void	Response::sendResponseCommand( const std::string& command, Client& source, 
 		{ "flags", "" }
 	};
 
+	if ( fields["nick"].empty() )
+		fields["nick"] = "*";
+
 	if ( irc::REVEAL_HOSTNAME && !source.getIpAddress().empty() )
 		fields["host"] = source.getIpAddress();
 
@@ -193,7 +196,7 @@ void	Response::sendServerNotice( Client& client, const std::string& notice )
  *
  * TODO:
  * NOTE: Closing link is the most common use case sent with:
- * buffer overflows, server shutdowns, force disconnects, QUIT commands, ping timeouts
+ * buffer overflows, server shutdowns, force disconnects, QUIT commands, ping timeouts, invalid passwords
  */
 void	Response::sendServerError( Client& target, const std::string& ipAddress, const std::string& reason )
 {
@@ -215,18 +218,6 @@ void	Response::sendWelcome( Client& client )
 	Response::sendResponseCode(Response::RPL_MYINFO, client, {{"channel modes", irc::CHANNEL_MODES}});
 }
 
-/**
- * @brief Sends Client Capability responses defined by IRCv3.
- *
- * NOTE: Our server follows the IRCv1 protocol so this can be safely ignored.
- */
-void	Response::sendCap( Client& client, const std::string& sub_command, const std::string& message )
-{
-	std::string nick = (client.getNickname().empty() ? "*" : client.getNickname());
-	std::string responseMessage = ":" + _server + " CAP " + nick + " " + sub_command + " :" + message + "\r\n";
-
-	Response::sendMessage(client, responseMessage);
-}
 
 /// Ping-Pong messaging
 

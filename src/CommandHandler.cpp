@@ -31,13 +31,6 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["QUIT"]		= [this](Client& c, const Command& cmd) { handleQuit(c, cmd); };
 	_handlers["PING"]		= [this](Client& c, const Command& cmd) { handlePing(c, cmd); };
 	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
-
-	// Disable CAP if we are not supporting IRCv3
-
-	if constexpr ( irc::ENABLE_CAP_SUPPORT )
-	{
-		_handlers["CAP"]		= [this](Client& c, const Command& cmd) { handleCap(c, cmd); };
-	}
 }
 
 /**
@@ -356,25 +349,26 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NOTREGISTERED, client, {});
 		return ;
 	}
-	if (cmd.params.size() != 2)
+	if ( cmd.params.size() < 2 || cmd.params.empty() )
 	{
 		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "INVITE"}});
 		return ;
 	}
 
 	std::string	channelName = toLowerCase(cmd.params[1]);
+	std::string targetName = cmd.params[0];
 
-	Client* target = _server.findUser(cmd.params[0]);
+	Client* target = _server.findUser(targetName);
 	Channel* channel = _server.findChannel(channelName);
 
 	if (!target)
 	{
-		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"target", target->getNickname()}});
+		Response::sendResponseCode(Response::ERR_NOSUCHNICK, client, {{"target", targetName}});
 		return ;
 	}
 	if (!channel)
 	{
-		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channel->getName()}});
+		Response::sendResponseCode(Response::ERR_NOSUCHCHANNEL, client, {{"channel", channelName}});
 		return ;
 	}
 	if (channel->isMember(target->getFd()))
@@ -440,6 +434,7 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 
 /* REGISTRATION COMMANDS*/
 
+/// TODO: #4 Implement client timeout when PASS, NICK and USER weren't sent within a timeframe
 /**
  * @brief Checks if the user is already authenticated and
  * if the password provided matches the server password.
@@ -467,8 +462,10 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 		if constexpr ( irc::REQUIRE_PASSWORD )
 		{
 			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
-			// TODO: Reject the Client auth and disconnect them from the server.
-			// Send ERROR Closing link to the client
+
+			Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+			client.setActive(false);
+			_server.setDisconnectEvent(true);
 			return ;
 		}
 	}
@@ -496,17 +493,20 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 
 	for (const auto& [fd, clientObject] : _server.getClients())
 	{
-		if (clientObject.getNickname() == newNick)
+		if (clientObject.getNickname() == newNick && static_cast<int>(fd) != client.getFd() )
 		{
 			if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 				irc::log_event("AUTH", irc::LOG_FAIL, newNick + " already in use");
-			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {});
+			Response::sendResponseCode(Response::ERR_NICKNAMEINUSE, client, {{"new nick", newNick}});
 			return ;
 		}
 	}
-	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
-	client.setNickname(newNick);
+	if (client.getNickname() != newNick)
+	{
+		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
+			irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
+		client.setNickname(newNick);
+	}
 	CommandHandler::confirmAuth(client);
 }
 
@@ -597,40 +597,6 @@ void CommandHandler::handlePong( [[maybe_unused]] Client& client, [[maybe_unused
 	// PONG will check if the message matched the serverside ping sent to client
 	// Update client's last active date if implementing timeouts.
 	// Server will NOT respond to pongs.
-}
-
-/**
- * @brief Client Capability request. Used in IRCv3 protocol.
- */
-void CommandHandler::handleCap(Client& client, const Command& cmd)
-{
-	if (cmd.params.empty())
-	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "CAP"}});
-		return ;
-	}
-
-	std::string subCommand		= cmd.params[0];
-	std::string capabilities	= ( cmd.params.size() > 1 ? cmd.params[1] : "");
-
-	if (subCommand == "LS")
-	{
-		Response::sendCap(client, subCommand, "");
-	}
-	else if (subCommand == "REQ")
-	{
-		// NAK will reject capability requests instead of ACK which acknowledges them.
-		Response::sendCap(client, "NAK", capabilities);
-	}
-	else if (subCommand == "END")
-	{
-		if constexpr (irc::EXTENDED_DEBUG_LOGGING)
-			irc::log_event("CAP", irc::LOG_INFO, "capability negotiation ended for " + client.getIpAddress());
-	}
-	else
-	{
-		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", "CAP " + subCommand}});
-	}
 }
 
 /* User and channel mode handling */

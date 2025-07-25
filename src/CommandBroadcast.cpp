@@ -62,7 +62,7 @@ void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const s
 		if (memberIt != allClients.end())
 		{
 			Client& channelMember = const_cast<Client&>(memberIt->second);
-			Response::sendResponseCommand("PRIVMSG", client, channelMember, {{"target", channelMember.getNickname()}, {"message", message}});
+			Response::sendResponseCommand("PRIVMSG", client, channelMember, {{"target", channel.getName()}, {"message", message}});
 		}
 	}
 }
