@@ -40,7 +40,6 @@ class	CommandHandler
 			void	handleQuit		(Client&, const Command&);
 			void	handlePing		(Client&, const Command&);
 			void	handlePong		(Client&, const Command&);
-			void	handleCap		(Client&, const Command&);
 
 
 			// Helper functions for handling modes

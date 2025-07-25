@@ -69,9 +69,6 @@ namespace irc
 	// Maximum incomplete message buffer size
 	constexpr const int MAX_CLIENT_BUFFER_SIZE = 4096;
 
-	// Enable support for the CAP command
-	constexpr const bool ENABLE_CAP_SUPPORT = false;
-
 	// Client command logging
 	constexpr const bool ENABLE_COMMAND_LOGGING = true;
 

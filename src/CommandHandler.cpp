@@ -31,13 +31,6 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["QUIT"]		= [this](Client& c, const Command& cmd) { handleQuit(c, cmd); };
 	_handlers["PING"]		= [this](Client& c, const Command& cmd) { handlePing(c, cmd); };
 	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
-
-	// Disable CAP if we are not supporting IRCv3
-
-	if constexpr ( irc::ENABLE_CAP_SUPPORT )
-	{
-		_handlers["CAP"]		= [this](Client& c, const Command& cmd) { handleCap(c, cmd); };
-	}
 }
 
 /**
@@ -603,40 +596,6 @@ void CommandHandler::handlePong( [[maybe_unused]] Client& client, [[maybe_unused
 	// PONG will check if the message matched the serverside ping sent to client
 	// Update client's last active date if implementing timeouts.
 	// Server will NOT respond to pongs.
-}
-
-/**
- * @brief Client Capability request. Used in IRCv3 protocol.
- */
-void CommandHandler::handleCap(Client& client, const Command& cmd)
-{
-	if (cmd.params.empty())
-	{
-		Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "CAP"}});
-		return ;
-	}
-
-	std::string subCommand		= cmd.params[0];
-	std::string capabilities	= ( cmd.params.size() > 1 ? cmd.params[1] : "");
-
-	if (subCommand == "LS")
-	{
-		Response::sendCap(client, subCommand, "");
-	}
-	else if (subCommand == "REQ")
-	{
-		// NAK will reject capability requests instead of ACK which acknowledges them.
-		Response::sendCap(client, "NAK", capabilities);
-	}
-	else if (subCommand == "END")
-	{
-		if constexpr (irc::EXTENDED_DEBUG_LOGGING)
-			irc::log_event("CAP", irc::LOG_INFO, "capability negotiation ended for " + client.getIpAddress());
-	}
-	else
-	{
-		Response::sendResponseCode(Response::ERR_UNKNOWNCOMMAND, client, {{"command", "CAP " + subCommand}});
-	}
 }
 
 /* User and channel mode handling */

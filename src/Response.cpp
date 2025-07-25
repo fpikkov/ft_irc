@@ -218,18 +218,6 @@ void	Response::sendWelcome( Client& client )
 	Response::sendResponseCode(Response::RPL_MYINFO, client, {{"channel modes", irc::CHANNEL_MODES}});
 }
 
-/**
- * @brief Sends Client Capability responses defined by IRCv3.
- *
- * NOTE: Our server follows the IRCv1 protocol so this can be safely ignored.
- */
-void	Response::sendCap( Client& client, const std::string& sub_command, const std::string& message )
-{
-	std::string nick = (client.getNickname().empty() ? "*" : client.getNickname());
-	std::string responseMessage = ":" + _server + " CAP " + nick + " " + sub_command + " :" + message + "\r\n";
-
-	Response::sendMessage(client, responseMessage);
-}
 
 /// Ping-Pong messaging
 

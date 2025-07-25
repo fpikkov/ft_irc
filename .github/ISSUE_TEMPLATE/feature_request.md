@@ -12,7 +12,6 @@ A clear description of what you want to happen.
 ## IRC Protocol Reference
 - [ ] RFC 1459 compliance
 - [ ] RFC 2012 compliance
-- [ ] IRCv3 extension
 
 ## Use Case
 Describe the scenario where this feature would be useful.

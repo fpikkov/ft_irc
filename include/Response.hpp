@@ -40,7 +40,6 @@ class Response
 		static void	sendServerError						( Client& target, const std::string& ipAddress, const std::string& reason );
 		static void	sendPing							( Client& target, const std::string& token );
 		static void	sendPong							( Client& target, const std::string& token );
-		static void	sendCap								( Client& client, const std::string& sub_command, const std::string& message );
 
 		/// Welcome the user
 		static void	sendWelcome							( Client& client );
