@@ -609,11 +609,16 @@ void CommandHandler::handlePing(Client& client, const Command& cmd)
 	Response::sendPong( client, token );
 }
 
-void CommandHandler::handlePong( [[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd)
+/**
+ * @brief Handles PONG which is sent over a time interval to confirm that the Client is still alive.
+ */
+void CommandHandler::handlePong( Client& client, [[maybe_unused]] const Command& cmd)
 {
-	// PONG will check if the message matched the serverside ping sent to client
-	// Update client's last active date if implementing timeouts.
-	// Server will NOT respond to pongs.
+	if (client.getPingPending())
+	{
+		client.setPingPending(false);
+		client.updateLastActivity();
+	}
 }
 
 /* User and channel mode handling */

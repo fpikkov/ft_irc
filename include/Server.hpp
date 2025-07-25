@@ -3,6 +3,7 @@
 #include "headers.hpp"
 #include <vector>
 #include <unordered_map>
+#include <chrono>
 #include "CommandHandler.hpp"
 
 class	Channel;
@@ -26,6 +27,7 @@ class Server
 		CommandHandler							_commandHandler;
 		static bool								_disconnectEvent;
 		static bool								_polloutEvent;
+		std::chrono::steady_clock::time_point	_lastTimeoutCheck;
 
 		Server()								= delete;
 		Server( const Server& )					= delete;
@@ -36,6 +38,7 @@ class Server
 		std::string			fetchHostname		();
 		static void			fetchClientIp		( Client& client );
 		void				setClientsToPollout	();
+		void				checkTimeouts		();
 
 	public:
 		Server( const std::string port, const std::string password );
@@ -63,5 +66,6 @@ class Server
 		void		removeChannel			( const std::string& channelName);
 		Channel*	findChannel				( const std::string& channelName );
 		Client*		findUser				( const std::string& nickName );
+
 };
 
