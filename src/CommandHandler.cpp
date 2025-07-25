@@ -424,12 +424,14 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 			return ;
 		}
 		channel->setTopic(newTopic);
-		//TODO: broadcast to all users that topic has been changed.
+		broadcastTopic(client, *channel, newTopic);
 	}
 	else
 	{
-		//TODO: message the current topic to the requester.
-		//TODO: if no topic is set, send "no topic" message.
+		if (channel->getTopic().empty())
+			Response::sendResponseCode(Response::RPL_NOTOPIC, client, {{"channel", channel->getName()}});
+		else
+			Response::sendResponseCommand("TOPIC", client, client, {{"channel", channelName}, {"topic", channel->getTopic()}});
 	}
 }
 

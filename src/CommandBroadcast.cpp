@@ -17,7 +17,10 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	std::string			namesList;
 
 	// Construct list of NAMES
-	namesList += client.getNickname();
+	if (channel.isOperator(client.getFd()))
+		namesList += "@" + client.getNickname();
+	else
+		namesList += client.getNickname();
 
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
@@ -37,7 +40,7 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 			Client& channelMember = const_cast<Client&>(memberIt->second);
 
 			Response::sendResponseCommand("JOIN", client, channelMember, {{"channel", channelName}});
-			if (channel.isOperator(client.getFd()))
+			if (channel.isOperator(channelMember.getFd()))
 				namesList += "@" + channelMember.getNickname();
 			else
 				namesList += channelMember.getNickname();
@@ -196,6 +199,22 @@ void	CommandHandler::broadcastMode( Client& client, Channel& channel, const std:
 		{
 			Client& channelMember = const_cast<Client&>(memberIt->second);
 			Response::sendResponseCommand("MODE", client, channelMember, {{"channel", channelName}, {"flags", modeStr}, {"target", target}});
+		}
+	}
+}
+
+void	CommandHandler::broadcastTopic( Client& client, Channel& channel, const std::string& newTopic )
+{
+	const auto& 		allClients	= _server.getClients();
+	const std::string	channelName	= channel.getName();
+
+	for ( const auto memberFd : channel.getMembers() )
+	{
+		auto memberIt = allClients.find(memberFd);
+		if (memberIt != allClients.end())
+		{
+			Client& channelMember = const_cast<Client&>(memberIt->second);
+			Response::sendResponseCommand("TOPIC", client, channelMember, {{"channel", channelName}, {"topic", newTopic}});
 		}
 	}
 }
