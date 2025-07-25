@@ -192,11 +192,14 @@ void	Response::sendServerNotice( Client& client, const std::string& notice )
 }
 
 /**
- * @brief Used for sending serverside error messages to clients.
+ * @brief Used for sending serverside closing link message to clients.
  *
- * TODO:
  * NOTE: Closing link is the most common use case sent with:
- * buffer overflows, server shutdowns, force disconnects, QUIT commands, ping timeouts, invalid passwords
+ * buffer overflows, server shutdowns, force disconnects, QUIT commands, invalid passwords, ping timeouts
+ *
+ * @param target Who will receive the message.
+ * @param ipAddress The ip address of the client or server which is disconnecting.
+ * @param reason The explanation of the disconnection.
  */
 void	Response::sendServerError( Client& target, const std::string& ipAddress, const std::string& reason )
 {
