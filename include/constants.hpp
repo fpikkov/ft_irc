@@ -8,6 +8,9 @@ namespace irc
 	// Available channel modes
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
 
+	// Maximum password attempts
+	constexpr const int MAX_PASSWORD_ATTEMPTS = 3;
+
 	// Channel limit (CHANLIMIT)
 	constexpr const size_t MAX_CHANNELS = 20;
 
@@ -27,11 +30,7 @@ namespace irc
 	constexpr const char* const SERVER_INFO = "Helsinki, FI";
 
 	// Password requirement
-	constexpr const bool REQUIRE_PASSWORD = false;
-
-	// Should broadcasts send the message to the originator
-	// NOTE: This config may be removed from all references as we always have to broadcast messages back to the originator.
-	constexpr const bool BROADCAST_TO_ORIGIN = true;
+	constexpr const bool REQUIRE_PASSWORD = true;
 
 	// Should the server notify user on hostname lookup
 	constexpr const bool ANNOUNCE_CLIENT_LOOKUP = true;
@@ -47,9 +46,6 @@ namespace irc
 
 	// Reveal real hostname
 	constexpr const bool REVEAL_HOSTNAME = true;
-
-	// Minor memory optimization
-	constexpr const bool MEMORY_SAVING = false;
 
 	// Customizable server version
 	constexpr const char* const SERVER_VERSION = "v1.0";

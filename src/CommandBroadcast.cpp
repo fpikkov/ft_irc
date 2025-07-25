@@ -17,8 +17,7 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	std::string			namesList;
 
 	// Construct list of NAMES
-	if (!irc::BROADCAST_TO_ORIGIN)
-		namesList += client.getNickname();
+	namesList += client.getNickname();
 
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
@@ -26,11 +25,11 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	// Announce new channel member to all existing clients
 	for ( const auto memberFd : channel.getMembers() )
 	{
+		if (memberFd == client.getFd()) continue;
+
 		// Space separate the NAMES
 		if (!namesList.empty())
 			namesList += " ";
-
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
 
 		auto memberIt = allClients.find(memberFd);
 		if (memberIt != allClients.end())
@@ -76,7 +75,7 @@ void	CommandHandler::broadcastNotice( Client& client, Channel& channel, const st
 
 	for ( auto fd : channel.getMembers() )
 	{
-		if ( fd == client.getFd() && !irc::BROADCAST_TO_ORIGIN ) continue;
+		if ( fd == client.getFd() ) continue;
 
 		auto memberIt = allClients.find(fd);
 		if (memberIt != allClients.end())
@@ -101,8 +100,6 @@ void	CommandHandler::broadcastPart( Client& client, Channel& channel, const std:
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-
 		auto memberIt = allClients.find(memberFd);
 		if (memberIt != allClients.end())
 		{
@@ -114,13 +111,11 @@ void	CommandHandler::broadcastPart( Client& client, Channel& channel, const std:
 
 void	CommandHandler::broadcastKick( Client& client, Channel& channel, const std::string& message )
 {
-	const auto& allClients			=_server.getClients();
-	const std::string channelName	=channel.getName();
+	const auto& allClients			= _server.getClients();
+	const std::string channelName	= channel.getName();
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-
 		auto memberIt = allClients.find(memberFd);
 		if (memberIt != allClients.end())
 		{
@@ -140,17 +135,20 @@ void	CommandHandler::broadcastKick( Client& client, Channel& channel, const std:
  */
 void	CommandHandler::broadcastQuit( Client& client, const std::string& message )
 {
-	const auto& allClients = _server.getClients();
+	using setIter			= std::unordered_set<std::string>::iterator;
+	const auto& allClients	= _server.getClients();
 
-	for (std::unordered_set<std::string>::iterator it = client.getChannels().begin(); it != client.getChannels().end();)
+	setIter it	= client.getChannels().begin();
+	setIter ite	= client.getChannels().end();
+	for (; it != ite ;)
 	{
 		Channel* channel = _server.findChannel(*it);
 		if (!channel) { ++it; continue; }
 		// For every member in this channel
 		for (int memberFd : channel->getMembers())
 		{
-			if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-			// Find member client object by the fd, because Channel class tracks members as a set of file descriptors (int), not as Client objects.
+			if (memberFd == client.getFd()) continue;
+
 			auto memberIt = allClients.find(memberFd);
 			if (memberIt != allClients.end())
 			{
@@ -171,6 +169,8 @@ void	CommandHandler::broadcastQuit( Client& client, const std::string& message )
 		}
 		else { ++it; }
 	}
+
+	Response::sendResponseCommand("QUIT", client, client, {{ "reason", message }});
 }
 
 /**
@@ -191,8 +191,6 @@ void	CommandHandler::broadcastMode( Client& client, Channel& channel, const std:
 	// Send to all members
 	for ( const auto memberFd : channel.getMembers() )
 	{
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-
 		auto memberIt = allClients.find(memberFd);
 		if (memberIt != allClients.end())
 		{

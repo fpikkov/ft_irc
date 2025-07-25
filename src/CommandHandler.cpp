@@ -385,8 +385,7 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 	}
 	channel->invite(target->getFd());
 	Response::sendResponseCommand("INVITE", client, *target, {{"target", target->getNickname() }, {"channel", channel->getName()}});
-	//Response::sendMessage( client, "you invited " + target->getNickname() + "to channel" + channel->getName());
-	//TODO: #5 Add reply 341 to confirm inviter that the invite was received and forwarded to the invitee
+	Response::sendResponseCode(Response::RPL_INVITING, client, {{"channel", channelName}, {"target", targetName}});
 }
 
 void	CommandHandler::handleTopic(Client& client, const Command& cmd)
@@ -465,17 +464,22 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
 		if constexpr ( irc::REQUIRE_PASSWORD )
 		{
+			client.incrementPassAttempts();
 			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
 
-			Response::sendServerError( client, client.getIpAddress(), "incorrect password");
-			client.setActive(false);
-			_server.setDisconnectEvent(true);
+			if (client.getPasswordAttempts() >= irc::MAX_PASSWORD_ATTEMPTS)
+			{
+				Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+				client.setActive(false);
+				_server.setDisconnectEvent(true);
+			}
 			return ;
 		}
 	}
 
 	client.setPassValidated(true);
 	irc::log_event("AUTH", irc::LOG_INFO, "valid password from "+ client.getIpAddress());
+
 	CommandHandler::confirmAuth(client);
 }
 
@@ -511,7 +515,13 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 			irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
 		client.setNickname(newNick);
 	}
-	CommandHandler::confirmAuth(client);
+
+	if (!CommandHandler::confirmAuth(client) && client.getPasswordAttempts() >= irc::MAX_PASSWORD_ATTEMPTS)
+	{
+		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+		client.setActive(false);
+		_server.setDisconnectEvent(true);
+	}
 }
 
 /*
@@ -557,7 +567,12 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 	client.setServername(servername);
 	client.setRealname(realname);
 
-	CommandHandler::confirmAuth(client);
+	if (!CommandHandler::confirmAuth(client) && client.getPasswordAttempts() >= irc::MAX_PASSWORD_ATTEMPTS)
+	{
+		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+		client.setActive(false);
+		_server.setDisconnectEvent(true);
+	}
 }
 
 /* Rest of the commands */

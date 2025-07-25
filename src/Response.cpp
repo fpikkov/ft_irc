@@ -86,6 +86,9 @@ void	Response::sendResponseCommand( const std::string& command, Client& source, 
  */
 void	Response::sendResponseCode( int code, Client& client, const string_map& placeholders = {} )
 {
+	constexpr const char* const emptyFieldBasic		= "*";
+	constexpr const char* const emptyFieldComplex	= "***";
+
 	std::string	templateMessage = getResponseTemplate( code );
 
 	if ( templateMessage.empty() ) return ;
@@ -93,33 +96,29 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 	string_map fields =
 	{
 		{ "code", Response::formatCode(code) },
-		{ "nick", client.getNickname() },
-		{ "user", client.getUsername() },
-		{ "host", client.getHostname() },
+		{ "nick", ( client.getNickname().empty() ? "*" : client.getNickname() ) },
+		{ "user", ( client.getUsername().empty() ? "*" : client.getUsername() ) },
+		{ "host", ( client.getHostname().empty() ? "*" : client.getHostname() ) },
 		{ "date", _date },
 		{ "server", _server },
-		{ "version", _version }
+		{ "version", _version },
+		{ "target", emptyFieldBasic },
+		{ "command", emptyFieldBasic },
+		{ "channel", emptyFieldBasic },
+		{ "users", emptyFieldBasic },
+		{ "names", emptyFieldBasic },
+		{ "real name", emptyFieldBasic },
+		{ "new nick", emptyFieldBasic },
+		{ "topic", emptyFieldBasic },
+		{ "symbol", emptyFieldBasic },
+		{ "param", emptyFieldBasic },
+		{ "value", emptyFieldComplex },
+		{ "text", emptyFieldComplex },
+		{ "server info", emptyFieldComplex },
+		{ "user modes", emptyFieldComplex },
+		{ "channel modes", emptyFieldComplex }
 	};
-	if ( fields["nick"].empty() )
-		fields["nick"] = "*";
-	if ( !irc::MEMORY_SAVING )
-	{
-		fields["target"] = "*";
-		fields["command"] = "*";
-		fields["channel"] = "*";
-		fields["users"] = "*";
-		fields["names"] = "*";
-		fields["topic"] = "*";
-		fields["user modes"] = "***";
-		fields["channel modes"] = "***";
-		fields["symbol"] = "*";
-		fields["real name"] = "*";
-		fields["server info"] = "***";
-		fields["text"] = "***";
-		fields["new nick"] = "*";
-		fields["param"] = "*";
-		fields["value"] = "***";
-	}
+
 	for ( const auto& [placeholder, value] : placeholders )
 	{
 		fields[placeholder] = value;
@@ -413,7 +412,7 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_NAMREPLY:			return ":<server> <code> <nick> <symbol> <channel> :<names>\r\n";
 		case RPL_ENDOFNAMES:		return ":<server> <code> <nick> <channel> :End of /NAMES\r\n";
 
-		case RPL_INVITING:			return ":<server> <code> <nick> <channel> <nick>\r\n";
+		case RPL_INVITING:			return ":<server> <code> <nick> <channel> <target>\r\n";
 
 		case ERR_NOSUCHCHANNEL:		return ":<server> <code> <nick> <channel> :No such channel\r\n";
 		case ERR_CHANNELISFULL:		return ":<server> <code> <nick> <channel> :Channel is full\r\n";

@@ -66,7 +66,7 @@ class	CommandHandler
 			static bool			isValidNick		( const std::string& nick );
 			static bool			isChannelName	( const std::string& name );
 			static std::string	toLowerCase		( const std::string& s );
-			static void			confirmAuth		( Client& client );
+			static bool			confirmAuth		( Client& client );
 
 	public:
 			CommandHandler(Server& server);
