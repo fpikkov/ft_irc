@@ -37,7 +37,7 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 			Client& channelMember = const_cast<Client&>(memberIt->second);
 
 			Response::sendResponseCommand("JOIN", client, channelMember, {{"channel", channelName}});
-			if (channel.isOperator(client.getFd()))
+			if (channel.isOperator(channelMember.getFd()))
 				namesList += "@" + channelMember.getNickname();
 			else
 				namesList += channelMember.getNickname();
@@ -207,8 +207,6 @@ void	CommandHandler::broadcastTopic( Client& client, Channel& channel, const std
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
-		if (memberFd == client.getFd() && !irc::BROADCAST_TO_ORIGIN) continue;
-
 		auto memberIt = allClients.find(memberFd);
 		if (memberIt != allClients.end())
 		{
