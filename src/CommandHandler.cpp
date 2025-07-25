@@ -437,7 +437,6 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 
 /* REGISTRATION COMMANDS*/
 
-/// TODO: #4 Implement client timeout when PASS, NICK and USER weren't sent within a timeframe
 /**
  * @brief Checks if the user is already authenticated and
  * if the password provided matches the server password.
