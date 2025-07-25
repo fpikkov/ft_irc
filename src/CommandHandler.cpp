@@ -388,8 +388,9 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 		return ;
 	}
 	channel->invite(target->getFd());
-	//TODO: send INVITE message to the target user.
-	//TODO OPTIONAL: Send a confirmation to the user who sent invite
+	Response::sendResponseCommand("INVITE", client, *target, {{"target", target->getNickname() }, {"channel", channel->getName()}});
+	//Response::sendMessage( client, "you invited " + target->getNickname() + "to channel" + channel->getName());
+	//TODO: #5 Add reply 341 to confirm inviter that the invite was received and forwarded to the invitee
 }
 
 void	CommandHandler::handleTopic(Client& client, const Command& cmd)
