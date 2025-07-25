@@ -389,7 +389,7 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 		return ;
 	}
 	channel->invite(target->getFd());
-	//TODO: send INVITE message to the target user.
+	//TODO: send INVITE message to the target user. (Issue #3)
 	//TODO OPTIONAL: Send a confirmation to the user who sent invite
 }
 
