@@ -17,7 +17,10 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	std::string			namesList;
 
 	// Construct list of NAMES
-	namesList += client.getNickname();
+	if (channel.isOperator(client.getFd()))
+		namesList += "@" + client.getNickname();
+	else
+		namesList += client.getNickname();
 
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
