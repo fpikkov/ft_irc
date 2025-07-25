@@ -44,9 +44,6 @@ namespace irc
 	// Reveal real hostname
 	constexpr const bool REVEAL_HOSTNAME = true;
 
-	// Minor memory optimization
-	constexpr const bool MEMORY_SAVING = false;
-
 	// Customizable server version
 	constexpr const char* const SERVER_VERSION = "v1.0";
 
