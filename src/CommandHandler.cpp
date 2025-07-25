@@ -51,6 +51,7 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	{
 		if constexpr ( irc::ENABLE_COMMAND_LOGGING )
 			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
+		client.updateLastActivity();
 		it->second(client, cmd);
 	}
 	else
@@ -520,6 +521,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	{
 		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 			irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
+		Response::sendResponseCommand("NICK", client, client, {{"new nick", newNick}});
 		client.setNickname(newNick);
 	}
 

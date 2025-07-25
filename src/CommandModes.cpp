@@ -33,7 +33,7 @@ void CommandHandler::handleChannelMode(Client& client, const Command& cmd, const
 	parseAndApplyChannelModes(client, const_cast<Command&>(cmd), channel, channelName);
 }
 
-void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName, const Command& cmd)
+void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName, [[maybe_unused]] const Command& cmd)
 {
 	std::string modes = "+";
 	std::string params;
@@ -50,7 +50,8 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 		modes += "l";
 		params += " " + std::to_string(channel->getUserLimit());
 	}
-	broadcastMode(client, *channel, params, cmd);
+	// TODO: #10 Check where we should be broadcasting the mode to the channel
+	// broadcastMode(client, *channel, params, cmd);
 	Response::sendResponseCommand("MODE", client, client, {{"channel", channelName}, {"flags", modes}, {"target", params}});
 }
 

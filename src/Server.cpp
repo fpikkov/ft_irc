@@ -240,6 +240,7 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 	newClient.setClientAddress( clientAddress );
 	newClient.updateConnectionTime();
 	newClient.updateLastActivity();
+	newClient.updateLastPing();
 
 	Server::fetchClientIp( newClient );
 
@@ -331,8 +332,6 @@ bool	Server::receiveClientMessage( int file_descriptor )
 	else
 	{
 		Client& client = _clients[file_descriptor];
-
-		client.updateLastActivity();
 
 		if ( client.appendToReceiveBuffer( std::string(buffer.data(), bytes) ))
 		{
@@ -508,12 +507,6 @@ const	std::string&							Server::getPassword() const	{ return _password; }
 /**
  * @brief Used in timing out inactive client connections. Implemented before poll is called.
  */
-/**
- * TODO: Send PING to client and await for PONG.
- * Set pingPending to false if received PING from client and reset their lastActivity and lastPing.
- * If we have to send ping, turn pending to true and only update lastPing to now.
- *
- */
 void	Server::checkTimeouts()
 {
 	auto now		= std::chrono::steady_clock::now();
@@ -544,6 +537,8 @@ void	Server::checkTimeouts()
 		}
 		if ( client.needsPing() )
 		{
+			if constexpr ( irc:: EXTENDED_DEBUG_LOGGING )
+				irc::log_event("PING", irc::LOG_DEBUG, "sending ping to " + client.getIpAddress() );
 			Response::sendPing(client, "");
 			client.setPingPending(true);
 			client.updateLastPing();

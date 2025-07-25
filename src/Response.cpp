@@ -233,7 +233,8 @@ void	Response::sendWelcome( Client& client )
  */
 void	Response::sendPing( Client& target, const std::string& token )
 {
-	std::string responseMessage = ":" + _server + " PING " + target.getNickname() + ( token.empty() ? "" : " :" + token) + "\r\n";
+	std::string pingToken = token.empty() ? _server : token;
+	std::string responseMessage = ":" + _server + " PING " + target.getNickname() + " :" + pingToken + "\r\n";
 
 	sendMessage( target, responseMessage );
 }
@@ -246,7 +247,8 @@ void	Response::sendPing( Client& target, const std::string& token )
  */
 void	Response::sendPong( Client& target, const std::string& token )
 {
-	std::string responseMessage = ":" + _server + " PONG " + target.getNickname() + ( token.empty() ? "" : " :" + token) + "\r\n";
+	std::string pongToken = token.empty() ? _server : token;
+	std::string responseMessage = ":" + _server + " PONG " + target.getNickname() + " :" + pongToken + "\r\n";
 
 	sendMessage( target, responseMessage );
 }
