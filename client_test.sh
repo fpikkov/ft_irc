@@ -4,7 +4,7 @@
 
 IRC_HOST="localhost"
 IRC_PORT="6667"
-PASSWORD="testPassword"
+PASSWORD="pass"
 NICKNAME="testNick"
 USERNAME="testUser"
 HOSTNAME="testHost"

@@ -41,6 +41,9 @@ class	CommandHandler
 			void	handlePing		(Client&, const Command&);
 			void	handlePong		(Client&, const Command&);
 
+			void	handleSummon	(Client&, const Command&);
+			void	handleUsers		(Client&, const Command&);
+
 
 			// Helper functions for handling modes
 			void	handleChannelMode(Client& client, const Command& cmd, const std::string& channelName);

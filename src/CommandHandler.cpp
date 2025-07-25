@@ -27,10 +27,14 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["TOPIC"]		= [this](Client& c, const Command& cmd) { handleTopic(c, cmd); };
 	_handlers["MODE"]		= [this](Client& c, const Command& cmd) { handleMode(c, cmd); };
 
-	//Rest of the commands
+	// Rest of the commands
 	_handlers["QUIT"]		= [this](Client& c, const Command& cmd) { handleQuit(c, cmd); };
 	_handlers["PING"]		= [this](Client& c, const Command& cmd) { handlePing(c, cmd); };
 	_handlers["PONG"]		= [this](Client& c, const Command& cmd) { handlePong(c, cmd); };
+
+	// Additional commands
+	_handlers["SUMMON"]		= [this](Client& c, const Command& cmd) { handleSummon(c, cmd); };
+	_handlers["USERS"]		= [this](Client& c, const Command& cmd) { handleUsers(c, cmd); };
 }
 
 /**
@@ -640,4 +644,14 @@ void CommandHandler::handleMode(Client& client, const Command& cmd)
 	{
 		return ;
 	}
+}
+
+void CommandHandler::handleSummon(Client& client, [[maybe_unused]] const Command& cmd)
+{
+	Response::sendResponseCode(Response::ERR_SUMMONDISABLED, client, {});
+}
+
+void CommandHandler::handleUsers(Client& client, [[maybe_unused]] const Command& cmd)
+{
+	Response::sendResponseCode(Response::ERR_USERSDISABLED, client, {});
 }
