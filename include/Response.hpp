@@ -99,7 +99,7 @@ class Response
 		/// User information
 		static constexpr int RPL_WHOISUSER = 311;
 		static constexpr int RPL_WHOISSERVER = 312;
-		static constexpr int RPL_WHOISPERATOR = 313;
+		static constexpr int RPL_WHOISOPERATOR = 313;
 		static constexpr int RPL_ENDOFWHOIS = 318;
 
 

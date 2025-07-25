@@ -431,7 +431,7 @@ std::string	Response::getResponseTemplate( int code )
 
 		case RPL_WHOISUSER:			return ":<server> <code> <nick> <target> <user> <host> * :<real name>\r\n";
 		case RPL_WHOISSERVER:		return ":<server> <code> <nick> <target> <server> :<server info>\r\n";
-		case RPL_WHOISPERATOR:		return ":<server> <code> <nick> <target> :is an IRC operator\r\n";
+		case RPL_WHOISOPERATOR:		return ":<server> <code> <nick> <target> :is an IRC operator\r\n";
 		case RPL_ENDOFWHOIS:		return ":<server> <code> <nick> <target> :End of /WHOIS list\r\n";
 
 		/// Message of the day
