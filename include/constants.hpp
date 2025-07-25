@@ -5,6 +5,16 @@
 
 namespace irc
 {
+	// How much time the client has to register (seconds)
+	constexpr const int CLIENT_REGISTRATION_TIMEOUT = 30;
+
+	// Ping timeout for authenticated clients
+	constexpr const int CLIENT_PING_TIMEOUT = 120;
+	constexpr const int CLIENT_PING_INTERVAL = CLIENT_PING_TIMEOUT / 2;
+
+	// How often we should check for timeouts
+	constexpr const int TIMEOUT_INTERVAL = 30;
+
 	// Available channel modes
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
 

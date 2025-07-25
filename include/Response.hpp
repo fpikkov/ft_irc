@@ -79,6 +79,7 @@ class Response
 		static constexpr int RPL_ENDOFNAMES = 366;
 
 		static constexpr int RPL_INVITING = 341;
+		static constexpr int RPL_CHANNELMODEIS = 329;
 
 		static constexpr int ERR_NOSUCHCHANNEL = 403;
 		static constexpr int ERR_CHANNELISFULL = 471;

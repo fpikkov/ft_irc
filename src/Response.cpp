@@ -116,7 +116,9 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 		{ "text", emptyFieldComplex },
 		{ "server info", emptyFieldComplex },
 		{ "user modes", emptyFieldComplex },
-		{ "channel modes", emptyFieldComplex }
+		{ "channel modes", emptyFieldComplex },
+		{ "mode", emptyFieldBasic },
+		{ "mode params", emptyFieldComplex }
 	};
 
 	for ( const auto& [placeholder, value] : placeholders )
@@ -231,7 +233,7 @@ void	Response::sendWelcome( Client& client )
  */
 void	Response::sendPing( Client& target, const std::string& token )
 {
-	std::string responseMessage = ":" + _server + " PING " + _server + " :" + token + "\r\n";
+	std::string responseMessage = ":" + _server + " PING " + target.getNickname() + ( token.empty() ? "" : " :" + token) + "\r\n";
 
 	sendMessage( target, responseMessage );
 }
@@ -244,7 +246,7 @@ void	Response::sendPing( Client& target, const std::string& token )
  */
 void	Response::sendPong( Client& target, const std::string& token )
 {
-	std::string responseMessage = ":" + _server + " PONG " + _server + " :" + token + "\r\n";
+	std::string responseMessage = ":" + _server + " PONG " + target.getNickname() + ( token.empty() ? "" : " :" + token) + "\r\n";
 
 	sendMessage( target, responseMessage );
 }
@@ -413,6 +415,7 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_ENDOFNAMES:		return ":<server> <code> <nick> <channel> :End of /NAMES\r\n";
 
 		case RPL_INVITING:			return ":<server> <code> <nick> <channel> <target>\r\n";
+		case RPL_CHANNELMODEIS:		return ":<server> <code> <nick> <channel> <mode> <mode params>\r\n";
 
 		case ERR_NOSUCHCHANNEL:		return ":<server> <code> <nick> <channel> :No such channel\r\n";
 		case ERR_CHANNELISFULL:		return ":<server> <code> <nick> <channel> :Channel is full\r\n";

@@ -94,6 +94,8 @@ void	Server::serverSetup()
 
 	_fds.insert( _fds.cbegin(), serverPoll );
 
+	_lastTimeoutCheck = std::chrono::steady_clock::now();
+
 	irc::log_event("SERVER", irc::LOG_SUCCESS, "running on port " + std::to_string(_port));
 }
 
@@ -101,13 +103,24 @@ void	Server::serverLoop()
 {
 	while ( !_terminate )
 	{
-		if ( poll( _fds.data(), _fds.size(), -1 ) < 0 )
+		checkTimeouts(); // Checks if any clients were timed out
+
+		if ( _disconnectEvent ) // Disconnects any timed out clients
 		{
-			if ( errno == EINTR ) // Signal was caught during poll
+			disconnectClients();
+			continue ;
+		}
+
+		int pollTimeout = irc::TIMEOUT_INTERVAL * 1000;
+		int pollResult = poll( _fds.data(), _fds.size(), pollTimeout );
+		if ( pollResult  <= 0 )
+		{
+			if ( errno == EINTR ) // signal was caught during poll
 			{
 				broadcastShutdown( "signaled" );
 				break ;
 			}
+			continue ;
 		}
 
 		std::vector<pollfd>	newClients;
@@ -144,8 +157,6 @@ void	Server::serverLoop()
 			_fds.insert( _fds.end(), newClients.begin(), newClients.end() );
 		if ( _polloutEvent )
 			setClientsToPollout();
-		if ( _disconnectEvent ) // Comes after adding clients as they may have already dc'd
-			disconnectClients();
 	}
 }
 
@@ -227,6 +238,8 @@ bool	Server::acceptClientConnection( std::vector<pollfd>& new_clients )
 
 	newClient.setClientFd( newClientSocket );
 	newClient.setClientAddress( clientAddress );
+	newClient.updateConnectionTime();
+	newClient.updateLastActivity();
 
 	Server::fetchClientIp( newClient );
 
@@ -318,6 +331,8 @@ bool	Server::receiveClientMessage( int file_descriptor )
 	else
 	{
 		Client& client = _clients[file_descriptor];
+
+		client.updateLastActivity();
 
 		if ( client.appendToReceiveBuffer( std::string(buffer.data(), bytes) ))
 		{
@@ -489,3 +504,53 @@ void	Server::broadcastShutdown( const std::string& reason )
 const	std::unordered_map<unsigned, Client>&	Server::getClients() const	{ return _clients; }
 const	std::vector<Channel>					Server::getChannels() const	{ return _channels; }
 const	std::string&							Server::getPassword() const	{ return _password; }
+
+/**
+ * @brief Used in timing out inactive client connections. Implemented before poll is called.
+ */
+/**
+ * TODO: Send PING to client and await for PONG.
+ * Set pingPending to false if received PING from client and reset their lastActivity and lastPing.
+ * If we have to send ping, turn pending to true and only update lastPing to now.
+ *
+ */
+void	Server::checkTimeouts()
+{
+	auto now		= std::chrono::steady_clock::now();
+	auto elapsed	= std::chrono::duration_cast<std::chrono::seconds>( now - _lastTimeoutCheck );
+
+	if ( elapsed.count() < irc::TIMEOUT_INTERVAL )
+		return ;
+
+	_lastTimeoutCheck = now;
+	bool timeoutEvent = false;
+	for ( auto& [fd, client] : _clients )
+	{
+		if ( client.hasRegistrationExpired() )
+		{
+			irc::log_event("TIMEOUT", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " timed out");
+			Response::sendServerError( client, client.getIpAddress(), "Registration timeout");
+			client.setActive(false);
+			timeoutEvent = true;
+			continue ;
+		}
+		if ( client.hasPingExpired() )
+		{
+			irc::log_event("TIMEOUT", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " timed out");
+			Response::sendServerError( client, client.getIpAddress(), "Ping timeout");
+			client.setActive(false);
+			timeoutEvent = true;
+			continue ;
+		}
+		if ( client.needsPing() )
+		{
+			Response::sendPing(client, "");
+			client.setPingPending(true);
+			client.updateLastPing();
+		}
+	}
+	if ( timeoutEvent )
+	{
+		setDisconnectEvent(true);
+	}
+}
