@@ -193,7 +193,6 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		client.joinChannel(channel->getName());
 		channel->addOperator(client.getFd());
 		broadcastMode(client, *channel, "+o", cmd );
-		//TODO: #6 Make sure the user is succesfully made an operator. Irssi does not register this change currently
 
 		irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 		broadcastJoin(client, *channel);
@@ -236,6 +235,9 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 				client.joinChannel(channel->getName());
 				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 				broadcastJoin(client, *channel);
+				if (!channel->getTopic().empty())
+					Response::sendResponseCommand("TOPIC", client, client, {{"channel", channel->getName()}, {"topic", channel->getTopic()}});
+
 			}
 			return ;
 		}
@@ -247,6 +249,8 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			client.joinChannel(channel->getName());
 			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 			broadcastJoin(client, *channel);
+			if (!channel->getTopic().empty())
+				Response::sendResponseCommand("TOPIC", client, client, {{"channel", channel->getName()}, {"topic", channel->getTopic()}});
 		}
 		return ;
 	}
