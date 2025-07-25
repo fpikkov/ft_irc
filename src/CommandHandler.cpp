@@ -363,7 +363,7 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 	}
 
 	std::string	channelName = toLowerCase(cmd.params[1]);
-	std::string targetName = cmd.params[0]; // TODO: Please cconfirm that the usernames can also be uppercase
+	std::string targetName = cmd.params[0];
 
 	Client* target = _server.findUser(targetName);
 	Channel* channel = _server.findChannel(channelName);
@@ -440,6 +440,7 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 
 /* REGISTRATION COMMANDS*/
 
+/// TODO: #4 Implement client timeout when PASS, NICK and USER weren't sent within a timeframe
 /**
  * @brief Checks if the user is already authenticated and
  * if the password provided matches the server password.
