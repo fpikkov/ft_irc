@@ -1,5 +1,6 @@
 #include "CommandHandler.hpp"
 #include "constants.hpp"
+#include "Server.hpp"
 #include "Client.hpp"
 #include "Response.hpp"
 
@@ -50,16 +51,25 @@ bool	CommandHandler::isChannelName( const std::string& name )
  * Sends welcome messages to the client if they were authenticated successfully.
  *
  * @param client Who to authenticate.
+ * @return false if password enforcement is enabled and the user didn't comply with it.
  */
-void	CommandHandler::confirmAuth( Client& client )
+bool	CommandHandler::confirmAuth( Client& client )
 {
 	if (!client.getNickname().empty() &&
 		!client.getUsername().empty() &&
-		client.getPassValidated() &&
 		!client.isAuthenticated())
 	{
+		if constexpr (irc::REQUIRE_PASSWORD)
+		{
+			if (!client.getPassValidated())
+			{
+				Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
+				return false;
+			}
+		}
 		client.setAuthenticated(true);
 		Response::sendWelcome(client);
 		irc::log_event("AUTH", irc::LOG_SUCCESS, client.getNickname() + "@" + client.getIpAddress() + " authenticated");
 	}
+	return true;
 }

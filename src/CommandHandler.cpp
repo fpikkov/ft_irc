@@ -474,7 +474,13 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 
 	client.setPassValidated(true);
 	irc::log_event("AUTH", irc::LOG_INFO, "valid password from "+ client.getIpAddress());
-	CommandHandler::confirmAuth(client);
+
+	if (!CommandHandler::confirmAuth(client))
+	{
+		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+		client.setActive(false);
+		_server.setDisconnectEvent(true);
+	}
 }
 
 void CommandHandler::handleNick(Client& client, const Command& cmd)
@@ -509,7 +515,13 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 			irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
 		client.setNickname(newNick);
 	}
-	CommandHandler::confirmAuth(client);
+
+	if (!CommandHandler::confirmAuth(client))
+	{
+		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+		client.setActive(false);
+		_server.setDisconnectEvent(true);
+	}
 }
 
 /*
@@ -555,7 +567,12 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 	client.setServername(servername);
 	client.setRealname(realname);
 
-	CommandHandler::confirmAuth(client);
+	if (!CommandHandler::confirmAuth(client))
+	{
+		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+		client.setActive(false);
+		_server.setDisconnectEvent(true);
+	}
 }
 
 /* Rest of the commands */
