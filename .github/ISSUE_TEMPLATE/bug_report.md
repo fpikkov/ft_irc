@@ -18,12 +18,3 @@ A clear description of what actually happened.
 ## Steps to Reproduce
 Steps to reproduce the behavior.
 
-## Environment
-**Server Configuration**
-- IRC Server Version: [e.g. v1.0]
-- Operating System: [e.g. Debian 12.11]
-- Compiler: [e.g. g++ 12.3]
-
-**Client Configuration**
-- IRC Client: [e.g. Irssi 1.2.3, netcat]
-- Client Operating System: [e.g. Linux, macOS]
