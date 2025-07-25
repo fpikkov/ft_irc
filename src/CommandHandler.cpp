@@ -235,8 +235,6 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 				client.joinChannel(channel->getName());
 				irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 				broadcastJoin(client, *channel);
-				if (!channel->getTopic().empty())
-					Response::sendResponseCommand("TOPIC", client, client, {{"channel", channel->getName()}, {"topic", channel->getTopic()}});
 
 			}
 			return ;
@@ -249,8 +247,6 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			client.joinChannel(channel->getName());
 			irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 			broadcastJoin(client, *channel);
-			if (!channel->getTopic().empty())
-				Response::sendResponseCommand("TOPIC", client, client, {{"channel", channel->getName()}, {"topic", channel->getTopic()}});
 		}
 		return ;
 	}
@@ -435,7 +431,7 @@ void	CommandHandler::handleTopic(Client& client, const Command& cmd)
 		if (channel->getTopic().empty())
 			Response::sendResponseCode(Response::RPL_NOTOPIC, client, {{"channel", channel->getName()}});
 		else
-			Response::sendResponseCommand("TOPIC", client, client, {{"channel", channelName}, {"topic", channel->getTopic()}});
+			Response::sendResponseCode(Response::RPL_TOPIC, client, {{"channel", channelName}, {"topic", channel->getTopic()}});
 	}
 }
 
