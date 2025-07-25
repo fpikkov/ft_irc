@@ -467,8 +467,10 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 		if constexpr ( irc::REQUIRE_PASSWORD )
 		{
 			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
-			// TODO: Reject the Client auth and disconnect them from the server.
-			// Send ERROR Closing link to the client
+
+			Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+			client.setActive(false);
+			_server.setDisconnectEvent(true);
 			return ;
 		}
 	}
