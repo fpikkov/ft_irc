@@ -8,6 +8,9 @@ namespace irc
 	// Available channel modes
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
 
+	// Maximum password attempts
+	constexpr const int MAX_PASSWORD_ATTEMPTS = 3;
+
 	// Channel limit (CHANLIMIT)
 	constexpr const size_t MAX_CHANNELS = 20;
 

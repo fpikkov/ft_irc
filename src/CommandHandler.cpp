@@ -462,11 +462,15 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
 		if constexpr ( irc::REQUIRE_PASSWORD )
 		{
+			client.incrementPassAttempts();
 			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
 
-			Response::sendServerError( client, client.getIpAddress(), "incorrect password");
-			client.setActive(false);
-			_server.setDisconnectEvent(true);
+			if (client.getPasswordAttempts() >= irc::MAX_PASSWORD_ATTEMPTS)
+			{
+				Response::sendServerError( client, client.getIpAddress(), "incorrect password");
+				client.setActive(false);
+				_server.setDisconnectEvent(true);
+			}
 			return ;
 		}
 	}
@@ -474,12 +478,7 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	client.setPassValidated(true);
 	irc::log_event("AUTH", irc::LOG_INFO, "valid password from "+ client.getIpAddress());
 
-	if (!CommandHandler::confirmAuth(client))
-	{
-		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
-		client.setActive(false);
-		_server.setDisconnectEvent(true);
-	}
+	CommandHandler::confirmAuth(client);
 }
 
 void CommandHandler::handleNick(Client& client, const Command& cmd)
@@ -515,7 +514,7 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 		client.setNickname(newNick);
 	}
 
-	if (!CommandHandler::confirmAuth(client))
+	if (!CommandHandler::confirmAuth(client) && client.getPasswordAttempts() >= irc::MAX_PASSWORD_ATTEMPTS)
 	{
 		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
 		client.setActive(false);
@@ -566,7 +565,7 @@ void CommandHandler::handleUser(Client& client, const Command& cmd)
 	client.setServername(servername);
 	client.setRealname(realname);
 
-	if (!CommandHandler::confirmAuth(client))
+	if (!CommandHandler::confirmAuth(client) && client.getPasswordAttempts() >= irc::MAX_PASSWORD_ATTEMPTS)
 	{
 		Response::sendServerError( client, client.getIpAddress(), "incorrect password");
 		client.setActive(false);

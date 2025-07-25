@@ -3,15 +3,27 @@
 
 // Constructors/Destructor
 
-Client::Client	() : _clientFd(-1), _authenticated(false), _passValidated(false), _active(true), _pollout(false)
+Client::Client() :
+	_clientFd(-1),
+	_authenticated(false),
+	_passwordAttempts(0),
+	_passValidated(false),
+	_active(false),
+	_pollout(false)
 {
 	_clientAddress = {};
 }
-Client::Client	( int client_fd ) : _clientFd( client_fd ), _authenticated(false), _passValidated(false), _active(true), _pollout(false)
+Client::Client( int client_fd ) :
+	_clientFd( client_fd ),
+	_authenticated(false),
+	_passwordAttempts(0),
+	_passValidated(false),
+	_active(true),
+	_pollout(false)
 {
 	_clientAddress = {};
 }
-Client::~Client	() {}
+Client::~Client() {}
 
 
 // Getters
@@ -28,6 +40,7 @@ const std::string&						Client::getIpAddress		() const noexcept	{ return _ipAddr
 sockaddr&								Client::getClientAddress	()					{ return _clientAddress; }
 bool									Client::isAuthenticated		() const			{ return _authenticated; }
 std::unordered_set<std::string>&		Client::getChannels			()					{ return _channels; }
+int										Client::getPasswordAttempts	() const noexcept	{ return _passwordAttempts; }
 bool									Client::getPassValidated	() const noexcept	{ return _passValidated; }
 bool									Client::getActive			() const noexcept	{ return _active; }
 bool									Client::getPollout			() const noexcept	{ return _pollout; }
@@ -45,6 +58,7 @@ void	Client::setClientAddress	( sockaddr address )				{ _clientAddress = address
 void	Client::setAuthenticated	(bool auth)							{ _authenticated = auth; }
 void	Client::setReceiveBuffer	( const std::string& buffer )		{ _receiveBuffer = buffer; }
 void	Client::setSendBuffer		( const std::string& buffer )		{ _sendBuffer = buffer; }
+void	Client::setPasswordAttempts	( int attempts )					{ _passwordAttempts = attempts; }
 void	Client::setPassValidated	( bool valid )						{ _passValidated = valid; }
 void	Client::setActive			( bool active )						{ _active = active; }
 void	Client::setPollout			( bool required )					{ _pollout = required; }
@@ -132,3 +146,5 @@ bool	Client::isInChannel(const std::string& channel) const
 	return _channels.find(channel) != _channels.end();
 }
 
+// Password authentication
+void	Client::incrementPassAttempts() { ++_passwordAttempts; }
