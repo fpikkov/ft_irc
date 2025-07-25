@@ -190,8 +190,9 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 			channel->setKey(key);
 
 		channel->addMember(client.getFd());
-		channel->addOperator(client.getFd());
 		client.joinChannel(channel->getName());
+		channel->addOperator(client.getFd());
+		//TODO: #6 Make sure the user is succesfully made an operator. Irssi does not register this change currently
 
 		irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 		broadcastJoin(client, *channel);
