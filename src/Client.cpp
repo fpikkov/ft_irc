@@ -19,7 +19,10 @@ Client::Client( int client_fd ) :
 	_passwordAttempts(0),
 	_passValidated(false),
 	_active(true),
-	_pollout(false)
+	_pollout(false),
+	_connectionTime(steady_clock::now()),
+	_lastActivity(steady_clock::now()),
+	_pingPending(false)
 {
 	_clientAddress = {};
 }
@@ -44,6 +47,11 @@ int										Client::getPasswordAttempts	() const noexcept	{ return _passwordAtt
 bool									Client::getPassValidated	() const noexcept	{ return _passValidated; }
 bool									Client::getActive			() const noexcept	{ return _active; }
 bool									Client::getPollout			() const noexcept	{ return _pollout; }
+time_point								Client::getConnectionTime	() const noexcept	{ return _connectionTime; }
+time_point								Client::getLastActivity		() const noexcept	{ return _lastActivity; }
+time_point								Client::getLastPing			() const noexcept	{ return _lastPing; }
+bool									Client::getPingPending		() const noexcept	{ return _pingPending; }
+
 
 // Setters
 
@@ -62,6 +70,10 @@ void	Client::setPasswordAttempts	( int attempts )					{ _passwordAttempts = atte
 void	Client::setPassValidated	( bool valid )						{ _passValidated = valid; }
 void	Client::setActive			( bool active )						{ _active = active; }
 void	Client::setPollout			( bool required )					{ _pollout = required; }
+void	Client::setConnectionTime	( time_point time )					{ _connectionTime = time; }
+void	Client::setLastActivity		( time_point time )					{ _lastActivity = time; }
+void	Client::setLastPing			( time_point time )					{ _lastPing = time; }
+void	Client::setPingPending		( bool pending )					{ _pingPending = pending; }
 
 
 // Buffer management
@@ -148,3 +160,33 @@ bool	Client::isInChannel(const std::string& channel) const
 
 // Password authentication
 void	Client::incrementPassAttempts() { ++_passwordAttempts; }
+
+// Timeout checks
+
+
+bool	Client::hasRegistrationExpired()
+{
+	if ( _authenticated )
+		return false;
+
+	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>( steady_clock::now() - _connectionTime );
+	return elapsed.count() >= irc::CLIENT_REGISTRATION_TIMEOUT;
+}
+
+bool	Client::hasPingExpired()
+{
+	if ( !_pingPending )
+		return false;
+
+	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>( steady_clock::now() - _lastPing );
+	return elapsed.count() >= irc::CLIENT_PING_TIMEOUT;
+}
+
+bool	Client::needsPing()
+{
+	if ( !_authenticated || _pingPending )
+		return false;
+
+	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>( steady_clock::now() - _lastActivity );
+	return elapsed.count() >= irc::CLIENT_PING_INTERVAL;
+}

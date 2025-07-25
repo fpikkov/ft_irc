@@ -1,6 +1,10 @@
 #pragma once
 #include <unordered_set>
+#include <chrono>
 #include "headers.hpp"
+
+using steady_clock	= std::chrono::steady_clock;
+using time_point	= steady_clock::time_point;
 
 class Client
 {
@@ -21,6 +25,10 @@ private:
 	bool							_passValidated;
 	bool							_active;
 	bool							_pollout;
+	time_point						_connectionTime;
+	time_point						_lastActivity;
+	time_point						_lastPing;
+	bool							_pingPending;
 
 public:
 	//Constructors/Destructor
@@ -45,6 +53,10 @@ public:
 	bool									getPassValidated	() const noexcept;
 	bool									getActive			() const noexcept;
 	bool									getPollout			() const noexcept;
+	time_point								getConnectionTime	() const noexcept;
+	time_point								getLastActivity		() const noexcept;
+	time_point								getLastPing			() const noexcept;
+	bool									getPingPending		() const noexcept;
 
 	// Setters
 	void		setClientFd				( int fd );
@@ -60,6 +72,10 @@ public:
 	void		setPassValidated		( bool valid );
 	void		setActive				( bool active );
 	void		setPollout				( bool required );
+	void		setConnectionTime		( time_point time );
+	void		setLastActivity			( time_point time );
+	void		setLastPing				( time_point time );
+	void		setPingPending			( bool pending );
 
 	// Buffer management
 	bool		appendToReceiveBuffer	( const std::string& data );
@@ -78,6 +94,11 @@ public:
 
 	// Password authentication
 	void		incrementPassAttempts	();
+
+	// Timeout checks
+	bool		hasRegistrationExpired	();
+	bool		hasPingExpired			();
+	bool		needsPing				();
 
 protected:
 	// Protected setters
