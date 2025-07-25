@@ -116,7 +116,9 @@ void	Response::sendResponseCode( int code, Client& client, const string_map& pla
 		{ "text", emptyFieldComplex },
 		{ "server info", emptyFieldComplex },
 		{ "user modes", emptyFieldComplex },
-		{ "channel modes", emptyFieldComplex }
+		{ "channel modes", emptyFieldComplex },
+		{ "mode", emptyFieldBasic },
+		{ "mode params", emptyFieldComplex }
 	};
 
 	for ( const auto& [placeholder, value] : placeholders )
@@ -413,6 +415,7 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_ENDOFNAMES:		return ":<server> <code> <nick> <channel> :End of /NAMES\r\n";
 
 		case RPL_INVITING:			return ":<server> <code> <nick> <channel> <target>\r\n";
+		case RPL_CHANNELMODEIS:		return ":<server> <code> <nick> <channel> <mode> <mode params>\r\n";
 
 		case ERR_NOSUCHCHANNEL:		return ":<server> <code> <nick> <channel> :No such channel\r\n";
 		case ERR_CHANNELISFULL:		return ":<server> <code> <nick> <channel> :Channel is full\r\n";
