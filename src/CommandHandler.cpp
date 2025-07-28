@@ -197,7 +197,6 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		channel->addMember(client.getFd());
 		client.joinChannel(channel->getName());
 		channel->addOperator(client.getFd());
-		broadcastMode(client, *channel, "+o", cmd );
 
 		irc::log_event("CHANNEL", irc::LOG_INFO, client.getNickname() + "@" + client.getIpAddress() + " joined " + target);
 		broadcastJoin(client, *channel);
