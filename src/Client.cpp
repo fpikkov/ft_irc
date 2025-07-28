@@ -5,7 +5,7 @@
 using steady_clock	= std::chrono::steady_clock;
 using time_point	= std::chrono::steady_clock::time_point;
 
-// Constructors/Destructor
+// Constructor/Destructor
 
 Client::Client() :
 	_clientFd(-1),
@@ -14,16 +14,6 @@ Client::Client() :
 	_passwordAttempts(0),
 	_passValidated(false),
 	_active(false),
-	_pollout(false)
-{}
-
-Client::Client( int client_fd ) :
-	_clientFd( client_fd ),
-	_authenticated(false),
-	_clientAddress({}),
-	_passwordAttempts(0),
-	_passValidated(false),
-	_active(true),
 	_pollout(false),
 	_connectionTime(steady_clock::now()),
 	_lastActivity(steady_clock::now()),

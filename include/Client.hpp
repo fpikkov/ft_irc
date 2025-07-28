@@ -28,9 +28,8 @@ private:
 	bool									_pingPending;
 
 public:
-	//Constructors/Destructor
+	//Constructor/Destructor
 	Client();
-	Client(int client_fd);
 	~Client();
 
 	// Getters
