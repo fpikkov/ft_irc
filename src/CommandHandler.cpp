@@ -303,7 +303,7 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 		return ;
 	}
 }
-
+//TODO: #13 when KICK is used, irssi does not close the channel window for kicked user. Most likely this is due to kick message form.
 void	CommandHandler::handleKick(Client& client, const Command& cmd)
 {
 	if (!client.isAuthenticated())
@@ -319,7 +319,7 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 
 	Channel*	channel = _server.findChannel(cmd.params[0]);
 	Client*		target = _server.findUser(cmd.params[1]);
-	std::string	message = (cmd.params.size() > 2) ? cmd.params[3] : "";
+	std::string	message = (cmd.params.size() > 2) ? cmd.params[2] : "";
 
 	if (!channel)
 	{
@@ -347,9 +347,9 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NOTONCHANNEL, client, {{"channel", channel->getName()}});
 		return ;
 	}
+	broadcastKick(client, *target, *channel, message);
 	channel->removeMember(target->getFd());
 	target->leaveChannel(channel->getName());
-	broadcastKick(client, *channel, message);
 }
 
 void	CommandHandler::handleInvite(Client& client, const Command& cmd)
