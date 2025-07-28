@@ -567,7 +567,6 @@ void	Server::buildSSupportMessage()
 				<< "MAXNICKLEN=" << irc::MAX_NICKNAME_LENGTH << " "
 				<< "MAXCHANNELS=" << irc::MAX_CHANNELS << " "
 				<< "TOPICLEN=" << irc::MAX_TOPIC_LENGTH << " "
-				<< "TOPICLEN=" << irc::MAX_TOPIC_LENGTH << " "
 				<< "PREFIX=" << irc::OPERATOOR_PREFIX << " "
 				<< "CHANLIMIT=" << irc::CHANNEL_TYPES << ":" << irc::MAX_CHANNELS << " "
 				<< "CASEMAPPING=" << irc::CASE_MAPPING;
