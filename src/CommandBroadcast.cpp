@@ -107,7 +107,7 @@ void	CommandHandler::broadcastPart( Client& client, Channel& channel, const std:
 	}
 }
 
-void	CommandHandler::broadcastKick( Client& client, Channel& channel, const std::string& message )
+void	CommandHandler::broadcastKick( Client& client, Client& target, Channel& channel, const std::string& message )
 {
 	const auto& allClients			= _server.getClients();
 	const std::string channelName	= channel.getName();
@@ -118,7 +118,7 @@ void	CommandHandler::broadcastKick( Client& client, Channel& channel, const std:
 		if (memberIt != allClients.end())
 		{
 			Client& channelMember = const_cast<Client&>(memberIt->second);
-			Response::sendResponseCommand("KICK", client, channelMember, {{"channel", channelName}, { "reason", message}});
+			Response::sendResponseCommand("KICK", client, channelMember, {{"channel", channelName}, {"target", target.getNickname()}, { "reason", message}});
 		}
 	}
 }

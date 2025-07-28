@@ -66,7 +66,7 @@ void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Cha
 	bool adding = true;
 
 	//TODO: #12 There is something wrong with modes +i, +t, +k. The attributes of channel are not affected by these.
-	for (size_t i; i < modeStr.size(); ++i)
+	for (size_t i = 0; i < modeStr.size(); ++i)
 	{
 		char mode = modeStr[i];
 		if (mode == '+') { adding = true; continue; }
