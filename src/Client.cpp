@@ -13,7 +13,7 @@ Client::Client() :
 	_clientAddress({}),
 	_passwordAttempts(0),
 	_passValidated(false),
-	_active(false),
+	_active(true),
 	_pollout(false),
 	_connectionTime(steady_clock::now()),
 	_lastActivity(steady_clock::now()),
