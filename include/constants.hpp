@@ -79,6 +79,9 @@ namespace irc
 	// Client command logging
 	constexpr const bool ENABLE_COMMAND_LOGGING = true;
 
+	// Enable logging of PING
+	constexpr const bool ENABLE_PING_LOGGING = false;
+
 	// Additional debug messaging
 	constexpr const bool EXTENDED_DEBUG_LOGGING = false;
 
