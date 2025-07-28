@@ -539,7 +539,7 @@ void	Server::checkTimeouts()
 		{
 			if constexpr ( irc:: EXTENDED_DEBUG_LOGGING )
 				irc::log_event("PING", irc::LOG_DEBUG, "sending ping to " + client.getIpAddress() );
-			Response::sendPing(client, "");
+			Response::sendPing(client, _serverHostname);
 			client.setPingPending(true);
 			client.updateLastPing();
 		}

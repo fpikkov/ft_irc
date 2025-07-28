@@ -623,12 +623,15 @@ void CommandHandler::handlePing(Client& client, const Command& cmd)
 /**
  * @brief Handles PONG which is sent over a time interval to confirm that the Client is still alive.
  */
-void CommandHandler::handlePong( Client& client, [[maybe_unused]] const Command& cmd)
+void CommandHandler::handlePong( Client& client, const Command& cmd)
 {
 	if (client.getPingPending())
 	{
-		client.setPingPending(false);
-		client.updateLastActivity();
+		if ( !cmd.params.empty() && cmd.params[0] == _server.getServerHostname() )
+		{
+			client.setPingPending(false);
+			client.updateLastActivity();
+		}
 	}
 }
 
