@@ -60,12 +60,15 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 
 void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Channel* channel, const std::string& channelName)
 {
+	if (!channel->isOperator(client.getFd()))
+    {
+        Response::sendResponseCode(Response::ERR_CHANOPRIVSNEEDED, client, {{"channel", channelName}});
+        return;
+    }
 	std::string modeStr = cmd.params[1];
 	size_t paramIndex = 2;
 
 	bool adding = true;
-
-	//TODO: #12 There is something wrong with modes +i, +t, +k. The attributes of channel are not affected by these.
 	for (size_t i = 0; i < modeStr.size(); ++i)
 	{
 		char mode = modeStr[i];
@@ -113,24 +116,43 @@ void CommandHandler::handleModeKey(Client& client, Command& cmd, Channel* channe
 	}
 }
 
+
 void CommandHandler::handleModeLimit(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex)
 {
-	if (adding)
-	{
-		if (paramIndex >= cmd.params.size())
-		{
-			Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
-			return ;
-		}
-		int limit = std::atoi(cmd.params[paramIndex].c_str());
-		channel->setUserLimit(limit);
-		++paramIndex;
-	}
-	else
-	{
-		channel->setUserLimit(0);
-	}
+    if (adding)
+    {
+        if (paramIndex >= cmd.params.size())
+        {
+            Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
+            return;
+        }
+        try
+        {
+            int limit = std::stoi(cmd.params[paramIndex]);
+            if (limit <= 0)
+            {
+                return;
+            }
+            channel->setUserLimit(limit);
+            ++paramIndex;
+        }
+        catch (const std::invalid_argument& ia)
+        {
+            // The parameter was not a valid number, ignore the mode change or send an error
+            (void)ia; // Avoid unused variable warning
+        }
+        catch (const std::out_of_range& oor)
+        {
+            // The number was too large, ignore or send an error
+            (void)oor; // Avoid unused variable warning
+        }
+    }
+    else
+    {
+        channel->setUserLimit(0); // Set limit to 0 to unset
+    }
 }
+
 
 void CommandHandler::handleModeOperator(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex, const std::string& channelName)
 {
