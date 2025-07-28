@@ -407,7 +407,7 @@ std::string	Response::getResponseTemplate( int code )
 		case ERR_NEEDMOREPARAMS:	return ":<server> <code> <nick> <command> :Not enough parameters\r\n";
 		case ERR_ALREADYREGISTERED:	return ":<server> <code> <nick> :You may not reregister\r\n";
 		case ERR_PASSWDMISMATCH:	return ":<server> <code> <nick> :Password incorrect\r\n";
-		case ERR_TOOMANYCHANNELS:	return ":<server> <code> <nick> <channel> :You have joined too many channels";
+		case ERR_TOOMANYCHANNELS:	return ":<server> <code> <nick> <channel> :You have joined too many channels\r\n";
 
 
 		/// Channel operations

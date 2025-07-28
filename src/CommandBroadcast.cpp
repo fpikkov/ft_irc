@@ -43,7 +43,9 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	Response::sendResponseCode(Response::RPL_NAMREPLY, client, {{"symbol", ""}, {"channel", channelName}, {"names", namesList}});
 	Response::sendResponseCode(Response::RPL_ENDOFNAMES, client, {{"channel", channelName}});
 	if (!channel.getTopic().empty()) //if topic is set, show show the topic to who joined
-		Response::sendResponseCode(Response::RPL_TOPIC, client, {{"channel", channel.getName()}, {"topic", channel.getTopic()}});
+		Response::sendResponseCode(Response::RPL_TOPIC, client, {{"channel", channelName}, {"topic", channel.getTopic()}});
+	else
+		Response::sendResponseCode(Response::RPL_NOTOPIC, client, {{"channel", channelName}});
 
 }
 
