@@ -36,6 +36,7 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["SUMMON"]		= [this](Client& c, const Command& cmd) { handleSummon(c, cmd); };
 	_handlers["USERS"]		= [this](Client& c, const Command& cmd) { handleUsers(c, cmd); };
 	_handlers["WHOIS"]		= [this](Client& c, const Command& cmd) { handleWhois(c, cmd); };
+	_handlers["WHO"]		= [this](Client& c, const Command& cmd) { handleWhois(c, cmd); };
 }
 
 /**
@@ -665,6 +666,11 @@ void CommandHandler::handleUsers(Client& client, [[maybe_unused]] const Command&
 }
 
 void CommandHandler::handleWhois([[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd)
+{
+	return;
+}
+
+void CommandHandler::handleWho([[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd)
 {
 	return;
 }
