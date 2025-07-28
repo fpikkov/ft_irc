@@ -40,10 +40,10 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 
 	if (channel->isInviteOnly()) modes += "i";
 	if (channel->isTopicLocked()) modes += "t";
-	if (channel->getKey()) // if not a nullptr
+	if (!channel->getKey().empty()) // if key not empty
 	{
 		modes += "k";
-		params += " " + *channel->getKey(); // dereferencing
+		params += " " + channel->getKey(); // add key to params
 	}
 	if (channel->getUserLimit())
 	{

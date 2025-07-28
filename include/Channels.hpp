@@ -14,7 +14,7 @@ class Channel
 		std::unordered_set<int> 	_invited;
 		bool						_inviteOnly;
 		bool						_topicLocked;
-		std::optional<std::string>	_key;
+		std::string					_key;
 		int							_userLimit;
 
 	public:
@@ -27,7 +27,7 @@ class Channel
 		const std::unordered_set<int>&		getOperators	() const;
 		bool								isInviteOnly	() const;
 		bool								isTopicLocked	() const;
-		const std::optional<std::string>&	getKey			() const;
+		const std::string&					getKey			() const;
 		int									getUserLimit	() const;
 
 		//Setters

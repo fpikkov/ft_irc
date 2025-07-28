@@ -226,14 +226,14 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 		return ;
 	}
 
-	if ( channel->getKey().has_value() )
+	if ( !channel->getKey().empty() )
 	{
-		if ( key.empty() || (channel->getKey().value() != key) )
+		if ( key.empty() || (channel->getKey() != key) )
 		{
 			Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", target}});
 			return ;
 		}
-		else if ( !key.empty() && channel->getKey().value() == key )
+		else if ( !key.empty() && channel->getKey() == key )
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
@@ -242,7 +242,6 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 				broadcastJoin(client, *channel);
 				if (!channel->getTopic().empty())
 					Response::sendResponseCommand("TOPIC", client, client, {{"channel", channel->getName()}, {"topic", channel->getTopic()}});
-
 			}
 			return ;
 		}
