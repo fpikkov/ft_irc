@@ -220,6 +220,7 @@ void	Response::sendWelcome( Client& client )
 	Response::sendResponseCode(Response::RPL_YOURHOST, client, {});
 	Response::sendResponseCode(Response::RPL_CREATED, client, {});
 	Response::sendResponseCode(Response::RPL_MYINFO, client, {{"channel modes", irc::CHANNEL_MODES}});
+	Response::sendResponseCode(Response::RPL_ISUPPORT, client, {{"param", _isupport}});
 }
 
 
@@ -259,11 +260,12 @@ void	Response::sendPong( Client& target, const std::string& token )
 std::string	Response::_date;
 std::string	Response::_server;
 std::string	Response::_version;
+std::string Response::_isupport;
 
 void		Response::setServerDate		( const std::string& date )		{ _date = date; }
 void		Response::setServerName		( const std::string& name )		{ _server = name; }
 void		Response::setServerVersion	( const std::string& version )	{ _version = version; }
-
+void		Response::setIsupport		( const std::string& message )	{ _isupport = message; }
 
 /// Static helper functions
 
@@ -397,7 +399,7 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_YOURHOST:			return ":<server> <code> <nick> :Your host is <server>, running version <version>\r\n";
 		case RPL_CREATED:			return ":<server> <code> <nick> :This server was created <date>\r\n";
 		case RPL_MYINFO:			return ":<server> <code> <nick> <server> <version> <user modes> <channel modes>\r\n";
-		case RPL_ISUPPORT:			return ":<server> <code> <nick> <param>=<value> :are supported by this server\r\n";
+		case RPL_ISUPPORT:			return ":<server> <code> <nick> <param> :are supported by this server\r\n";
 		case ERR_NONICKNAMEGIVEN:	return ":<server> <code> <nick> :No nickname given\r\n";
 		case ERR_ERRONEUSNICKNAME:	return ":<server> <code> <nick> <new nick> :Erroneous nickname\r\n";
 		case ERR_NICKNAMEINUSE:		return ":<server> <code> <nick> <new nick> :Nickname is already in use\r\n";

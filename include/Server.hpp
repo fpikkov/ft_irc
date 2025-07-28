@@ -33,12 +33,13 @@ class Server
 		Server( const Server& )					= delete;
 		Server& operator=( const Server& )		= delete;
 
-		void				signalSetup			( bool start ) noexcept;
-		static void 		signalHandler		( int signum );
-		std::string			fetchHostname		();
-		static void			fetchClientIp		( Client& client );
-		void				setClientsToPollout	();
-		void				checkTimeouts		();
+		void				signalSetup				( bool start ) noexcept;
+		static void 		signalHandler			( int signum );
+		std::string			fetchHostname			();
+		static void			fetchClientIp			( Client& client );
+		void				setClientsToPollout		();
+		void				checkTimeouts			();
+		static void			buildSSupportMessage	();
 
 	public:
 		Server( const std::string port, const std::string password );

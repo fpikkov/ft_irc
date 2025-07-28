@@ -16,6 +16,7 @@ class Response
 		static std::string	_date;
 		static std::string	_server;
 		static std::string	_version;
+		static std::string	_isupport;
 
 		Response() = delete;
 
@@ -32,6 +33,7 @@ class Response
 		static void	setServerDate						( const std::string& date );
 		static void	setServerName						( const std::string& name );
 		static void	setServerVersion					( const std::string& version );
+		static void	setIsupport							( const std::string& message );
 
 		/// Functions for sending messages
 		static void	sendResponseCode					( int code, Client& client, const string_map& placeholders );
