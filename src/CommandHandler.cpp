@@ -388,7 +388,7 @@ void	CommandHandler::handleInvite(Client& client, const Command& cmd)
 	}
 	channel->invite(target->getFd());
 	Response::sendResponseCommand("INVITE", client, *target, {{"target", target->getNickname() }, {"channel", channel->getName()}});
-	Response::sendResponseCode(Response::RPL_INVITING, client, {{"channel", channelName}, {"target", targetName}});
+	Response::sendResponseCode(Response::RPL_INVITING, client, {{"target", target->getNickname()}, {"channel", channel->getName()}});
 }
 
 void	CommandHandler::handleTopic(Client& client, const Command& cmd)

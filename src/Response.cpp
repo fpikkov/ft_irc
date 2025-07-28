@@ -416,7 +416,7 @@ std::string	Response::getResponseTemplate( int code )
 		case RPL_NAMREPLY:			return ":<server> <code> <nick> <symbol> <channel> :<names>\r\n";
 		case RPL_ENDOFNAMES:		return ":<server> <code> <nick> <channel> :End of /NAMES\r\n";
 
-		case RPL_INVITING:			return ":<server> <code> <nick> <channel> <target>\r\n";
+		case RPL_INVITING:			return ":<server> <code> <nick> <target> <channel>\r\n";
 		case RPL_CHANNELMODEIS:		return ":<server> <code> <nick> <channel> <mode> <mode params>\r\n";
 
 		case ERR_NOSUCHCHANNEL:		return ":<server> <code> <nick> <channel> :No such channel\r\n";
