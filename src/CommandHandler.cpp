@@ -303,7 +303,7 @@ void	CommandHandler::handlePart(Client& client, const Command& cmd)
 		return ;
 	}
 }
-
+//TODO: #13 when KICK is used, irssi does not close the channel window for kicked user. Most likely this is due to kick message form.
 void	CommandHandler::handleKick(Client& client, const Command& cmd)
 {
 	if (!client.isAuthenticated())
