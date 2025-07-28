@@ -3,6 +3,7 @@
 #include "constants.hpp"
 #include "Logger.hpp"
 #include <termios.h>
+#include <sstream>
 #include "Response.hpp"
 #include "Command.hpp"
 #include "Channels.hpp"
@@ -34,6 +35,8 @@ Server::Server( const std::string port, const std::string password ) :
 	Response::setServerDate		( _serverStartTime );
 	Response::setServerName		( _serverHostname );
 	Response::setServerVersion	( _serverVersion);
+
+	Server::buildSSupportMessage();
 }
 
 Server::~Server()
@@ -547,4 +550,26 @@ void	Server::checkTimeouts()
 	{
 		setDisconnectEvent(true);
 	}
+}
+
+/**
+ * @brief Static function which will construct a configuration message that gets sent to all new clients.
+ * The configuration is told the client so they know the limits of our server.
+ */
+void	Server::buildSSupportMessage()
+{
+	std::ostringstream	isupport;
+
+	isupport	<< "CHANTYPES=" << irc::CHANNEL_TYPES << " "
+				<< "CHANMODES=" << irc::CHANNEL_MODES << " "
+				<< "CHANNELLEN=" << irc::MAX_CHANNEL_LENGTH << " "
+				<< "NICKLEN=" << irc::MAX_NICKNAME_LENGTH << " "
+				<< "MAXNICKLEN=" << irc::MAX_NICKNAME_LENGTH << " "
+				<< "MAXCHANNELS=" << irc::MAX_CHANNELS << " "
+				<< "TOPICLEN=" << irc::MAX_TOPIC_LENGTH << " "
+				<< "PREFIX=" << irc::OPERATOOR_PREFIX << " "
+				<< "CHANLIMIT=" << irc::CHANNEL_TYPES << ":" << irc::MAX_CHANNELS << " "
+				<< "CASEMAPPING=" << irc::CASE_MAPPING;
+
+	Response::setIsupport( isupport.str() );
 }

@@ -36,6 +36,7 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	_handlers["SUMMON"]		= [this](Client& c, const Command& cmd) { handleSummon(c, cmd); };
 	_handlers["USERS"]		= [this](Client& c, const Command& cmd) { handleUsers(c, cmd); };
 	_handlers["WHOIS"]		= [this](Client& c, const Command& cmd) { handleWhois(c, cmd); };
+	_handlers["WHO"]		= [this](Client& c, const Command& cmd) { handleWhois(c, cmd); };
 }
 
 /**
@@ -51,7 +52,10 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	if (it != _handlers.end())
 	{
 		if constexpr ( irc::ENABLE_COMMAND_LOGGING )
-			irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
+		{
+			if ( cmd.command != "PING" || irc::ENABLE_PING_LOGGING )
+				irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
+		}
 		client.updateLastActivity();
 		it->second(client, cmd);
 	}
@@ -662,6 +666,11 @@ void CommandHandler::handleUsers(Client& client, [[maybe_unused]] const Command&
 }
 
 void CommandHandler::handleWhois([[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd)
+{
+	return;
+}
+
+void CommandHandler::handleWho([[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd)
 {
 	return;
 }

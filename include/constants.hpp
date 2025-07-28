@@ -19,6 +19,15 @@ namespace irc
 	// Available channel modes
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
 
+	// Prefix symbol (for operators)
+	constexpr const char* const OPERATOOR_PREFIX = "(o)@";
+
+	// What kinds of channel names do we support
+	constexpr const char* const CHANNEL_TYPES = "&#";
+
+	// Case mapping (What kind of character encoding are we using)
+	constexpr const char* const CASE_MAPPING = "ascii";
+
 	// Maximum password attempts
 	constexpr const int MAX_PASSWORD_ATTEMPTS = 3;
 
@@ -78,6 +87,9 @@ namespace irc
 
 	// Client command logging
 	constexpr const bool ENABLE_COMMAND_LOGGING = true;
+
+	// Enable logging of PING
+	constexpr const bool ENABLE_PING_LOGGING = false;
 
 	// Additional debug messaging
 	constexpr const bool EXTENDED_DEBUG_LOGGING = false;
