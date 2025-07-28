@@ -25,9 +25,8 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
-	//TODO: #8 Topic message is wrong when entering channel, fix it to the correct format.
 	if (!channel.getTopic().empty()) //if topic is set, show show the topic to who joined
-		Response::sendResponseCommand("TOPIC", client, client, {{"channel", channel.getName()}, {"topic", channel.getTopic()}});
+		Response::sendResponseCode(Response::RPL_TOPIC, client, {{"channel", channel.getName()}, {"topic", channel.getTopic()}});
 
 	// Announce new channel member to all existing clients
 	for ( const auto memberFd : channel.getMembers() )
