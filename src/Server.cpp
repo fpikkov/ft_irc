@@ -111,8 +111,7 @@ void	Server::serverLoop()
 			continue ;
 		}
 
-		int pollTimeout = irc::TIMEOUT_INTERVAL * 1000;
-		int pollResult = poll( _fds.data(), _fds.size(), pollTimeout );
+		int pollResult = poll( _fds.data(), _fds.size(), irc::TIMEOUT_INTERVAL_MILLIS );
 		if ( pollResult  <= 0 )
 		{
 			if ( errno == EINTR ) // signal was caught during poll

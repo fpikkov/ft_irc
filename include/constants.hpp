@@ -14,6 +14,7 @@ namespace irc
 
 	// How often we should check for timeouts
 	constexpr const int TIMEOUT_INTERVAL = 30;
+	constexpr const int TIMEOUT_INTERVAL_MILLIS = TIMEOUT_INTERVAL * 1000;
 
 	// Available channel modes
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
