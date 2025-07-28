@@ -228,12 +228,12 @@ void	CommandHandler::handleJoin(Client& client, const Command& cmd)
 
 	if ( !channel->getKey().empty() )
 	{
-		if ( key.empty() || (channel->getKey() != key) )
+		if ( (key.empty() || (channel->getKey() != key)) && !channel->isInvited(client.getFd()) )
 		{
 			Response::sendResponseCode(Response::ERR_BADCHANNELKEY, client, {{"channel", target}});
 			return ;
 		}
-		else if ( !key.empty() && channel->getKey() == key )
+		else
 		{
 			if (channel->addMember(client.getFd()) == true)
 			{
