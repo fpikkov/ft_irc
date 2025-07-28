@@ -25,9 +25,6 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
-	if (!channel.getTopic().empty()) //if topic is set, show show the topic to who joined
-		Response::sendResponseCode(Response::RPL_TOPIC, client, {{"channel", channel.getName()}, {"topic", channel.getTopic()}});
-
 	// Announce new channel member to all existing clients
 	for ( const auto memberFd : channel.getMembers() )
 	{
@@ -53,6 +50,9 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	// Send list of channel members to the client
 	Response::sendResponseCode(Response::RPL_NAMREPLY, client, {{"symbol", ""}, {"channel", channelName}, {"names", namesList}});
 	Response::sendResponseCode(Response::RPL_ENDOFNAMES, client, {{"channel", channelName}});
+	if (!channel.getTopic().empty()) //if topic is set, show show the topic to who joined
+		Response::sendResponseCode(Response::RPL_TOPIC, client, {{"channel", channel.getName()}, {"topic", channel.getTopic()}});
+
 }
 
 void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const std::string& message )
