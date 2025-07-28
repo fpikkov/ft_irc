@@ -69,7 +69,6 @@ void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Cha
 	size_t paramIndex = 2;
 
 	bool adding = true;
-
 	for (size_t i = 0; i < modeStr.size(); ++i)
 	{
 		char mode = modeStr[i];
