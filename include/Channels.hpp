@@ -9,12 +9,12 @@ class Channel
 	private:
 		std::string					_name;
 		std::string					_topic;
+		std::string					_key;
 		std::unordered_set<int> 	_members;
 		std::unordered_set<int> 	_operators;
 		std::unordered_set<int> 	_invited;
 		bool						_inviteOnly;
 		bool						_topicLocked;
-		std::string					_key;
 		int							_userLimit;
 
 	public:
