@@ -520,7 +520,8 @@ void CommandHandler::handleNick(Client& client, const Command& cmd)
 	{
 		if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 			irc::log_event("AUTH", irc::LOG_INFO, newNick + " set by " + client.getIpAddress());
-		Response::sendResponseCommand("NICK", client, client, {{"new nick", newNick}});
+		if (!client.getNickname().empty())
+			Response::sendResponseCommand("NICK", client, client, {{"new nick", newNick}});
 		client.setNickname(newNick);
 	}
 
