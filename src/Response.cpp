@@ -48,14 +48,11 @@ void	Response::sendResponseCommand( const std::string& command, Client& source, 
 
 	for ( const auto& [placeholder, value] : placeholders )
 	{
-		if ( !value.empty() )
-			fields[placeholder] = value;
+		fields[placeholder] = value;
 	}
 
 	if ( command == "QUIT" && fields["reason"].empty() )
 		fields["reason"] = "Client Quit";
-	if ( command == "KICK" && fields["reason"].empty() )
-		fields["reason"] = fields["target"];
 	if ( command == "PART" && fields["reason"].empty() )
 	{
 		size_t clrfPos = templateMessage.find_last_of("\r\n");
