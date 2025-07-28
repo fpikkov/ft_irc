@@ -17,7 +17,7 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	std::string			namesList;
 
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channelName);
 
 	// Announce new channel member to all existing clients
 	for ( const auto memberFd : channel.getMembers() )
@@ -51,10 +51,11 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 
 void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const std::string& message )
 {
-	const auto& allClients = _server.getClients();
+	const std::string	channelName	= channel.getName();
+	const auto&			allClients	= _server.getClients();
 
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
-		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
+		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channelName);
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
@@ -64,7 +65,7 @@ void	CommandHandler::broadcastPrivmsg( Client& client, Channel& channel, const s
 		if (memberIt != allClients.end())
 		{
 			Client& channelMember = const_cast<Client&>(memberIt->second);
-			Response::sendResponseCommand("PRIVMSG", client, channelMember, {{"target", channel.getName()}, {"message", message}});
+			Response::sendResponseCommand("PRIVMSG", client, channelMember, {{"target", channelName}, {"message", message}});
 		}
 	}
 }
@@ -95,8 +96,8 @@ void	CommandHandler::broadcastNotice( Client& client, Channel& channel, const st
  */
 void	CommandHandler::broadcastPart( Client& client, Channel& channel, const std::string& message )
 {
-	const auto& allClients			= _server.getClients();
-	const std::string channelName	= channel.getName();
+	const std::string	channelName	= channel.getName();
+	const auto&			allClients	= _server.getClients();
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
@@ -111,8 +112,8 @@ void	CommandHandler::broadcastPart( Client& client, Channel& channel, const std:
 
 void	CommandHandler::broadcastKick( Client& client, Channel& channel, const std::string& message )
 {
-	const auto& allClients			= _server.getClients();
-	const std::string channelName	= channel.getName();
+	const std::string	channelName	= channel.getName();
+	const auto&			allClients	= _server.getClients();
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
@@ -178,8 +179,8 @@ void	CommandHandler::broadcastQuit( Client& client, const std::string& message )
  */
 void	CommandHandler::broadcastMode( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd )
 {
-	const auto& 		allClients	= _server.getClients();
 	const std::string	channelName	= channel.getName();
+	const auto& 		allClients	= _server.getClients();
 	std::string			target;
 
 	// Append parameters if any
@@ -202,8 +203,8 @@ void	CommandHandler::broadcastMode( Client& client, Channel& channel, const std:
 
 void	CommandHandler::broadcastTopic( Client& client, Channel& channel, const std::string& newTopic )
 {
-	const auto& 		allClients	= _server.getClients();
 	const std::string	channelName	= channel.getName();
+	const auto& 		allClients	= _server.getClients();
 
 	for ( const auto memberFd : channel.getMembers() )
 	{
