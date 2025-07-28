@@ -16,12 +16,6 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	const auto&			allClients	= _server.getClients();
 	std::string			namesList;
 
-	// Construct list of NAMES
-	if (channel.isOperator(client.getFd()))
-		namesList += "@" + client.getNickname();
-	else
-		namesList += client.getNickname();
-
 	if constexpr ( irc::EXTENDED_DEBUG_LOGGING )
 		irc::log_event("CHANNEL", irc::LOG_DEBUG, "broadcast: " + channel.getName());
 
@@ -32,8 +26,6 @@ void	CommandHandler::broadcastJoin( Client& client, Channel& channel )
 	// Announce new channel member to all existing clients
 	for ( const auto memberFd : channel.getMembers() )
 	{
-		if (memberFd == client.getFd()) continue;
-
 		// Space separate the NAMES
 		if (!namesList.empty())
 			namesList += " ";
