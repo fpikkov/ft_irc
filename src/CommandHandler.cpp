@@ -35,6 +35,7 @@ CommandHandler::CommandHandler(Server& server) : _server(server)
 	// Additional commands
 	_handlers["SUMMON"]		= [this](Client& c, const Command& cmd) { handleSummon(c, cmd); };
 	_handlers["USERS"]		= [this](Client& c, const Command& cmd) { handleUsers(c, cmd); };
+	_handlers["WHOIS"]		= [this](Client& c, const Command& cmd) { handleWhois(c, cmd); };
 }
 
 /**
@@ -658,4 +659,9 @@ void CommandHandler::handleSummon(Client& client, [[maybe_unused]] const Command
 void CommandHandler::handleUsers(Client& client, [[maybe_unused]] const Command& cmd)
 {
 	Response::sendResponseCode(Response::ERR_USERSDISABLED, client, {});
+}
+
+void CommandHandler::handleWhois([[maybe_unused]] Client& client, [[maybe_unused]] const Command& cmd)
+{
+	return;
 }
