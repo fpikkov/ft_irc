@@ -63,7 +63,7 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 }
 
 
-// TODO: Refactor parseChannelModes into multiple functions
+// TODO: #16 Refactor parseChannelModes into multiple functions
 /**
  * @brief Parses the MODE command into a separate struct which keeps track of mode type, parameters and if the mode is being added.
  * Modes which require parameters: +kol, -o
@@ -173,7 +173,7 @@ bool	CommandHandler::parseChannelModes(Client& client, const Command& cmd, std::
 	return true;
 }
 
-// TODO: The handlers can be substituted with the short code they contain.
+// TODO: #15 The handlers can be substituted with the short code they contain.
 void	CommandHandler::applyChannelModes(Client& client, Channel& channel, const std::vector<Mode>& modes)
 {
 	// TODO: #14 When a MODE change partially fails, construct a new modeStr for the clients with valid commands.
