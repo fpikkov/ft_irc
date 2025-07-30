@@ -174,17 +174,11 @@ void	CommandHandler::broadcastQuit( Client& client, const std::string& message )
 /**
  * @brief Broadcasts a channel mode change to all users apart of that channel.
  */
-void	CommandHandler::broadcastMode( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd )
+void	CommandHandler::broadcastMode( Client& client, Channel& channel, const std::string& modeStr)
 {
 	const std::string	channelName	= channel.getName();
 	const auto& 		allClients	= _server.getClients();
 	std::string			target;
-
-	// Append parameters if any
-	for (size_t i = 2; i < cmd.params.size(); ++i)
-	{
-		target += " " + cmd.params[i];
-	}
 
 	// Send to all members
 	for ( const auto memberFd : channel.getMembers() )

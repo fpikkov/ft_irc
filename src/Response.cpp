@@ -415,6 +415,7 @@ std::string	Response::getResponseTemplate( int code )
 
 		case RPL_INVITING:			return ":<server> <code> <nick> <target> <channel>\r\n";
 		case RPL_CHANNELMODEIS:		return ":<server> <code> <nick> <channel> <mode> <mode params>\r\n";
+		case ERR_UNKNOWNMODE:		return ":<server> <code> <nick> <mode> :is unknown mode char to me\r\n";
 
 		case ERR_NOSUCHCHANNEL:		return ":<server> <code> <nick> <channel> :No such channel\r\n";
 		case ERR_CHANNELISFULL:		return ":<server> <code> <nick> <channel> :Channel is full\r\n";

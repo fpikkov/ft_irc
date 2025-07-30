@@ -73,3 +73,13 @@ bool	CommandHandler::confirmAuth( Client& client )
 	}
 	return true;
 }
+
+bool	CommandHandler::isMode( char mode )
+{
+	return mode == 'i' || mode == 't'  || mode == 'k' || mode == 'o' || mode == 'l';
+}
+
+bool	CommandHandler::isSign( char sign )
+{
+	return sign == '+' || sign == '-';
+}

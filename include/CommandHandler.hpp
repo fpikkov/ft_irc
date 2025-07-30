@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <unordered_map>
+#include <vector>
 #include <algorithm>
 #include <iostream>
 
@@ -8,6 +9,7 @@ class	Server;
 class	Client;
 class	Channel;
 struct	Command;
+struct	Mode;
 
 class	CommandHandler
 {
@@ -49,13 +51,15 @@ class	CommandHandler
 
 			// Helper functions for handling modes
 			void	handleChannelMode(Client& client, const Command& cmd, const std::string& channelName);
-			void	sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName, const Command& cmd);
-			void	parseAndApplyChannelModes(Client& client, Command& cmd, Channel* channel, const std::string& channelName);
-			void	handleModeInviteOnly(Channel* channel, bool adding);
-			void	handleModeTopicLocked(Channel* channel, bool adding);
-			void	handleModeKey(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex);
-			void	handleModeLimit(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex);
-			void	handleModeOperator(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex, const std::string& channelName);
+			void	sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName);
+			bool	parseChannelModes(Client& client, const Command& cmd, std::vector<Mode>& modes);
+			void	applyChannelModes(Client& client, Channel& channel, const std::vector<Mode>& modes);
+
+			void	handleModeInviteOnly(Channel& channel, bool adding);
+			void	handleModeTopicLocked(Channel& channel, bool adding);
+			void	handleModeKey(Channel& channel, bool adding, const Mode& mode);
+			void	handleModeLimit(Channel& channel, bool adding, const Mode& mode);
+			void	handleModeOperator(Client& client, Channel& channel, bool adding, const Mode& mode);
 
 			// Channel broadcasting functions
 			void	broadcastJoin		( Client& client, Channel& channel );
@@ -64,7 +68,7 @@ class	CommandHandler
 			void	broadcastPart		( Client& client, Channel& channel, const std::string& message );
 			void	broadcastKick		( Client& client, Client& target, Channel& channel, const std::string & message );
 			void	broadcastQuit		( Client& client, const std::string& message );
-			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr, const Command& cmd );
+			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr);
 			void	broadcastTopic		( Client& client, Channel& channel, const std::string& newTopic );
 
 			// Static helper functions
@@ -72,6 +76,8 @@ class	CommandHandler
 			static bool			isChannelName	( const std::string& name );
 			static std::string	toLowerCase		( const std::string& s );
 			static bool			confirmAuth		( Client& client );
+			static bool			isMode			( char mode );
+			static bool			isSign			( char sign );
 
 	public:
 			CommandHandler(Server& server);
