@@ -319,7 +319,6 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 
 	Channel*	channel = _server.findChannel(cmd.params[0]);
 	Client*		target = _server.findUser(cmd.params[1]);
-	std::string	message = (cmd.params.size() > 2) ? cmd.params[2] : "";
 
 	if (!channel)
 	{
@@ -347,6 +346,21 @@ void	CommandHandler::handleKick(Client& client, const Command& cmd)
 		Response::sendResponseCode(Response::ERR_NOTONCHANNEL, client, {{"channel", channel->getName()}});
 		return ;
 	}
+
+	std::string	message;
+	if (cmd.params.size() > 2)
+	{
+		size_t pos = cmd.params[2].find_first_of(':');
+		if (pos != std::string::npos)
+			message = cmd.params[2].substr(pos + 1);
+		else
+			message = cmd.params[2];
+	}
+	if (message.empty())
+	{
+		message = target->getNickname();
+	}
+
 	broadcastKick(client, *target, *channel, message);
 	channel->removeMember(target->getFd());
 	target->leaveChannel(channel->getName());

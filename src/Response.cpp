@@ -48,14 +48,11 @@ void	Response::sendResponseCommand( const std::string& command, Client& source, 
 
 	for ( const auto& [placeholder, value] : placeholders )
 	{
-		if ( !value.empty() )
-			fields[placeholder] = value;
+		fields[placeholder] = value;
 	}
 
 	if ( command == "QUIT" && fields["reason"].empty() )
 		fields["reason"] = "Client Quit";
-	if ( command == "KICK" && fields["reason"].empty() )
-		fields["reason"] = fields["target"];
 	if ( command == "PART" && fields["reason"].empty() )
 	{
 		size_t clrfPos = templateMessage.find_last_of("\r\n");
@@ -343,7 +340,7 @@ std::string	Response::findAndReplacePlaceholders( const std::string& template_st
  */
 std::string	Response::getCommandTemplate( const std::string& command )
 {
-	string_map validCommands =
+	static const string_map validCommands =
 	{
 		{"PRIVMSG", ":<nick>!<user>@<host> PRIVMSG <target> :<message>\r\n"},
 		{"NOTICE", ":<nick>!<user>@<host> NOTICE <target> :<message>\r\n"},
@@ -357,11 +354,9 @@ std::string	Response::getCommandTemplate( const std::string& command )
 		{"INVITE", ":<nick>!<user>@<host> INVITE <target> :<channel>\r\n"}
 	};
 
-	for ( const auto& [key, value] : validCommands )
-	{
-		if ( key == command )
-			return (value);
-	}
+	auto it = validCommands.find(command);
+	if ( it != validCommands.end() )
+		return ( it->second );
 	return ("");
 }
 
