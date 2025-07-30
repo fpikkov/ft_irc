@@ -34,7 +34,7 @@ class Channel
 		void	setTopic		(const std::string& topic);
 		void	setInviteOnly	(bool inviteonly);
 		void	setTopicLocked	(bool topiclocked);
-		void	setUserLimit	(int limit);
+		void	setUserLimit	(size_t limit);
 		void	setKey			(const std::string& key);
 
 		//Membership management

@@ -26,7 +26,7 @@ void	Channel::setTopic(const std::string& topic)						{ _topic = topic;}
 void	Channel::setKey(const std::string& key)							{ _key = key; }
 void	Channel::setInviteOnly(bool inviteonly)							{ _inviteOnly = inviteonly; }
 void	Channel::setTopicLocked(bool topiclocked)						{ _topicLocked = topiclocked; }
-void	Channel::setUserLimit(int limit)								{ _userLimit = limit; }
+void	Channel::setUserLimit(size_t limit)								{ _userLimit = limit; }
 
 //Membership management
 

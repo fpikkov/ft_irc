@@ -43,28 +43,39 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 	if (!channel->getKey().empty()) // if key not empty
 	{
 		modes += "k";
-		params += " " + channel->getKey(); // add key to params
+		params += channel->getKey(); // add key to params
 	}
 	if (channel->getUserLimit())
 	{
 		modes += "l";
-		params += " " + std::to_string(channel->getUserLimit());
+		if (!params.empty())
+			params += " ";
+		params += std::to_string(channel->getUserLimit());
 	}
-	// TODO: #10 Check where we should be broadcasting the mode to the channel
-	// broadcastMode(client, *channel, params, cmd);
-	Response::sendResponseCommand("MODE", client, client, {{"channel", channelName}, {"flags", modes}, {"target", params}});
+	Response::sendResponseCode(Response::RPL_CHANNELMODEIS, client, {{"channel", channelName}, {"mode", modes}, {"mode params", params}});
 }
 
 // params[0]=channel, params[1]=modes, params[2...]=params
 // MODE #mychan +itk secretkey -o Alice +l 50
 
+// TODO: When a MODE change partially fails, construct a new modeStr for the clients with valid commands.
+/**
+ * If channel has no key:
+ *
+ * MODE #channel +l20i -k
+ *
+ * becomes:
+ * MODE #channel +l20i
+ */
 void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Channel* channel, const std::string& channelName)
 {
 	if (!channel->isOperator(client.getFd()))
-    {
-        Response::sendResponseCode(Response::ERR_CHANOPRIVSNEEDED, client, {{"channel", channelName}});
-        return;
-    }
+	{
+		Response::sendResponseCode(Response::ERR_CHANOPRIVSNEEDED, client, {{"channel", channelName}});
+		return;
+	}
+	if (cmd.params.size() < 2)
+		return ;
 	std::string modeStr = cmd.params[1];
 	size_t paramIndex = 2;
 
@@ -72,10 +83,10 @@ void CommandHandler::parseAndApplyChannelModes(Client& client, Command& cmd, Cha
 	for (size_t i = 0; i < modeStr.size(); ++i)
 	{
 		char mode = modeStr[i];
-		if (mode == '+') { adding = true; continue; }
-		if (mode == '-') { adding = false; continue; }
 		switch (mode)
 		{
+			case '+': adding = true; break;
+			case '-': adding = false; break;
 			case 'i': handleModeInviteOnly(channel, adding); break;
 			case 't': handleModeTopicLocked(channel, adding); break;
 			case 'k': handleModeKey(client, cmd, channel, adding, paramIndex); break;
@@ -119,38 +130,30 @@ void CommandHandler::handleModeKey(Client& client, Command& cmd, Channel* channe
 
 void CommandHandler::handleModeLimit(Client& client, Command& cmd, Channel* channel, bool adding, size_t& paramIndex)
 {
-    if (adding)
-    {
-        if (paramIndex >= cmd.params.size())
-        {
-            Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
-            return;
-        }
-        try
-        {
-            int limit = std::stoi(cmd.params[paramIndex]);
-            if (limit <= 0)
-            {
-                return;
-            }
-            channel->setUserLimit(limit);
-            ++paramIndex;
-        }
-        catch (const std::invalid_argument& ia)
-        {
-            // The parameter was not a valid number, ignore the mode change or send an error
-            (void)ia; // Avoid unused variable warning
-        }
-        catch (const std::out_of_range& oor)
-        {
-            // The number was too large, ignore or send an error
-            (void)oor; // Avoid unused variable warning
-        }
-    }
-    else
-    {
-        channel->setUserLimit(0); // Set limit to 0 to unset
-    }
+	if (adding)
+	{
+		if (paramIndex >= cmd.params.size())
+		{
+			Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
+			return;
+		}
+		try
+		{
+			size_t limit = std::stoul(cmd.params[paramIndex]);
+			if (limit > irc::MAX_CHANNELS)
+				limit = irc::MAX_CHANNELS;
+			channel->setUserLimit(limit);
+			++paramIndex;
+		}
+		catch (...)
+		{
+			// Do nothing as we got an invalid argument
+		}
+	}
+	else
+	{
+		channel->setUserLimit(0); // Set limit to 0 to unset
+	}
 }
 
 
