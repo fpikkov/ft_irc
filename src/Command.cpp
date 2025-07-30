@@ -21,7 +21,7 @@ static  std::string joinTrail(std::string token, std::istringstream &iss)
 
 	std::getline(iss, trail);
 
-	return token + trail;
+	return token.substr(1) + trail;
 }
 
 /* msgToCmd uses istringstream to tokenize the message.
