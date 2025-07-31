@@ -5,6 +5,13 @@
 
 namespace irc
 {
+	#ifdef DEBUG
+		constexpr const bool DEBUG_MODE = true;
+	#else
+		constexpr const bool DEBUG_MODE = false;
+	#endif
+
+	/*================ PING CONFIG ================*/
 	// How much time the client has to register (seconds)
 	constexpr const int CLIENT_REGISTRATION_TIMEOUT = 30;
 
@@ -16,6 +23,8 @@ namespace irc
 	constexpr const int TIMEOUT_INTERVAL = 30;
 	constexpr const int TIMEOUT_INTERVAL_MILLIS = TIMEOUT_INTERVAL * 1000;
 
+
+	/*================ SERVER CONFIG ================*/
 	// Available channel modes
 	constexpr const char* const CHANNEL_MODES = "i,t,k,o,l";
 
@@ -27,9 +36,6 @@ namespace irc
 
 	// Case mapping (What kind of character encoding are we using)
 	constexpr const char* const CASE_MAPPING = "ascii";
-
-	// Maximum password attempts
-	constexpr const int MAX_PASSWORD_ATTEMPTS = 3;
 
 	// Channel limit (CHANLIMIT)
 	constexpr const size_t MAX_CHANNELS = 20;
@@ -49,29 +55,22 @@ namespace irc
 	// Server info used in RPL_WHOISSERVER
 	constexpr const char* const SERVER_INFO = "Helsinki, FI";
 
-	// Should the server notify user on hostname lookup
-	constexpr const bool ANNOUNCE_CLIENT_LOOKUP = true;
-
-	// Server notice on fetching hostname
-	constexpr const char* const CLIENT_HOSTNAME_MESSAGE = "Looking up your hostname...";
-
-	// Server notice on hostname lookup failure
-	constexpr const char* const CLIENT_HOSTNAME_FAILURE_MESSAGE = "Couldn't look up your hostname";
-
-	// Server notice on hostname lookup success
-	constexpr const char* const CLIENT_HOSTNAME_SUCCESS_MESSAGE = "Hostname retrieved";
-
-	// Reveal real hostname
-	constexpr const bool REVEAL_HOSTNAME = true;
+	// Default hostname
+	constexpr const char* const DEFAULT_HOSTNAME = "localhost";
 
 	// Customizable server version
 	constexpr const char* const SERVER_VERSION = "v1.0";
 
+
+	/*================ CLIENT COMMUNICATION CONFIG ================*/
+	// Maximum password attempts
+	constexpr const int MAX_PASSWORD_ATTEMPTS = 3;
+
+	// Reveal real hostname
+	constexpr const bool REVEAL_HOSTNAME = true;
+
 	// Hostname length limit in the POSIX standard
 	constexpr const size_t MAX_HOSTNAME_LENGTH = 64;
-
-	// Default hostname
-	constexpr const char* const DEFAULT_HOSTNAME = "localhost";
 
 	// Backlog value for listen. System maximum is 4096
 	constexpr const int MAX_CONNECTION_REQUESTS = 128;
@@ -82,14 +81,20 @@ namespace irc
 	// Maximum incomplete message buffer size
 	constexpr const int MAX_CLIENT_BUFFER_SIZE = 4096;
 
-	// Client command logging
+	// Should the server notify user on hostname lookup
+	constexpr const bool ANNOUNCE_CLIENT_LOOKUP = true;
+
+	// Server notice on fetching client hostname
+	constexpr const char* const CLIENT_HOSTNAME_MESSAGE = "Looking up your hostname...";
+	constexpr const char* const CLIENT_HOSTNAME_FAILURE_MESSAGE = "Couldn't look up your hostname";
+	constexpr const char* const CLIENT_HOSTNAME_SUCCESS_MESSAGE = "Hostname retrieved";
+
+
+	/*================ LOGGING CONFIG ================*/
+	// Logging constants
 	constexpr const bool ENABLE_COMMAND_LOGGING = true;
-
-	// Enable logging of PING
-	constexpr const bool ENABLE_PING_LOGGING = false;
-
-	// Additional debug messaging
-	constexpr const bool EXTENDED_DEBUG_LOGGING = false;
+	constexpr const bool ENABLE_PING_LOGGING = DEBUG_MODE;
+	constexpr const bool EXTENDED_DEBUG_LOGGING = DEBUG_MODE;
 
 	// Logging statuses
 	constexpr const char* const LOG_FAIL	= "\033[1;31mFAILURE\033[0m";
