@@ -72,11 +72,13 @@ class	CommandHandler
 			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr);
 			void	broadcastTopic		( Client& client, Channel& channel, const std::string& newTopic );
 
+			// Authorization function
+			bool	confirmAuth			( Client& client );
+
 			// Static helper functions
 			static bool			isValidNick		( const std::string& nick );
 			static bool			isChannelName	( const std::string& name );
 			static std::string	toLowerCase		( const std::string& s );
-			static bool			confirmAuth		( Client& client );
 
 			// Mode related static hellper functions
 			static bool			isMode			( char mode );

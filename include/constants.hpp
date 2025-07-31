@@ -49,9 +49,6 @@ namespace irc
 	// Server info used in RPL_WHOISSERVER
 	constexpr const char* const SERVER_INFO = "Helsinki, FI";
 
-	// Password requirement
-	constexpr const bool REQUIRE_PASSWORD = true;
-
 	// Should the server notify user on hostname lookup
 	constexpr const bool ANNOUNCE_CLIENT_LOOKUP = true;
 

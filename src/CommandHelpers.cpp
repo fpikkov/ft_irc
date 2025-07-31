@@ -59,7 +59,7 @@ bool	CommandHandler::confirmAuth( Client& client )
 		!client.getUsername().empty() &&
 		!client.isAuthenticated())
 	{
-		if constexpr (irc::REQUIRE_PASSWORD)
+		if ( !_server.getPassword().empty() )
 		{
 			if (!client.getPassValidated())
 			{

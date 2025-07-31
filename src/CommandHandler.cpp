@@ -483,7 +483,7 @@ void	CommandHandler::handlePass(Client& client, const Command& cmd)
 	if (providedPassword != _server.getPassword())
 	{
 		Response::sendResponseCode(Response::ERR_PASSWDMISMATCH, client, {});
-		if constexpr ( irc::REQUIRE_PASSWORD )
+		if ( !_server.getPassword().empty() )
 		{
 			client.incrementPassAttempts();
 			irc::log_event("AUTH", irc::LOG_FAIL, "incorrect password from " + client.getIpAddress());
