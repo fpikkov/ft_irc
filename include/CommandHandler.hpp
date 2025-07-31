@@ -53,7 +53,7 @@ class	CommandHandler
 			void	handleChannelMode(Client& client, const Command& cmd, const std::string& channelName);
 			void	sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName);
 			bool	parseChannelModes(Client& client, const Command& cmd, std::vector<Mode>& modes);
-			void	applyChannelModes(Client& client, Channel& channel, const std::vector<Mode>& modes);
+			void	applyChannelModes(Client& client, Channel& channel, std::vector<Mode>& modes);
 
 			void	handleModeInviteOnly(Channel& channel, bool adding);
 			void	handleModeTopicLocked(Channel& channel, bool adding);

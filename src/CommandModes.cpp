@@ -172,90 +172,98 @@ bool	CommandHandler::parseChannelModes(Client& client, const Command& cmd, std::
 	}
 	return true;
 }
+//----------------------------------------------------------------------------------------------------------------------------------
+
+//MODE #channel +l20k-k -key -o Alice
 
 // TODO: #15 The handlers can be substituted with the short code they contain.
-void	CommandHandler::applyChannelModes(Client& client, Channel& channel, const std::vector<Mode>& modes)
+
+/**
+ * @brief Applies a pre-validated plan of mode changes and broadcasts the result.
+ *
+ * This function is the second pass of a two-pass system. It should only ever
+ * receive a vector of modes that have been fully validated by the parser.
+ * Its sole responsibility is to apply the changes and create an accurate
+ * report of what was changed, which is then broadcast to the channel.
+ *
+ * @param client The client initiating the mode change.
+ * @param channel The channel on which modes are being changed.
+ * @param modes A vector of pre-validated Mode structures to apply.
+ */
+void CommandHandler::applyChannelModes(Client& client, Channel& channel, std::vector<Mode>& modes)
 {
-	// TODO: #14 When a MODE change partially fails, construct a new modeStr for the clients with valid commands.
-	std::string modeStr;
-	std::string paramStr;
+	// 1. Precheck 
+	if (modes.empty())
+		return;
+	// 2. Setting up strings to build the broadcast message
+	std::string appliedModeStr;
+	std::string appliedParams;
 
+	bool signHasBeenSet = false;
+	bool currentSign = true; // This bool tracks the last sign (+/-) added to the mode string
+	bool failureState = false;
 
-	for ( const auto& currentMode : modes )
+	// 3. Executing and broadcasting.
+	for (Mode& currentMode : modes)
 	{
+		// Applying the change
 		switch (currentMode.mode)
 		{
-			case 'i': handleModeInviteOnly(channel, currentMode.adding); break;
-			case 't': handleModeTopicLocked(channel, currentMode.adding); break;
-			case 'k': handleModeKey(channel, currentMode.adding, currentMode); break;
-			case 'l': handleModeLimit(channel, currentMode.adding, currentMode); break;
-			case 'o': handleModeOperator(client, channel, currentMode.adding, currentMode); break;
-			default: break;
+			case 'i': channel.setInviteOnly(currentMode.adding); break;
+			case 't': channel.setTopicLocked(currentMode.adding); break;
+			case 'k': channel.setKey(currentMode.adding ? currentMode.param : ""); break;
+			case 'l':
+				if (currentMode.adding)
+				{
+					size_t limit = std::stoul(currentMode.param);
+					if (limit > irc::MAX_CHANNELS)
+					{
+						limit = irc::MAX_CHANNELS;
+						currentMode.param = std::to_string(irc::MAX_CHANNELS);
+					}
+					
+					channel.setUserLimit(limit);
+				}
+				else
+				{
+					channel.setUserLimit(0);
+				}
+				break;
+			case 'o':
+				{
+					Client* target = _server.findUser(currentMode.param);
+					if (target)
+					{
+						if (currentMode.adding) channel.addOperator(target->getFd());
+						else channel.removeOperator(target->getFd());
+					}
+					else
+					{
+						failureState = true;
+					}
+					break;
+				}
 		}
-	}
-	broadcastMode(client, channel, modeStr);
-}
-
-
-void CommandHandler::handleModeInviteOnly(Channel& channel, bool adding)
-{
-	channel.setInviteOnly(adding);
-}
-
-void CommandHandler::handleModeTopicLocked(Channel& channel, bool adding)
-{
-	channel.setTopicLocked(adding);
-}
-
-void CommandHandler::handleModeKey(Channel& channel, bool adding, const Mode& mode)
-{
-	// NOTE: Useless since mode.param will be empty when not adding
-	if (adding)
-	{
-		channel.setKey(mode.param);
-	}
-	else
-	{
-		channel.setKey("");
-	}
-}
-
-void CommandHandler::handleModeLimit(Channel& channel, bool adding, const Mode& mode)
-{
-	if (adding)
-	{
-		try
+		if (failureState)
 		{
-			size_t limit = std::stoul(mode.param);
-			if (limit > irc::MAX_CHANNELS)
-				limit = irc::MAX_CHANNELS;
-			channel.setUserLimit(limit);
+			failureState = false;
+			continue;
 		}
-		catch (...)
+		// Adding changes to report strings
+		if (!signHasBeenSet || currentMode.adding != currentSign)
 		{
-			// Do nothing as we got an invalid argument
+			currentSign = currentMode.adding;
+			appliedModeStr += (currentSign ? '+' : '-');
+			signHasBeenSet = true;
+		}
+		appliedModeStr += currentMode.mode;
+
+		if (!currentMode.param.empty())
+		{
+			appliedParams += " ";
+			appliedParams.append(currentMode.param);
 		}
 	}
-	else
-	{
-		channel.setUserLimit(0); // Set limit to 0 to unset
-	}
-}
 
-void CommandHandler::handleModeOperator(Client& client, Channel& channel, bool adding, const Mode& mode)
-{
-	Client* targetUser = _server.findUser(mode.param);
-	if (!targetUser || !channel.isMember(targetUser->getFd()))
-	{
-		Response::sendResponseCode(Response::ERR_USERNOTINCHANNEL, client, {{"target", mode.param}, {"channel", channel.getName()}});
-		return ;
-	}
-	if (adding)
-	{
-		channel.addOperator(targetUser->getFd());
-	}
-	else
-	{
-		channel.removeOperator(targetUser->getFd());
-	}
+	broadcastMode(client, channel, appliedModeStr + appliedParams);
 }

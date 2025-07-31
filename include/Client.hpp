@@ -33,6 +33,7 @@ public:
 	~Client();
 
 	// Getters
+	
 	int												getFd				() const noexcept;
 	const std::string&								getUsername			() const noexcept;
 	const std::string&								getHostname			() const noexcept;
