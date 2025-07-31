@@ -62,8 +62,6 @@ void CommandHandler::sendChannelModeReply(Client& client, Channel* channel, cons
 	Response::sendResponseCode(Response::RPL_CHANNELMODEIS, client, {{"channel", channelName}, {"mode", modes}, {"mode params", params}});
 }
 
-
-// TODO: #16 Refactor parseChannelModes into multiple functions
 /**
  * @brief Parses the MODE command into a separate struct which keeps track of mode type, parameters and if the mode is being added.
  * Modes which require parameters: +kol, -o
@@ -79,10 +77,31 @@ bool	CommandHandler::parseChannelModes(Client& client, const Command& cmd, std::
 
 	modes.clear();
 
-	std::string	tokens = cmd.params[1];
-	size_t		paramIndex = 2;
-	bool		adding = true;
+	size_t	paramIndex = 2;
 
+	// Check the first parameter AKA mode string
+	if ( !constructModeNodes(client, cmd, cmd.params[1], paramIndex, modes) )
+		return false;
+
+	// Look for trailing modes
+	while ( paramIndex < cmd.params.size() )
+	{
+		if ( !cmd.params[paramIndex].empty() )
+		{
+			if ( !constructModeNodes(client, cmd, cmd.params[paramIndex++], paramIndex, modes) )
+				return false;
+		}
+		else
+		{
+			++paramIndex;
+		}
+	}
+	return true;
+}
+
+bool	CommandHandler::constructModeNodes( Client& client, const Command& cmd, const std::string& tokens, size_t& paramIndex, std::vector<Mode>& modes )
+{
+	bool	adding = true;
 	for ( size_t idx = 0; idx < tokens.length(); ++idx )
 	{
 		char		mode = tokens[idx];
@@ -98,25 +117,18 @@ bool	CommandHandler::parseChannelModes(Client& client, const Command& cmd, std::
 		if ( CommandHandler::isMode(mode) )
 		{
 			// Find parameters for modes which require them
-			if ( mode == 'o' || ( mode == 'k' && adding ) || ( mode == 'l' && adding ) )
+			bool paramRequired = CommandHandler::requiresParam(mode, adding);
+			if ( paramRequired )
 			{
 				if ( idx + 1 < tokens.length() )
 				{
 					if ( mode == 'l' && isdigit(tokens[idx + 1]) )
 					{
-						while ( idx + 1 < tokens.length() && isdigit(tokens[idx + 1]) )
-						{
-							param += tokens[idx + 1];
-							++idx;
-						}
+						param = CommandHandler::inlineParam(tokens, idx, [](char c) { return std::isdigit(c); });
 					}
-				}
-				else if ( (mode == 'k' || mode == 'o') && !CommandHandler::isSign(tokens[idx + 1]) )
-				{
-					while ( idx + 1 < tokens.length() && !CommandHandler::isSign(tokens[idx + 1]) )
+					else if ( (mode == 'k' || mode == 'o') && !CommandHandler::isSign(tokens[idx + 1]) )
 					{
-						param += tokens[idx + 1];
-						++idx;
+						param = CommandHandler::inlineParam(tokens, idx, [](char c) { return !CommandHandler::isSign(c); });
 					}
 				}
 
@@ -138,37 +150,6 @@ bool	CommandHandler::parseChannelModes(Client& client, const Command& cmd, std::
 			Response::sendResponseCode(Response::ERR_UNKNOWNMODE, client, {{"mode", std::to_string(mode)}});
 			return false;
 		}
-	}
-
-	// Check for trailing modes which should NOT contain any parameters (how tf would you parse that?)
-	while ( paramIndex < cmd.params.size() )
-	{
-		adding = true;
-		tokens = cmd.params[paramIndex];
-		if ( !cmd.params[paramIndex].empty() )
-		{
-			for ( size_t idx = 0; idx < tokens.length(); ++idx )
-			{
-				char	mode = tokens[idx];
-				switch (mode)
-				{
-					case '+': adding = true; continue;
-					case '-': adding = false; continue;
-					default: break;
-				}
-
-				if ( ( mode == 'k' && !adding ) || ( mode == 'l' && !adding ) || mode == 'i' || mode == 't' )
-				{
-					modes.emplace_back(mode, "", adding);
-				}
-				else
-				{
-					Response::sendResponseCode(Response::ERR_NEEDMOREPARAMS, client, {{"command", "MODE"}});
-					return false;
-				}
-			}
-		}
-		++paramIndex;
 	}
 	return true;
 }

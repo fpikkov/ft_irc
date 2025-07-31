@@ -83,3 +83,19 @@ bool	CommandHandler::isSign( char sign )
 {
 	return sign == '+' || sign == '-';
 }
+
+bool	CommandHandler::requiresParam( char mode, bool adding )
+{
+	return mode == 'o' || ( mode == 'k' && adding ) || ( mode == 'l' && adding );
+}
+
+std::string	CommandHandler::inlineParam( const std::string& tokens, size_t& index, std::function<bool(char)> condition )
+{
+	std::string param;
+	while ( index + 1 < tokens.length() && condition(tokens[index + 1]) )
+	{
+		param += tokens[index + 1];
+		++index;
+	}
+	return param;
+}
