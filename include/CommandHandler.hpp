@@ -53,6 +53,7 @@ class	CommandHandler
 			void	handleChannelMode(Client& client, const Command& cmd, const std::string& channelName);
 			void	sendChannelModeReply(Client& client, Channel* channel, const std::string& channelName);
 			bool	parseChannelModes(Client& client, const Command& cmd, std::vector<Mode>& modes);
+			bool	constructModeNodes( Client& client, const Command& cmd, const std::string& tokens, size_t& paramIndex, std::vector<Mode>& modes );
 			void	applyChannelModes(Client& client, Channel& channel, std::vector<Mode>& modes);
 
 			void	handleModeInviteOnly(Channel& channel, bool adding);
@@ -71,13 +72,19 @@ class	CommandHandler
 			void	broadcastMode		( Client& client, Channel& channel, const std::string& modeStr);
 			void	broadcastTopic		( Client& client, Channel& channel, const std::string& newTopic );
 
+			// Authorization function
+			bool	confirmAuth			( Client& client );
+
 			// Static helper functions
 			static bool			isValidNick		( const std::string& nick );
 			static bool			isChannelName	( const std::string& name );
 			static std::string	toLowerCase		( const std::string& s );
-			static bool			confirmAuth		( Client& client );
+
+			// Mode related static hellper functions
 			static bool			isMode			( char mode );
 			static bool			isSign			( char sign );
+			static bool			requiresParam	( char mode, bool adding );
+			static std::string	inlineParam		( const std::string& tokens, size_t& index, std::function<bool(char)> condition );
 
 	public:
 			CommandHandler(Server& server);
