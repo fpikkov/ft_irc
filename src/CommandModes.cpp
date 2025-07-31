@@ -126,7 +126,7 @@ bool	CommandHandler::constructModeNodes( Client& client, const Command& cmd, con
 					{
 						param = CommandHandler::inlineParam(tokens, idx, [](char c) { return std::isdigit(c); });
 					}
-					else if ( (mode == 'k' || mode == 'o') && !CommandHandler::isSign(tokens[idx + 1]) )
+					else if ( (mode == 'k' || mode == 'o') && !CommandHandler::isSign(tokens[idx + 1]) && tokens[idx + 1] != 'i' && tokens[idx + 1] != 't' && tokens[idx + 1] != 'l' )
 					{
 						param = CommandHandler::inlineParam(tokens, idx, [](char c) { return !CommandHandler::isSign(c); });
 					}
@@ -173,7 +173,7 @@ bool	CommandHandler::constructModeNodes( Client& client, const Command& cmd, con
  */
 void CommandHandler::applyChannelModes(Client& client, Channel& channel, std::vector<Mode>& modes)
 {
-	// 1. Precheck 
+	// 1. Precheck
 	if (modes.empty())
 		return;
 	// 2. Setting up strings to build the broadcast message
@@ -202,7 +202,7 @@ void CommandHandler::applyChannelModes(Client& client, Channel& channel, std::ve
 						limit = irc::MAX_CHANNELS;
 						currentMode.param = std::to_string(irc::MAX_CHANNELS);
 					}
-					
+
 					channel.setUserLimit(limit);
 				}
 				else
