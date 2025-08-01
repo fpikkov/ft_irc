@@ -23,9 +23,6 @@ else
 	$(error Unknown build type: $(BUILD_TYPE). Available types are "default", "release" and "debug".)
 endif
 
-# Enable parallel compilation
-MAKEFLAGS += -j$(shell nproc)
-
 # Directories
 BUILD_DIR = ./build
 INCLUDE_DIR = ./include
@@ -78,6 +75,9 @@ release: clean
 debug: clean
 	@$(MAKE) BUILD_TYPE=debug --no-print-directory
 
+fast:
+	@$(MAKE) -j$(shell nproc) all
+
 # Include dependency files
 -include ${DEPS}
 
@@ -91,4 +91,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all re clean fclean release debug
+.PHONY: all re clean fclean default release debug fast
