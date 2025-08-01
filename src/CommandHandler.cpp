@@ -53,7 +53,7 @@ void	CommandHandler::handleCommand(Client& client, const Command& cmd)
 	{
 		if constexpr ( irc::ENABLE_COMMAND_LOGGING )
 		{
-			if ( cmd.command != "PING" || cmd.command != "PONG" || irc::ENABLE_PING_LOGGING )
+			if ( (cmd.command == "PING" || cmd.command == "PONG") && irc::ENABLE_PING_LOGGING )
 				irc::log_event("COMMAND", irc::LOG_INFO, cmd.command + " from " + (client.getNickname().empty() ? "*" : client.getNickname()) + "@" + client.getIpAddress());
 		}
 		client.updateLastActivity();
